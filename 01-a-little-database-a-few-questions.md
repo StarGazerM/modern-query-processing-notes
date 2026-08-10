@@ -16,7 +16,8 @@ My first guess is: software that stores and manages data on a computer.
 :::
 
 :::qa
-What is data?
+Keep that guess. Before we decide whether a database is data or software, what
+is data?
 :::answer
 I use the word every day, but it is hard to say. Perhaps data is information
 stored on a computer.
@@ -61,7 +62,7 @@ We need only this fact now; we will return to borrowing later.
 
 Now, again, is `Road` data?
 :::answer
-No. It names the permitted form of a `Road` value; it does not create one.
+No. It seems to name a kind of value rather than create a value.
 :::
 
 :::qa
@@ -74,10 +75,9 @@ let road: Road = (
 ```
 data?
 :::answer
-The statement is code. When Rust evaluates the tuple expression, the resulting
-value can be stored in `road`.
+The line is code, but the tuple it creates—the two city names—looks like data.
 
-I see, `Road` is not data, but `Road` is a set of data.
+Then perhaps `Road` is the set of all such data?
 :::
 
 :::qa
@@ -88,21 +88,26 @@ Here, Rust can decide whether a value has the shape required by `Road`: a pair
 of `City` values. Because `City` is only an alias for `&'static str`, this
 currently means a pair of static string references.
 
-Is `("Apple", "Salt Lake City")` a road?
-Is `("Apple", "Banana")` a road?
-:::answer
-No. So `Road` decides their Rust shape, but it does not decide whether either
-tuple is recorded as a road.
+Do both of these statements compile?
 
-How can we test which tuples are recorded as roads without answering your
-hundred “Is this a road?” questions one at a time?
+```rust
+let apple_slc: Road =
+    ("Apple", "Salt Lake City");
+let apple_banana: Road =
+    ("Apple", "Banana");
+```
+:::answer
+Yes. Rust even accepts Apple to Banana. So the type is checking their shape,
+not whether they describe roads?
 :::
 
 :::qa
-Can we write one named Rust function that takes the stored roads and one
-candidate, then answers `true` or `false`?
+Exactly. `Road` decides their Rust shape; it does not record either tuple.
+
+How can we store the exact roads and test candidates without answering your
+hundred “Is this a road?” questions one at a time?
 :::answer
-Perhaps:
+Perhaps with a `HashSet` and a named function:
 
 ```rust
 use std::collections::HashSet;
@@ -116,7 +121,7 @@ fn is_road(
     roads: HashSet<Road>,
     road: Road,
 ) -> bool {
-    roads.contains(road)
+    roads.contains(&road)
 }
 ```
 
@@ -131,7 +136,7 @@ is_road(
 :::
 
 :::qa
-Recreate the same `roads`, then try asking two questions:
+Start with a freshly recreated `roads`, then ask the same question twice:
 
 ```rust
 is_road(
@@ -144,115 +149,177 @@ is_road(
 );
 ```
 :::answer
-Ahhh rust fails me, this not make sense. It should give me two `true` answers, but it says the second call is an error: `value moved here`.
+Ahhh, Rust fails me. I expected two `true` answers, but the second call says
+`value moved here`.
 :::
 
 :::qa
-When a variable "assigned" to another varible, for example variable in function argument,
-rust doesn't "assign" the value, it **moves** the **ownership** of the value.
-So here in your first call, first call's argument variable is moved, `roads` variable no longer owns the value, so it cannot be used in the second call. 
+The problem is ownership, not road membership. A `HashSet<Road>` is not
+`Copy`. Passing `roads` by value moves its ownership into the first call, so
+the caller cannot use the same binding again.
 
-This make sense logically, you ask question about data, the existing data in the database will never moved.
+Did the first call add or remove a tuple?
+:::answer
+No. The members did not change. I only lost the caller's `roads` binding.
+:::
 
-And, as you predicated, you asked question two times, it should give you both true.
-
-Now, change the first parameter type:
+:::qa
+The function needs permission to inspect the set, not ownership of it. Replace
+only the first parameter:
 
 ```rust
 fn is_road(
     roads: &HashSet<Road>,
     road: Road,
 ) -> bool {
-    roads.contains(road)
+    roads.contains(&road)
 }
 ```
 
+What does the new parameter type ask the caller to supply?
 :::answer
-`&` is the reference you mentioned. I saw it when you mentioned `&'static str`. 
+A reference to the stored set instead of the set itself.
 :::
 
 :::qa
-Yes, but this actually called a **borrow**.
-I owe you the definition of **ownership** and **borrowing**, let me push it back again.
-Can we now ask both questions using the same set?
+Can we keep the old call?
 
 ```rust
 is_road(
     roads,
     ("Logan", "Salt Lake City"),
-);
-is_road(
-    roads,
-    ("Logan", "Salt Lake City"),
-);
+)
 ```
 :::answer
-It still fails.
+No. The function expects `&HashSet<Road>`, so perhaps I need to write
+`&roads` at the call.
 :::
 
 :::qa
-What is the type of the arguments to `is_road`?
-:::answer
-Okay, I see. `&HashSet<Road>` is not the same type as `HashSet<Road>`. I need to pass a reference to the candidate tuple, too:
+Then can we ask twice this way?
 
 ```rust
 is_road(
     &roads,
     ("Logan", "Salt Lake City"),
 );
+is_road(
+    &roads,
+    ("Logan", "Salt Lake City"),
+);
 ```
+:::answer
+Yes. Both calls return `true`, and I can still use `roads` afterward.
 :::
 
 :::qa
+Good. Evaluating `&roads` **borrows** the stored set and produces a shared
+reference. The caller keeps ownership. I still owe you the fuller story of
+ownership and borrowing.
+
+There is another reference inside the function:
+
+```rust
+roads.contains(&road)
+```
+
+Does `&road` borrow the stored set again?
+:::answer
+No. This `&` is attached to `road`, not `roads`. It must refer to the candidate.
+:::
+
+:::qa
+Right. `&roads` borrows the stored set for `is_road`; `&road` borrows the local
+candidate for `contains`.
+
+For the next few questions, the surrounding discussion keeps `roads` fixed.
+We will abbreviate
+
+```rust
+is_road(&roads, candidate)
+```
+
+as
+
+```text
+is_road(candidate)
+```
+
+Which argument did we hide?
+:::answer
+`&roads`.
+:::
+
+:::qa
+Using that shorthand, what does this call return?
 ```text
 is_road(("Logan", "Provo"))
 ```
 :::answer
 `false`.
 
-But we all know that there is a two-road route from Logan to Provo. Why does `is_road` say `false`?
+But we all know that there is a two-road route from Logan to Provo. Why does
+`is_road` say `false`?
 :::
 
 :::qa
-Good catch, we don't know yet.
+The tuple `("Logan", "Provo")` is not stored in `roads`.
+
+Is testing one stored road the same question as testing whether two roads form
+a route?
+:::answer
+No. `is_road` tests direct membership. Two-road reachability is a different
+question.
+:::
+
+:::qa
+Good. Keep the two-road question; we will return to it after we understand what
+`roads` is.
+
 How many values does this `HashSet` contain?
 
 ```rust
-    HashSet::from([
-        ("Logan", "Salt Lake City"),
-        ("Logan", "Salt Lake City"),
-    ]);
+HashSet::<Road>::from([
+    ("Logan", "Salt Lake City"),
+    ("Logan", "Salt Lake City"),
+])
 ```
 :::answer
-One. Its a **Set**. I know it.
+One. It is a **set**. I know this one.
 :::
 
 :::qa
-For a fixed `roads`, the expression
+`roads` is a set, and every member is an ordered pair. Mathematics calls a set
+of ordered pairs a binary **relation**.
+
+Is the relation `roads` one road tuple?
+:::answer
+No. A tuple is one member; the relation is the whole set of members.
+:::
+
+:::qa
+For fixed `roads`, what does
 
 ```text
 is_road(candidate)
 ```
 
-decides which property of `candidate`?
+decide?
 :::answer
-Whether `candidate` is a member of `roads`.
+Whether `candidate` is a member of the relation `roads`.
 :::
 
 :::qa
-A true-or-false test of membership is a **membership predicate**.
+A true-or-false test of relation membership is a **membership predicate**.
 
-The finite set of tuples `roads` is a **relation instance**.
-
-How much additional road data is stored inside `is_road`?
+Does `is_road` store any road data in addition to `roads`?
 :::answer
-None. Once `roads` is fixed, the answer of `is_road` is fixed.
-
-The set and its membership predicate describe the same membership information.
+No. If I know `roads`, I can predict every answer that `is_road` will give.
 :::
 
 :::alice
-Chapter 3, Section 3.3, p. 32 - a relation instance as a finite set of tuples.
+Chapter 3, Section 3.3, p. 32 - the finite-set-of-tuples view. We will add the
+schema-instance distinction next.
 :::
 
 :::qa
