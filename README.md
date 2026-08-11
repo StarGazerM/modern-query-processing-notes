@@ -1,5 +1,8 @@
 # Conversational course notes
 
+> **Status:** Work in progress. The notes are public so students can read them
+> as they develop; content and organization may still change.
+
 These notes use a small Markdown convention to produce a Friedman-style,
 two-speaker dialogue. The renderer has no package dependencies; it uses the
 Node.js already available in the development environment.

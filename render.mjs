@@ -360,6 +360,7 @@ function renderDocument(source, theme) {
   const subtitle = metadata.subtitle ?? "";
   const author = metadata.author ?? "";
   const date = metadata.date ?? "";
+  const status = metadata.status ?? "";
   const leftSpeaker = metadata.left_speaker ?? "Ada";
   const rightSpeaker = metadata.right_speaker ?? "Alice";
   const byline = [author, date]
@@ -392,6 +393,7 @@ function renderDocument(source, theme) {
 <body>
   <article class="page" id="lecture-note">
     <header class="title-block">
+      ${status ? `<p class="status-badge">${renderInline(status)}</p>` : ""}
       <h1>${renderInline(title)}</h1>
       ${subtitle ? `<p class="subtitle">${renderInline(subtitle)}</p>` : ""}
       ${byline ? `<div class="byline">${byline}</div>` : ""}
