@@ -25,6 +25,17 @@
   box-sizing: border-box;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -360,6 +371,182 @@ blockquote {
   color: var(--muted);
 }
 
+.review-gate {
+  margin: 42px 0;
+  border-top: 1px solid color-mix(in srgb, var(--rust) 28%, var(--line));
+  border-bottom: 1px solid color-mix(in srgb, var(--rust) 28%, var(--line));
+  background: color-mix(in srgb, var(--rust-soft) 62%, var(--sheet));
+}
+
+.review-gate-heading {
+  display: grid;
+  gap: 6px;
+  padding: 22px clamp(28px, 6vw, 80px) 16px;
+}
+
+.review-gate-heading strong {
+  font: 650 clamp(1.08rem, 2vw, 1.3rem)/1.25 var(--sans);
+}
+
+.review-eyebrow {
+  color: var(--rust);
+  font: 750 0.66rem/1.2 var(--sans);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.review-route,
+.review-path > summary {
+  margin: 0 clamp(28px, 6vw, 80px);
+  border: 1px solid color-mix(in srgb, var(--rust) 28%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, white 68%, transparent);
+}
+
+.review-route {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 17px 20px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.review-route:hover,
+.review-route:focus-visible,
+.review-path > summary:hover {
+  border-color: color-mix(in srgb, var(--rust) 55%, var(--line));
+  background: white;
+}
+
+.review-route:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--rust) 42%, transparent);
+  outline-offset: 2px;
+}
+
+.review-route-copy,
+.review-summary-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.review-route-copy strong,
+.review-summary-copy strong {
+  font: 700 0.93rem/1.3 var(--sans);
+}
+
+.review-route-label {
+  color: var(--muted);
+  font: 750 0.66rem/1.2 var(--sans);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.review-route-action {
+  display: grid;
+  flex: 0 0 2rem;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 999px;
+  color: white;
+  background: var(--accent);
+  font: 750 1rem/1 var(--sans);
+}
+
+.review-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px clamp(28px, 6vw, 80px);
+  color: var(--muted);
+  font: 700 0.66rem/1 var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.review-or::before,
+.review-or::after {
+  flex: 1 1 auto;
+  border-top: 1px solid color-mix(in srgb, var(--rust) 22%, var(--line));
+  content: "";
+}
+
+.review-path {
+  margin-bottom: 22px;
+}
+
+.review-path > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 17px 20px;
+  color: var(--ink);
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--sans);
+}
+
+.review-path > summary::-webkit-details-marker {
+  display: none;
+}
+
+.review-path > summary:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--rust) 50%, transparent);
+  outline-offset: -3px;
+}
+
+.review-path > summary::before {
+  content: none;
+}
+
+.review-toggle {
+  flex: 0 0 auto;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in srgb, var(--rust) 35%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, white 55%, transparent);
+  font: 700 0.72rem/1.2 var(--sans);
+}
+
+.review-when-open {
+  display: none;
+}
+
+.review-path[open] .review-when-open {
+  display: inline;
+}
+
+.review-path[open] .review-when-closed {
+  display: none;
+}
+
+.review-title {
+  color: var(--rust);
+  font: 650 0.77rem/1.3 var(--sans);
+}
+
+.review-print-label {
+  display: none;
+}
+
+.review-body {
+  margin-top: 18px;
+  border-top: 1px solid color-mix(in srgb, var(--rust) 28%, var(--line));
+  background: var(--sheet);
+}
+
+.review-body > .qa-row:first-child {
+  margin-top: 0;
+}
+
+.review-resume {
+  display: block;
+  scroll-margin-top: 24px;
+}
+
 .compare-row {
   margin-top: 42px;
   border-top: 1px solid var(--line);
@@ -507,6 +694,65 @@ blockquote {
   color: var(--notation);
 }
 
+.recap {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(0, 2.7fr);
+  gap: clamp(24px, 4vw, 52px);
+  margin: 56px clamp(28px, 6vw, 80px) 0;
+  padding: 26px 0 24px;
+  border-top: 4px double var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+
+.recap-heading h2 {
+  margin: 5px 0 0;
+  font: 600 1.25rem/1.15 var(--serif);
+  letter-spacing: -0.015em;
+}
+
+.recap-kicker {
+  color: var(--muted);
+  font: 750 0.66rem/1.2 var(--sans);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.recap-body {
+  min-width: 0;
+  font-size: 0.91em;
+  line-height: 1.43;
+}
+
+.recap-body p,
+.recap-body ul,
+.recap-body ol {
+  margin-top: 0;
+  margin-bottom: 0.62rem;
+}
+
+.recap-body ul,
+.recap-body ol {
+  padding-left: 1.25rem;
+}
+
+.recap-body li + li {
+  margin-top: 0.24rem;
+}
+
+.recap-body .math-block {
+  padding: 3px 0;
+}
+
+.recap-body pre {
+  margin: 0.62rem 0;
+  font-size: 0.86em;
+  line-height: 1.42;
+}
+
+.recap-body > :last-child {
+  margin-bottom: 0;
+}
+
 .math-block {
   overflow-x: auto;
   padding: 8px 0;
@@ -611,6 +857,27 @@ blockquote {
   .alice-note > * + * {
     margin-left: 0.28rem;
   }
+
+  .review-route,
+  .review-path > summary {
+    margin-right: 20px;
+    margin-left: 20px;
+  }
+
+  .review-path > summary {
+    align-items: flex-start;
+  }
+
+  .review-toggle {
+    flex-shrink: 0;
+  }
+
+  .recap {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 44px;
+    padding: 22px 0;
+  }
 }
 
 @media print {
@@ -665,6 +932,62 @@ blockquote {
 
   .answer {
     transform: none;
+  }
+
+  .review-gate {
+    margin: 24px 0;
+    border: 0;
+    background: white;
+  }
+
+  .review-gate-heading,
+  .review-route,
+  .review-or,
+  .review-path > summary {
+    display: none;
+  }
+
+  .review-print-label {
+    display: block;
+    margin: 0 0 10px;
+    color: var(--rust);
+    font: 750 8pt/1.2 var(--sans);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .review-path {
+    margin: 0;
+  }
+
+  .review-path > .review-body {
+    display: block !important;
+    border: 0;
+  }
+
+  .recap {
+    display: block;
+    margin: 28pt 0 0;
+    padding: 14pt 0 12pt;
+    border-top: 3pt double black;
+    border-bottom: 0.5pt solid black;
+    break-inside: auto;
+  }
+
+  .recap-heading {
+    margin-bottom: 10pt;
+    break-after: avoid;
+  }
+
+  .recap-body {
+    font-size: 9.25pt;
+    line-height: 1.35;
+  }
+
+  .recap-body p,
+  .recap-body li {
+    orphans: 3;
+    widows: 3;
   }
 
 }

@@ -127,6 +127,62 @@ function renderMarkdown(markdown, state) {
       continue;
     }
 
+    if (trimmed.startsWith("::::review")) {
+      const closeIndex = findMarker(lines, index + 1, "::::");
+      if (closeIndex < 0) {
+        throw new Error(`Review path near line ${index + 1} has no closing :::: marker`);
+      }
+
+      state.reviewNumber += 1;
+      const title = trimmed.slice("::::review".length).trim() || "Optional review";
+      const reviewId = `review-${state.reviewNumber}-${slugify(title)}`;
+      const previousReview = state.review;
+      const review = {
+        number: state.reviewNumber,
+        exchangeNumber: 0,
+      };
+      state.review = review;
+      const body = renderMarkdown(lines.slice(index + 1, closeIndex).join("\n"), state);
+      state.review = previousReview;
+      const exchangeCount = review.exchangeNumber;
+      const exchangeLabel = exchangeCount === 1 ? "exchange" : "exchanges";
+      output.push(`
+<section class="review-gate" aria-labelledby="${reviewId}-choice">
+  <header class="review-gate-heading" id="${reviewId}-choice">
+    <span class="review-eyebrow">Optional feature conversation</span>
+    <strong>Would a quick review of ${renderInline(title)} help?</strong>
+  </header>
+  <a class="review-route review-route-fast" href="#${reviewId}-resume">
+    <span class="review-route-copy">
+      <span class="review-route-label">No</span>
+      <strong>Continue with the main conversation</strong>
+    </span>
+    <span class="review-route-action" aria-hidden="true">↓</span>
+  </a>
+  <div class="review-or" aria-hidden="true"><span>or</span></div>
+  <details class="review-path" id="${reviewId}">
+    <summary>
+      <span class="review-summary-copy">
+        <span class="review-route-label">Yes</span>
+        <strong>Open ${exchangeCount} short ${exchangeLabel}</strong>
+        <span class="review-title">Review ${renderInline(title)}</span>
+      </span>
+      <span class="review-toggle">
+        <span class="review-when-closed">Open detour</span>
+        <span class="review-when-open">Close detour</span>
+      </span>
+    </summary>
+    <div class="review-print-label">Optional feature conversation R${state.reviewNumber} · ${renderInline(title)}</div>
+    <div class="review-body">${body}</div>
+  </details>
+</section>
+<span class="review-resume" id="${reviewId}-resume" tabindex="-1">
+  <span class="visually-hidden">Main conversation resumes</span>
+</span>`);
+      index = closeIndex + 1;
+      continue;
+    }
+
     if (trimmed.startsWith(":::compare")) {
       const rustIndex = findMarker(lines, index + 1, ":::rust");
       if (rustIndex < 0) {
@@ -187,12 +243,21 @@ function renderMarkdown(markdown, state) {
         throw new Error(`Dialogue block near line ${index + 1} has no closing ::: marker`);
       }
 
-      state.exchangeNumber += 1;
-      const number = String(state.exchangeNumber).padStart(2, "0");
+      let number;
+      let exchangeId;
+      if (state.review) {
+        state.review.exchangeNumber += 1;
+        number = `R${state.review.number}.${state.review.exchangeNumber}`;
+        exchangeId = `review-${state.review.number}-exchange-${state.review.exchangeNumber}`;
+      } else {
+        state.exchangeNumber += 1;
+        number = String(state.exchangeNumber).padStart(2, "0");
+        exchangeId = `exchange-${state.exchangeNumber}`;
+      }
       const leftTurn = lines.slice(index + 1, replyIndex).join("\n");
       const rightTurn = lines.slice(replyIndex + 1, closeIndex).join("\n");
       output.push(`
-<section class="qa-row" id="exchange-${state.exchangeNumber}">
+<section class="qa-row" id="${exchangeId}">
   <div class="question">
     <div class="eyebrow">${renderInline(state.leftSpeaker)} · ${number}</div>
     ${renderMarkdown(leftTurn, state)}
@@ -222,6 +287,29 @@ function renderMarkdown(markdown, state) {
   <span aria-hidden="true">·</span>
   <span>${renderInline(body)}</span>
 </aside>`);
+      index = closeIndex + 1;
+      continue;
+    }
+
+    if (trimmed.startsWith(":::recap")) {
+      const closeIndex = findClosingMarker(lines, index + 1);
+      if (closeIndex < 0) {
+        throw new Error(`Recap near line ${index + 1} has no closing ::: marker`);
+      }
+
+      state.recapNumber += 1;
+      const title =
+        trimmed.slice(":::recap".length).trim() || "What we have established";
+      const titleId = `recap-${state.recapNumber}-title`;
+      const body = lines.slice(index + 1, closeIndex).join("\n");
+      output.push(`
+<section class="recap" aria-labelledby="${titleId}">
+  <header class="recap-heading">
+    <span class="recap-kicker">Recap</span>
+    <h2 id="${titleId}">${renderInline(title)}</h2>
+  </header>
+  <div class="recap-body">${renderMarkdown(body, state)}</div>
+</section>`);
       index = closeIndex + 1;
       continue;
     }
@@ -398,6 +486,9 @@ function renderDocument(source, theme) {
   const state = {
     exchangeNumber: 0,
     comparisonNumber: 0,
+    reviewNumber: 0,
+    recapNumber: 0,
+    review: null,
     leftSpeaker,
     rightSpeaker,
   };
@@ -441,6 +532,21 @@ function renderDocument(source, theme) {
       <a href="https://pldi.me/">Yihao Sun</a>
     </footer>
   </article>
+  <script>
+    (() => {
+      let reviewsOpenedForPrint = [];
+      window.addEventListener("beforeprint", () => {
+        reviewsOpenedForPrint = [
+          ...document.querySelectorAll("details.review-path:not([open])"),
+        ];
+        for (const review of reviewsOpenedForPrint) review.open = true;
+      });
+      window.addEventListener("afterprint", () => {
+        for (const review of reviewsOpenedForPrint) review.open = false;
+        reviewsOpenedForPrint = [];
+      });
+    })();
+  </script>
 </body>
 </html>`;
 }

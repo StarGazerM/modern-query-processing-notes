@@ -57,6 +57,30 @@ The set of tuples that satisfy every body atom under one valuation.
 :::
 ```
 
+When several exchanges review a prerequisite rather than advance the database
+argument, wrap them in an optional review path:
+
+```text
+::::review Rust ownership and borrowing
+:::qa
+Can the caller use `roads` again after passing `&roads`?
+:::answer
+Yes. The caller lent a shared reference and kept ownership.
+:::
+::::
+```
+
+The renderer presents two visible routes: a reader who already knows the Rust
+feature can continue with the main conversation, while another reader can open
+the closed feature conversation. This is suitable for local prerequisites such
+as borrowing here or macros later. Optional exchanges receive local labels such
+as `R1.1` and `R1.2`, so the main dialogue keeps consecutive numbers.
+
+The branch contains only the feature review; it does not replace the next
+database question with a different one. Both routes rejoin at the exact same
+main-dialogue cell, which states every fact needed later. Printing always
+includes the full feature conversation.
+
 The visible speaker names come from the note's front matter:
 
 ```text
@@ -93,15 +117,49 @@ Chapter 4, p. 37 - queries and query mappings.
 :::
 ```
 
-Use a notation block when the dialogue reaches syntax students will type in a
-homework. It is visually distinct from definitions and laws:
+Use a notation block only after the dialogue has exercised the forms it
+summarizes. It is visually distinct from definitions and laws:
 
 ```text
-:::notation MiniLinq homework notation
-`relation road(City, City);` declares a host-supplied relation named `road`
-with two ordered `City` columns; it inserts no tuples.
+:::notation Forms earned so far
+`relation road(City, City);` declares relation `road` with two ordered `City`
+positions; it inserts no tuples.
 :::
 ```
+
+End a developed conversation with a recap when its examples have accumulated
+into a coherent formal account. A recap leaves the dialogue voice: it states
+the earned objects, notation, semantics, and consequences directly and
+compactly.
+
+```text
+:::recap The formal picture
+For a schema $S$, an instance $I$ assigns a relation of the declared arity and
+types to every relation name in $S$.
+
+A conjunctive query denotes a mapping from permitted input instances to result
+relations. Its answers are the head tuples obtained from valuations satisfying
+all body atoms.
+:::
+```
+
+A recap may consolidate earlier definitions and laws, but it must not introduce
+a concept required to understand the preceding conversation. Prefer connected
+formal prose over another sequence of questions.
+
+## Separate meaning from Rust wiring
+
+In a conceptual conversation, show bare query forms in a `text` fence. They are
+the language being investigated, not Rust that can compile by itself. When an
+executable account of their meaning is needed, show a separate ordinary Rust
+function in a `rust` fence and compile-check that function.
+
+Delay the host-language envelope—the implementation name, macro invocation,
+generated item name, callable API, ownership choices, and materialization
+format—to a guided `lab-*` note. That lab should make each piece necessary by
+first trying to give the already-understood query notation a home in Rust.
+The conversation establishes what a query denotes; the lab later constructs
+machinery that must preserve that meaning.
 
 ## Render
 
@@ -168,5 +226,7 @@ Python-to-Rust example.
 - Ask for a prediction before naming the abstraction.
 - Use `:::definition` for stipulated vocabulary and semantics.
 - Introduce a `:::law` only after examples and a counterexample support it.
+- Use one terminal `:::recap` to compress what the dialogue earned; introduce no
+  new dependency there.
 - Reuse a small cast of queries instead of inventing a new example for every
   question.

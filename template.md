@@ -55,11 +55,23 @@ A physical choice may change the execution trace and its work. It must not
 change the relation denoted by the query.
 :::
 
-# End with transfer, not summary
+# End with transfer, then compress
 
 :::qa
 Change `S(7,4)` to `S(9,4)`. Which part of the preceding reasoning changes?
 :::answer
 The satisfying valuation disappears, so the result becomes empty. The
 distinction between query meaning and execution choice does not change.
+:::
+
+:::recap What this conversation established
+For an input instance $I$, the conjunctive query
+`Q(x,z) :- R(x,y), S(y,z).` denotes the relation
+$$
+Q(I)=\{(v(x),v(z))\mid
+(v(x),v(y))\in I(R)\text{ and }(v(y),v(z))\in I(S)\}.
+$$
+The repeated variable $y$ requires one shared value in both atoms. Execution
+may inspect either input first, but a correct implementation must return
+exactly $Q(I)$ for every permitted $I$.
 :::
