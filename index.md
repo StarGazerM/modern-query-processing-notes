@@ -1,27 +1,77 @@
 ---
 title: Modern Query Processing
-subtitle: Conversational notes from meaning to execution
-author: Yihao Sun
+subtitle: From declarative meaning to executable systems
+author: Yihao Sun · Utah State University
 date: Fall 2026
 status: Work in progress
+layout: home
 left_speaker: Ada
 right_speaker: Alice
 ---
 
-# Read the notes
+> How does a short declarative reasoning query become an efficient executable
+> program?
 
-These notes follow a query from its mathematical meaning to executable Rust. Each
-conversation asks for a prediction, makes the relevant objects precise, and keeps the code
-close enough to inspect.
+# Start with the course
 
-- [Conversation 1.1 — The Database Itself](01-a-little-database-a-few-questions.html)
-- [A Little Rust, Side by Side](aside-a-little-rust-side-by-side.html) — the Rust cheat sheet
+This graduate course follows one query all the way down: from a mathematical
+relation, through joins and typed intermediate representations, to executable
+Rust. We ask not only what a query means, but what an implementation must do—and
+how query shape limits the work it should have to do.
 
-# Read them as working notes
+:::cards
+[Read the syllabus](syllabus.html) | Outcomes, prerequisites, assessment, participation, and course policies.
+[Follow the schedule](schedule.html) | Fifteen weeks of topics, primary readings, practica, and release dates.
+[Understand the project](project.html) | One cumulative Rust implementation, released in three inspectable stages.
+[Open the first conversation](01-a-little-database-a-few-questions.html) | Begin with the database itself, then make queries precise in mathematics and code.
+:::
 
-The conversations are meant to be used at a desk: pause at a question, write down a result,
-then read across to the answer. Exact tuples, types, bindings, and programs matter more than
-remembering terminology in isolation.
+# Course at a glance
 
-The Markdown sources and renderer are available in the [public GitHub
-repository](https://github.com/StarGazerM/modern-query-processing-notes).
+| | |
+|---|---|
+| Term | Fall 2026 · August 31–December 11 |
+| Level | Graduate; advanced undergraduates with permission |
+| Format | Lecture, paper discussion, guided practica, and one cumulative project |
+| Exams | None |
+| Language | Rust is introduced in the course; prior Rust experience is not required |
+| Through-line | CQ meaning → joins → bounds → execution → recursive Datalog |
+
+# One intellectual path
+
+## 01 · Give the query a meaning
+
+We begin with relations, valuations, conjunctive queries, and query hypergraphs.
+The first obligation is exact: for every permitted input database, what relation
+does the query denote?
+
+## 02 · Account for the work
+
+Binary joins, pull and push, AGM bounds, Yannakakis, filtering, and
+worst-case-optimal joins turn one meaning into sharply different executions.
+Students trace the intermediates and measure the operations—not merely the wall
+clock.
+
+## 03 · Make joins recursive
+
+Positive Datalog turns a conjunctive query into a repeated one. Fixed points,
+deltas, duplicates, and termination make the same semantic and physical
+questions recur over time.
+
+# Course notes
+
+The notes are working documents, written for quick retrieval during the course.
+Pause at a question, predict an answer, and then read across. Exact tuples,
+types, bindings, and programs matter more than isolated terminology.
+
+:::cards
+[Conversation 1.1 · The Database Itself](01-a-little-database-a-few-questions.html) | Replace the database-as-black-box picture with a relation that is mathematically defined and executable in Rust.
+[A Little Rust, Side by Side](aside-a-little-rust-side-by-side.html) | A Python-to-Rust cheat sheet for reading the project and the course text.
+:::
+
+# Public while it develops
+
+The syllabus, schedule, project contract, and notes live in one
+[public repository](https://github.com/StarGazerM/modern-query-processing-notes).
+The work-in-progress label is deliberate: students can read the course as it
+develops, while changes remain inspectable through version control.

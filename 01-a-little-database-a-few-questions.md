@@ -4,6 +4,7 @@ subtitle: Conversation 1.1 — Not Ideas About the Database but the Database Its
 author: Modern Query Processing
 date: Fall 2026
 status: Work in progress
+layout: dialogue
 left_speaker: Ada
 right_speaker: Alice
 ---

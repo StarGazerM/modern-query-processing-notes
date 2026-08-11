@@ -4,6 +4,7 @@ subtitle: A quick-reference Python-to-Rust cheat sheet for the project and book
 author: Modern Query Processing
 date: Fall 2026
 status: Work in progress
+layout: comparison
 left_speaker: Python
 right_speaker: Rust
 ---

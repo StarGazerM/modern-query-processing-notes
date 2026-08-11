@@ -10,7 +10,8 @@ const notePattern = /^(?:\d{2}-|aside-).+\.md$/;
 const noteSources = readdirSync(scriptDirectory)
   .filter((name) => notePattern.test(name))
   .sort();
-const sources = ["index.md", ...noteSources];
+const courseSources = ["index.md", "syllabus.md", "schedule.md", "project.md"];
+const sources = [...courseSources, ...noteSources];
 
 for (const source of sources) {
   const result = spawnSync(

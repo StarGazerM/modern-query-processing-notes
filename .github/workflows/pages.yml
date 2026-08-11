@@ -1,4 +1,4 @@
-name: Build and deploy notes
+name: Build and deploy course site
 
 on:
   push:
@@ -30,15 +30,22 @@ jobs:
         run: |
           node --check render.mjs
           node --check build-site.mjs
+          node --check check-site.mjs
 
-      - name: Build notes
+      - name: Build course site
         run: node build-site.mjs
 
       - name: Check published entry points
         run: |
           test -s build/index.html
+          test -s build/syllabus.html
+          test -s build/schedule.html
+          test -s build/project.html
           test -s build/01-a-little-database-a-few-questions.html
           test -s build/aside-a-little-rust-side-by-side.html
+
+      - name: Check internal links
+        run: node check-site.mjs
 
       - name: Configure Pages
         if: github.event_name != 'pull_request'
