@@ -15,14 +15,6 @@ right_speaker: Alice
 > Itself”](https://poets.org/poem/not-ideas-about-thing-thing-itself).
 
 :::qa
-what is mini-linq?
-:::answer
-I don't know.
-:::
-
-:::qa
-It a database query language, I will teach you what it is and how to build.
-
 What is a database?
 :::answer
 My first guess is: software that stores and manages data on a computer.
@@ -37,22 +29,19 @@ stored on a computer.
 :::
 
 :::qa
-Is a file on a disk data?
-:::answer
-Yes.
-:::
+Suppose Rust evaluates this statement:
 
-:::qa
-Is a spreadsheet cell data?
-:::answer
-Yes.
-:::
+```rust
+let road = ("Logan", "Salt Lake City");
+```
 
-:::qa
-Suppose Rust evaluates `("Logan", "Salt Lake City")`. Can the resulting tuple
-be data?
+Which part could serve as data about a road: the source statement, or the value
+produced by evaluating it?
 :::answer
-Yes.
+The statement is code. The tuple value it produces can serve as data.
+
+So data need not be a file sitting on a disk. It can also be a value used by a
+running program.
 :::
 
 :::qa
@@ -60,48 +49,48 @@ Yes.
 type City = &'static str;
 type Road = (City, City);
 ```
-Is `Road` data?
-
+Do these two lines create a pair of cities?
 :::answer
-What is `&'static str`? Isn't a city name a `String`?
+No. They name permitted forms of values; they do not create a value.
+:::
+
+::::review Rust string literals
+:::qa
+What type does the string literal `"Logan"` have? Is it a `String`?
+:::answer
+I would have guessed `String`, because it is a string.
 :::
 
 :::qa
-A string literal such as `"Logan"` already has type `&'static str`: it is a
-reference to text that remains valid for the entire program. It is not a
-`String`.
+Rust gives a string literal such as `"Logan"` the type `&'static str`: a
+reference to text that remains valid for the entire program. An owned `String`
+is a different type.
 
-We need only this fact now; we will return to borrowing later.
-
-Now, again, is `Road` data?
+Does `"Logan"` fit `City` as we defined it?
 :::answer
-No. It seems to name a kind of value rather than create a value.
+Yes. `City` is exactly that alias. We can postpone the rest of the lifetime
+story.
 :::
+::::
 
 :::qa
-Is
+What does the annotation `: Road` contribute here?
+
 ```rust
 let road: Road = (
     "Logan",
     "Salt Lake City",
 );
 ```
-data?
 :::answer
-The line is code, but the tuple it creates—the two city names—looks like data.
+It requires the tuple value to fit whatever form `Road` permits. The tuple is
+still the value that can serve as data.
 
 Then perhaps `Road` is the set of all such data?
 :::
 
 :::qa
-Not quite. `Road` is a **type**. A type describes a decidable property of
-values.
-
-Here, Rust can decide whether a value has the shape required by `Road`: a pair
-of `City` values. Because `City` is only an alias for `&'static str`, this
-currently means a pair of static string references.
-
-Do both of these statements compile?
+Which of these statements will Rust reject?
 
 ```rust
 let apple_slc: Road =
@@ -110,17 +99,19 @@ let apple_banana: Road =
     ("Apple", "Banana");
 ```
 :::answer
-Yes. Rust even accepts Apple to Banana. So the type is checking their shape,
-not whether they describe roads?
+Neither. Rust even accepts Apple to Banana.
+
+So `Road` distinguishes shape, not geography.
 :::
 
 :::qa
-Exactly. `Road` decides their Rust shape; it does not record either tuple.
+Exactly. Rust can decide whether an expression has type `Road`—here, whether it
+produces a pair of `City` values. A type describes a decidable property; it does
+not remember the values that passed the check.
 
-How can we store the exact roads and test candidates without answering your
-hundred “Is this a road?” questions one at a time?
+How could we store exactly the pairs we accept?
 :::answer
-Perhaps with a `HashSet` and a named function:
+In a `HashSet<Road>`:
 
 ```rust
 use std::collections::HashSet;
@@ -129,7 +120,15 @@ let roads = HashSet::from([
     ("Logan", "Salt Lake City"),
     ("Salt Lake City", "Provo"),
 ]);
+```
+:::
 
+:::qa
+How could we turn that stored set into a yes-or-no test for one candidate?
+:::answer
+Perhaps with a named function:
+
+```rust
 fn is_road(
     roads: HashSet<Road>,
     road: Road,
@@ -148,6 +147,7 @@ is_road(
 ```
 :::
 
+::::review Rust borrowing
 :::qa
 Start with a freshly recreated `roads`, then ask the same question twice:
 
@@ -162,23 +162,33 @@ is_road(
 );
 ```
 :::answer
-Ahhh, Rust fails me. I expected two `true` answers, but the second call says
-`value moved here`.
+Ahhh, Rust rejects the second call. It says the first call moved `roads`.
 :::
 
 :::qa
-The problem is ownership, not road membership. A `HashSet<Road>` is not
-`Copy`. Passing `roads` by value moves its ownership into the first call, so
-the caller cannot use the same binding again.
+The compiler points to `roads` in the first call and says `value moved here`.
 
-Did the first call add or remove a tuple?
+Did moving `roads` mutate the `HashSet` value, or did it only transfer who owns
+that value?
 :::answer
-No. The members did not change. I only lost the caller's `roads` binding.
+The move itself only transferred ownership; it did not change the members.
+Because this function does not return the set, Rust drops it when the call
+ends.
 :::
 
 :::qa
-The function needs permission to inspect the set, not ownership of it. Replace
-only the first parameter:
+A `HashSet<Road>` is not `Copy`. A parameter of type `HashSet<Road>` therefore
+takes ownership of the set passed to it. After the first call, the caller no
+longer owns the binding named `roads`.
+
+But `is_road` only needs permission to inspect the set. What could it ask for
+instead of owning the set?
+:::answer
+Perhaps a reference to the set.
+:::
+
+:::qa
+Yes. Replace only the first parameter:
 
 ```rust
 fn is_road(
@@ -189,12 +199,6 @@ fn is_road(
 }
 ```
 
-What does the new parameter type ask the caller to supply?
-:::answer
-A reference to the stored set instead of the set itself.
-:::
-
-:::qa
 Can we keep the old call?
 
 ```rust
@@ -204,8 +208,7 @@ is_road(
 )
 ```
 :::answer
-No. The function expects `&HashSet<Road>`, so perhaps I need to write
-`&roads` at the call.
+No. The function now expects `&HashSet<Road>`, so I need to pass `&roads`.
 :::
 
 :::qa
@@ -222,13 +225,12 @@ is_road(
 );
 ```
 :::answer
-Yes. Both calls return `true`, and I can still use `roads` afterward.
+Yes. Both calls compile, and the caller can still use `roads` afterward.
 :::
 
 :::qa
-Good. Evaluating `&roads` **borrows** the stored set and produces a shared
-reference. The caller keeps ownership. I still owe you the fuller story of
-ownership and borrowing.
+Evaluating `&roads` **borrows** the stored set and produces a shared reference.
+The caller keeps ownership.
 
 There is another reference inside the function:
 
@@ -240,13 +242,20 @@ Does `&road` borrow the stored set again?
 :::answer
 No. This `&` is attached to `road`, not `roads`. It must refer to the candidate.
 :::
+::::
 
-:::qa
-Right. `&roads` borrows the stored set for `is_road`; `&road` borrows the local
-candidate for `contains`.
+Keep the version we will use from now on:
 
-For the next few questions, the surrounding discussion keeps `roads` fixed.
-We will abbreviate
+```rust
+fn is_road(
+    roads: &HashSet<Road>,
+    road: Road,
+) -> bool {
+    roads.contains(&road)
+}
+```
+
+For the next few questions, `roads` stays fixed. We will abbreviate
 
 ```rust
 is_road(&roads, candidate)
@@ -258,38 +267,36 @@ as
 is_road(candidate)
 ```
 
-Which argument did we hide?
-:::answer
-`&roads`.
-:::
-
 :::qa
-Using that shorthand, what does this call return?
+Using that shorthand, what does this call return, and what does `roads` contain
+afterward?
+
 ```text
 is_road(("Logan", "Provo"))
 ```
 :::answer
-`false`.
+It returns `false`, and `roads` still contains exactly its original two tuples.
+The hidden first argument was `&roads`; the function only inspected it.
 
 But we all know that there is a two-road route from Logan to Provo. Why does
 `is_road` say `false`?
 :::
 
 :::qa
-The tuple `("Logan", "Provo")` is not stored in `roads`.
+Trace the only test performed by the function:
 
-Is testing one stored road the same question as testing whether two roads form
-a route?
+```rust
+roads.contains(&("Logan", "Provo"))
+```
+
+What question were you expecting instead?
 :::answer
-No. `is_road` tests direct membership. Two-road reachability is a different
-question.
+Whether there is some intermediate city joined to Logan and Provo by two stored
+roads. Direct membership and a two-road route are different questions.
 :::
 
 :::qa
-Good. Keep the two-road question; we will return to it after we understand what
-`roads` is.
-
-How many values does this `HashSet` contain?
+Suppose two sources report the same road, and we insert both reports:
 
 ```rust
 HashSet::<Road>::from([
@@ -297,42 +304,49 @@ HashSet::<Road>::from([
     ("Logan", "Salt Lake City"),
 ])
 ```
+
+Can this `HashSet` later tell us that there were two reports?
 :::answer
-One. It is a **set**. I know this one.
+No. It contains one tuple. A set remembers membership, not how many times a
+member was inserted.
 :::
 
 :::qa
-`roads` is a set, and every member is an ordered pair. Mathematics calls a set
-of ordered pairs a binary **relation**.
+We now have three different things: the type `Road`, one pair such as
+`("Logan", "Salt Lake City")`, and the value `roads`.
 
-Is the relation `roads` one road tuple?
+Which one is a member, and which one is the whole set whose membership we test?
 :::answer
-No. A tuple is one member; the relation is the whole set of members.
+The pair is one member. `roads` is the whole set. `Road` is the Rust type of
+each permitted member.
+:::
+
+:::definition Binary relation
+Let $A$ and $B$ be sets of values. A **binary relation** between them is a set
+of ordered pairs $(a, b)$, where $a$ comes from $A$ and $b$ comes from $B$.
+
+When we write set notation, we also use `City` for the set of values having the
+Rust type `City`.
+
+Each member of `roads` is one tuple; `roads` is the relation. Rust represents
+this particular finite relation as a `HashSet<Road>`.
 :::
 
 :::qa
-For fixed `roads`, what does
-
-```text
-is_road(candidate)
-```
-
-decide?
+So `roads` is the relation.
 :::answer
-Whether `candidate` is a member of the relation `roads`.
+Then `is_road` is only its membership test, not another source of road facts?
 :::
 
-:::qa
-A true-or-false test of relation membership is a **membership predicate**.
-
-Does `is_road` store any road data in addition to `roads`?
-:::answer
-No. If I know `roads`, I can predict every answer that `is_road` will give.
+:::law Membership
+For the fixed relation `roads` and every `candidate: Road`,
+`is_road(candidate)` is `true` exactly when `candidate` is a member of `roads`.
+We therefore call `is_road` the **membership predicate** of `roads`; the
+relation determines every answer it gives.
 :::
 
 :::alice
-Chapter 3, Section 3.3, p. 32 - the finite-set-of-tuples view. We will add the
-schema-instance distinction next.
+Chapter 3, Section 3.3, p. 32 - the finite-set-of-tuples view.
 :::
 
 :::qa
@@ -352,29 +366,82 @@ let roads_tomorrow: HashSet<Road> =
     ]);
 ```
 
-Do they have the same **type**?
+What stayed fixed, and what changed?
 :::answer
-Yes. Both have type `HashSet<Road>`.
+Both values have type `HashSet<Road>`. Their contents differ:
+`roads_tomorrow` additionally contains `("Logan", "Provo")`.
+
+The question is still about roads. Must its name change whenever the Rust
+binding changes?
 :::
 
 :::qa
-Do they contain the same road tuples?
-:::answer
-No. `roads_tomorrow` contains one more tuple.
-:::
+No. Our notation needs a stable name independent of
+either Rust binding. Let us try:
 
-:::notation Reading the MiniLinq declaration
 ```text
 relation road(City, City);
 ```
 
-`road` is the logical relation name. The two entries inside the parentheses
-are its ordered column types. Their number, two, is the relation's **arity**.
-It is not the number of tuples stored in a particular instance.
+Read as much of that line as you can, and stop where it becomes uncertain.
+:::answer
+It is not Rust, and `relation` suggests that the line declares the stable name
+`road`. But `road(City, City)` still looks like a function call wearing a
+semicolon. Are we calling it with two values?
+:::
 
-MiniLinq borrows this declaration shape from
-[Ascent](https://docs.rs/crate/ascent/latest). In MiniLinq, a declared relation
-is supplied by the Rust caller; the declaration itself inserts no tuples.
+:::qa
+Put one candidate beneath the new line:
+
+```text
+relation road( City ,       City       );
+               "Logan", "Salt Lake City"
+```
+
+The lower line supplies values. What might the two occurrences of `City` be
+specifying?
+:::answer
+The permitted types of two ordered positions: `"Logan"` fits the first `City`,
+and `"Salt Lake City"` fits the second.
+
+So `relation road(City, City);` declares the name and tuple shape; it is not
+calling `road` with two values.
+:::
+
+:::qa
+With only this declaration, can you tell whether the Logan-to-Salt-Lake-City
+tuple is currently stored?
+
+```text
+relation road(City, City);
+```
+:::answer
+No. It gives the name `road` and the types of its two positions, but no current
+city values. I still need a set such as `roads_today` or `roads_tomorrow`.
+:::
+
+:::qa
+Suppose `road` refers to `roads_today` today and to `roads_tomorrow` tomorrow.
+Would either set violate the declaration?
+:::answer
+No. Every member of either set has the declared two-position shape.
+
+The number of members may change; the declaration need not.
+:::
+
+:::qa
+The declaration contains two occurrences of `City`. `roads_today` contains two
+tuples, while `roads_tomorrow` contains three.
+
+What do the two occurrences of `City` count?
+:::answer
+The two ordered positions in each tuple, not the number of tuples in the set.
+:::
+
+:::definition Arity
+The **arity** of a relation declaration is the number of ordered positions in
+each tuple. `road` has arity two, no matter how many tuples its current content
+has.
 :::
 
 :::alice
@@ -382,29 +449,33 @@ Chapter 3, p. 31 - relation names and arity.
 :::
 
 :::qa
-Does this Rust alias also declare the logical relation name `road`?
+So both the Rust alias `Road` and the declaration describe two ordered
+positions.
+:::answer
+Then what did the logical name `road` add?
+:::
+
+:::qa
+`Road` describes the shape of one Rust row:
 
 ```rust
 type Road = (City, City);
 ```
-:::answer
-No. `Road` gives the host-language shape of one row; it does not create a
-logical relation named `road`.
-:::
 
-:::qa
-Now test a new candidate.
+The declaration adds the stable logical name `road`, whose current content is a
+set of such rows.
+
+Could the empty set be that current content?
 
 ```rust
 let no_roads: HashSet<Road> =
     HashSet::new();
 ```
-
-Can the empty set be a relation instance over `relation road(City, City);`?
 :::answer
-Yes. It is finite, and it contains no tuple of the wrong shape.
+Yes. Nothing in the declaration requires at least one tuple. With no members,
+there cannot be a member of the wrong shape.
 
-It is a perfectly legal relation instance—just a disappointing travel guide.
+It is perfectly legal—just a disappointing travel guide.
 :::
 
 :::qa
@@ -417,68 +488,71 @@ let strange_roads: HashSet<Road> =
     ]);
 ```
 
-Is it a relation instance over `relation road(City, City);`?
+Could it be the current content of `road`?
 :::answer
-Yes. It is a finite set of tuples containing two `City` values.
+Yes—unfortunately. `City` is only an alias for `&'static str`, so both words
+have type `City`.
 
-The stored claim may be nonsense. Membership in an instance does not by itself
-certify geography; Rust has not earned that degree.
+The stored claim may be nonsense. Membership in the set does not by itself
+certify geography; Rust does not come with an atlas.
 :::
 
 :::qa
-Is this a relation instance over `relation road(City, City);`?
+Could this be the current content of `road`?
 
 ```text
-{
-    (
-        "Logan",
-        "Salt Lake City",
-        "Provo"
-    )
-}
+{ ("Logan", "Salt Lake City", "Provo") }
 ```
 :::answer
-No. Its only tuple has three positions, while the declaration has two column
-types.
+No. Its only tuple has three positions, while the declaration permits two.
 :::
 
 :::qa
-Does the MiniLinq declaration reject this tuple?
+Could this tuple belong to the current content of `road`?
 
 ```text
 ("Logan", 42)
 ```
 :::answer
-Yes. Its second position must have type `City`, but `42` is an integer. The
-declaration and the Rust alias now agree on both the arity and the two column
-types.
+No. Its second position must have type `City`, but `42` is an integer. The
+declaration and the Rust alias both require two ordered positions, each of type
+`City`.
 :::
 
 :::qa
-We can now name the distinction.
+We tried four possible contents for `road`:
 
-The relation name together with its ordered column types,
-`relation road(City, City);`, is a **relation schema** in our MiniLinq
-notation. Each current finite set of matching tuples is a **relation instance**
-over that schema.
+- no tuples;
+- the pair `("Apple", "Banana")`;
+- one tuple with three positions;
+- the pair `("Logan", 42)`.
 
-Between `roads_today` and `roads_tomorrow`, which one changed: the schema or
-the instance?
+Which two did the declaration reject, and what did they have in common?
 :::answer
-The instance changed. The schema remained `relation road(City, City);`.
+It rejected the three-position tuple and `("Logan", 42)`. Both violate the
+declared tuple shape.
+
+The declaration did not reject the empty set or Apple and Banana: it fixes
+neither the number of tuples nor whether the stored claims make geographic
+sense.
 :::
 
-:::qa
-Then how can we decide whether a new finite set `S` is a relation instance
-over `relation road(City, City);`?
-:::answer
-Check two things:
+:::definition Relation schema and relation instance
+In this notation,
 
-1. `S` is a finite set.
-2. Every tuple in `S` has two positions, both containing `City` values.
+```text
+relation road(City, City);
+```
 
-In this example, the Rust type `HashSet<Road>` enforces exactly that host-side
-row shape before MiniLinq ever sees the instance.
+is a **relation schema**. It fixes the relation name and the permitted shape of
+its tuples: arity two, with a `City` value in each ordered position.
+
+A **relation instance** over this schema is any finite relation
+$R \subseteq City \times City$, where $City \times City$ means all ordered
+pairs of `City` values.
+
+The Rust type `HashSet<Road>` already enforces the row shape in this example.
+The logical declaration additionally gives the relation the name `road`.
 :::
 
 :::alice
@@ -487,70 +561,64 @@ and the type-value analogy.
 :::
 
 :::qa
-Let `I` name today's database state.
-
-```text
-I:
-    road -> {
-        ("Logan", "Salt Lake City"),
-        ("Salt Lake City", "Provo")
-    }
-```
-
-Is `I` another road tuple?
-:::answer
-No. `I` assigns a set of tuples to the relation name `road`.
-:::
-
-:::qa
-We will abbreviate the same assignment as:
+Let `I` name today's choice:
 
 ```text
 I(road) = roads_today
 ```
 
-Is this a Rust function call?
+How would you read this equation?
 :::answer
-No. It is mathematical notation: ask the database instance `I` which relation
-instance belongs to the name `road`.
+In `I`, the logical name `road` denotes the finite relation represented by the
+Rust value `roads_today`.
+
+I am reading `I(road)` as mathematical lookup notation, not as a Rust function
+call.
+:::
+
+:::definition Database schema and database instance
+A **database schema** is a finite collection of relation schemas with distinct
+relation names.
+
+A **database instance** over that schema assigns every declared relation name
+exactly one relation instance that matches its schema.
+
+If `I` is a database instance, `I(r)` denotes the relation that `I` assigns to
+the declared name `r`. Here the schema contains only `road`, with
+
+```text
+I(road) = roads_today
+```
+
+Strictly, `I(road)` is a mathematical relation and `roads_today` is the Rust
+value representing it. When no confusion results, we identify a `HashSet` value
+with the finite set it represents.
+
+Tomorrow's database instance could be named `J`, with
+
+```text
+J(road) = roads_tomorrow
+```
 :::
 
 :::qa
-Our database schema has only `relation road(City, City);`. What, then, is the
-whole database instance?
+At the beginning, you guessed that a database was software. Return to that
+guess: where does `I` belong, and what has not yet appeared in our example?
 :::answer
-`I`. It supplies the current content of `road`.
+`I` describes the current data, so it belongs on the database side. The software
+that stores, queries, and changes such data has not appeared at all.
 :::
 
-:::qa
-Is `I` an instruction that the computer can execute?
-:::answer
-No. `I` only describes which tuples are stored.
+:::definition Database and DBMS
+A **database** is an organized collection of data. In our logical account, its
+current contents are represented by a database instance such as `I`.
+
+A **database management system**, or **DBMS**, is software that stores,
+queries, updates, and otherwise manages databases.
 :::
 
-:::qa
-Something must store those tuples, look them up, and change them.
-
-Is that something more data, or is it software?
-:::answer
-Software.
-:::
-
-:::qa
-The stored data is the **database**. The software that supports managing it is
-a **database management system**, or **DBMS**.
-
-What was wrong with our first answer?
-:::answer
-It called the software a database. The software is the DBMS; the stored data is
-the database.
-:::
-
-:::qa
-Have we built a DBMS merely by writing down `I`?
-:::answer
-No. We have described one database instance.
-:::
+A complete DBMS does much more. We begin with the language used to ask for data
+and the processing needed to answer those requests.
 
 :::alice
 Chapter 1, p. 3 - the distinction between a database and a DBMS.
@@ -589,73 +657,74 @@ the reversed tuple is not in `I(road)`.
 :::
 
 :::qa
-There is a two-road route from Logan through Salt Lake City to Provo. Is this
-statement nevertheless false in `I`?
+The stored roads give us a two-road route:
+
+```text
+Logan -> Salt Lake City -> Provo
+```
+
+What truth value does `I` give to this statement?
 
 ```text
 road("Logan", "Provo")
 ```
 :::answer
-Yes. The statement is false because its tuple does not belong to `I(road)`.
-It does not silently ask whether Provo is reachable by one or more roads.
+False. The statement asks for one tuple in `I(road)`. It does not ask whether
+Provo can be reached by following several stored roads.
 :::
 
 :::qa
 Does that answer prove that there is no road from Logan to Provo in the real
 world?
 :::answer
-No. It says only that the tuple is absent from this database instance.
+No. It says only that the tuple is absent from `I(road)`. The database may be
+incomplete or mistaken about the physical world.
 :::
 
-:::qa
-The expressions we just tested all have this form:
+:::definition Relational atom and ground atom
+For a relation name $r$ of arity $n$, an expression
 
-```text
-road(value, value)
-```
+$$
+r(t_1, \ldots, t_n)
+$$
 
-A relation name applied to terms is a **relational atom**.
+is a **relational atom**. Each $t_i$ is a term for the corresponding tuple
+position: either a data literal denoting a value, or a logical variable.
 
-Does this atom contain a variable?
+An atom containing no variables is **ground**. For example,
 
 ```text
 road("Logan", "Provo")
 ```
-:::answer
-No.
-:::
 
-:::qa
-An atom with no variables is called a **ground atom**.
-
-Can a later choice of variable values change which tuple this ground atom
-names?
-:::answer
-No. It already names one complete tuple.
+is a ground atom naming the complete tuple `("Logan", "Provo")`.
 :::
 
 :::qa
 Inside the fixed instance `I`, is that absent ground atom false or merely
 unknown?
 :::answer
-False. `I` interprets `road` as exactly the set `I(road)`, and the tuple is not
-in that set.
-:::
+False **in `I`**. The instance interprets `road` as exactly `I(road)`, and the
+tuple is absent from that relation.
 
-:::qa
-Does this mathematical answer by itself claim that `I` lists every road in the
-real world?
-:::answer
-No.
+That answer is about `I`; it does not by itself say whether a direct road exists
+outside the database.
 :::
 
 :::qa
 Suppose we additionally agree that the stored relation contains every
-`road` fact relevant to our application. How should we read an absent tuple
-then?
+`road` fact relevant to our application. How may we now read a ground `road`
+atom whose tuple is absent?
 :::answer
-As false about the application we are modeling. That extra completeness
-agreement is the **closed-world assumption**.
+As false about the application we are modeling.
+:::
+
+:::definition Closed-world assumption
+Under the **closed-world assumption**, a ground atom whose tuple is absent is
+taken to be false about the application represented by that database.
+
+This assumes that the database completely records the relevant facts. It does
+not claim that the database records every fact in the physical world.
 :::
 
 :::qa
@@ -675,36 +744,42 @@ Yes. We kept the statement fixed and changed the instance in which we tested
 it.
 :::
 
-:::qa
+:::definition Satisfaction and model
 When a ground atom is true in an instance, we say that the instance
 **satisfies** the statement, or is a **model** of it.
 
-Is `I` a model of
+For a ground relational atom,
 
-```text
-road("Logan", "Salt Lake City")
-```
+$$
+I \models r(a_1, \ldots, a_n)
+$$
 
-and is it a model of
-
-```text
-road("Logan", "Provo")
-```
-:::answer
-`I` is a model of the first statement, but not the second. `J` is a model of
-both.
+exactly when $(a_1, \ldots, a_n) \in I(r)$.
 :::
 
 :::qa
-Now remove the city values.
+Which of `I` and `J` are models of each statement?
+
+```text
+road("Logan", "Salt Lake City")
+road("Logan", "Provo")
+```
+:::answer
+Both `I` and `J` are models of the first statement. Only `J` is a model of the
+second.
+:::
+
+:::qa
+Replace the quoted city values with logical variable names.
 
 ```text
 road(from, to)
 ```
 
-Is this atom true or false in `I`?
+Can `I` alone tell us whether this atom is true?
 :::answer
-We cannot tell yet. `from` and `to` are variables, not city values.
+Not yet. `from` and `to` do not identify city values until we choose values for
+them.
 :::
 
 :::qa
@@ -736,31 +811,48 @@ to   -> "Provo"
 
 Is the resulting atom true in `I`?
 :::answer
-No.
+No. It becomes
+
+```text
+road("Logan", "Provo")
+```
+
+whose tuple is absent from `I(road)`.
 :::
 
 :::qa
 Keep those same choices, but replace `I` with `J`. Is the atom true now?
 :::answer
-Yes.
-
-The chosen values tell us which tuple to test. The instance tells us whether
-that tuple belongs to `road`.
+Yes. The chosen tuple now belongs to `J(road)`. Only the instance changed.
 :::
 
 :::qa
-A choice of values for the variables is called a **valuation**. Call the first
-choice `v`:
+In the last three tests, we first changed only the chosen value of `to`. Then we
+kept those values and changed `I` to `J`.
+
+What job did the chosen values perform, and what job did the instance perform?
+:::answer
+The chosen values selected one candidate tuple. The instance supplied the
+relation in which that tuple was tested.
+:::
+
+:::definition Valuation and truth of an atom
+A **valuation** assigns a value of the appropriate type to each logical
+variable. Call our first choice `v`:
 
 ```text
 v(from) = "Logan"
 v(to)   = "Salt Lake City"
 ```
 
-Why did we need both `I` and `v` to test `road(from, to)`?
-:::answer
-`v` selects the candidate tuple. `I` supplies the stored relation against which
-we test it.
+Applying `v` to `road(from, to)` produces the ground atom
+
+```text
+road("Logan", "Salt Lake City")
+```
+
+An instance satisfies an atom under `v` exactly when it satisfies the resulting
+ground atom.
 :::
 
 :::alice
@@ -769,7 +861,7 @@ relational atom.
 :::
 
 :::qa
-Now add one more variable.
+Extend our choices with one more variable:
 
 ```text
 from -> "Logan"
@@ -777,173 +869,222 @@ via  -> "Salt Lake City"
 to   -> "Provo"
 ```
 
-Is the first atom true in `I`?
+Evaluate both atoms under those choices:
 
 ```text
 road(from, via)
-```
-:::answer
-Yes. It becomes `road("Logan", "Salt Lake City")`.
-:::
-
-:::qa
-Under the same choices, is the second atom true in `I`?
-
-```text
 road(via, to)
 ```
 :::answer
-Yes. It becomes `road("Salt Lake City", "Provo")`.
-:::
-
-:::qa
-Then is this whole body true under those choices?
+The first becomes
 
 ```text
-road(from, via), road(via, to)
+road("Logan", "Salt Lake City")
 ```
-:::answer
-Yes. The comma requires both atoms to be true under the same valuation.
+
+and the second becomes
+
+```text
+road("Salt Lake City", "Provo")
+```
+
+Both are true in `I`. What does the comma between them require?
 :::
 
 :::qa
-Keep `from` and `via` fixed, but change only `to` to `"Logan"`.
+It requires both atoms to be true under the same valuation. Keep `from` and
+`via`, but change `to`:
 
-Is the whole body still true?
+```text
+to -> "Logan"
+```
+
+Are the two atoms still true together?
 :::answer
 No. The first atom remains true, but the second becomes
 `road("Salt Lake City", "Logan")`, which is false in `I`.
 :::
 
-:::qa
-The body contains two relational atoms joined by logical “and.” Such an “and”
-is called a **conjunction**.
+:::definition Conjunction
+A **conjunction** is a collection of statements joined by logical “and.”
 
-Why, then, will we call this kind of query a **conjunctive query**, or **CQ**?
-:::answer
-Its body requires a conjunction of relational atoms to hold.
+A conjunction of relational atoms is true in an instance under a valuation
+exactly when every atom is true there under the same valuation. In our
+notation, a comma denotes this “and.”
 :::
 
 :::qa
-Here is the same two-road requirement in the exact notation accepted by the
-MiniLinq homework:
+Our successful choice used three cities: `from`, `via`, and `to`.
+
+If the question asks only where a two-road route starts and ends, which values
+should one answer tuple keep?
+:::answer
+`from` and `to`.
+
+`via` helps show that the route exists, but it should not appear in the answer
+tuple. How do we say that?
+:::
+
+:::qa
+We write:
+
+```text
+two_hop(from, to) :-
+    road(from, via),
+    road(via, to).
+```
+
+How would you read this rule aloud?
+:::answer
+`two_hop(from, to)` holds **if** there is a road from `from` to `via` **and** a
+road from that same `via` to `to`.
+
+So `:-` reads as “if,” and the comma reads as “and.”
+The final period ends the rule.
+:::
+
+:::qa
+The database instance supplies tuples for `road`, but it supplies none for
+`two_hop`. Where do the `two_hop` tuples come from?
+:::answer
+From the rule. Whenever one valuation makes both `road` atoms true, its values
+for `from` and `to` form a derived `two_hop` tuple.
+:::
+
+:::qa
+For the answer
+
+```text
+two_hop("Logan", "Provo")
+```
+
+which value of `via` made the two atoms true in `I`? Does that value appear in
+the answer tuple?
+:::answer
+`"Salt Lake City"` made both atoms true. It justifies the answer, but the answer
+keeps only `"Logan"` and `"Provo"`.
+:::
+
+:::definition Conjunctive query
+A rule of the form
+
+```text
+q(x1, ..., xk) :-
+    A1,
+    ...,
+    Am.
+```
+
+is a **conjunctive query**, or **CQ**, when its body is a conjunction of
+relational atoms.
+
+The expression left of `:-` is the **head**; the conjunction to its right is the
+**body**. Every head variable must also occur in the body. The head selects and
+orders body-variable values for the result; their types follow from the body
+positions in which they occur. Values assigned to body-only variables provide
+the evidence for an answer; such satisfying values are called **witnesses**.
+
+A tuple belongs to the result exactly when some valuation gives the head
+variables the values in that tuple and makes every body atom true in the input
+instance.
+:::
+
+:::qa
+Where are `"Logan"`, `"Salt Lake City"`, and today's other actual city names in
+the rule?
+:::answer
+They are not there. The rule remains fixed; the database instance supplies the
+current `road` tuples when we evaluate it.
+:::
+
+:::qa
+Suppose we paste the declaration and rule directly into a Rust source file.
+What problem occurs before Rust can inspect any roads?
+:::answer
+`rustc` does not recognize `relation` or `:-`. The rule is written in our query
+notation, not in Rust.
+:::
+
+:::qa
+Here is one deliberately direct account of the same meaning in ordinary Rust.
+We wrote it by hand; the query notation did not generate it.
 
 ```rust
-::mini_linq::mini_linq! {
-    struct TwoHopRoads;
-    relation road(City, City);
-    two_hop(from, to) :-
-        road(from, via),
-        road(via, to).
+fn two_hop(
+    roads: &HashSet<Road>,
+) -> HashSet<Road> {
+    let mut answer = HashSet::new();
+
+    for &(from, via) in roads {
+        for &(other_via, to) in roads {
+            if via == other_via {
+                answer.insert((from, to));
+            }
+        }
+    }
+
+    answer
 }
 ```
 
-Which relation is supplied as input?
+Which part of the rule is realized by `via == other_via`?
 :::answer
-`road`.
+The repeated variable `via`. Both body atoms must use one shared value for
+`via`; the equality enforces that requirement in the two loops.
 :::
 
 :::qa
-Which relation is produced as output?
+When that equality holds, why does Rust insert `(from, to)` rather than
+`(from, via, to)`?
 :::answer
-`two_hop`.
+The query head keeps `from` and `to`. `via` is needed as a witness, but it is not
+part of the output tuple.
 :::
 
 :::qa
-Does this line declare another relation containing roads?
+Apply the Rust function to the same `roads_today` relation we already
+inspected:
 
 ```rust
-struct TwoHopRoads;
-```
-:::answer
-No. It names the Rust program that `mini_linq!` generates.
-:::
-
-:::qa
-Look only at the symbol between the head and the body.
-
-```text
-head :- body
-     ^^
+let answer_a = two_hop(&roads_today);
 ```
 
-Does the body contain results already produced by the head, or a condition for
-producing a head tuple?
-:::answer
-A condition. We read `:-` as **if**.
-:::
-
-:::qa
-What does the final `.` mark?
-:::answer
-The end of the rule.
-:::
-
-:::qa
-Why does `via` occur in the body but not in the query head
-`two_hop(from, to)`?
-:::answer
-An output row is produced when **some** value of `via` makes both body atoms
-true under one valuation. That value is a **witness**, but the query asks to
-return only the two endpoints.
-:::
-
-:::qa
-Does the MiniLinq program contain the actual road tuples?
-:::answer
-No. `relation road(City, City);` declares the input relation's name and column
-types. A Rust caller supplies one particular instance when the generated
-program runs.
-:::
-
-:::qa
-Run the query on the same `roads_today` instance we already inspected:
-
-```rust
-let answer_a = TwoHopRoads::run(
-    roads_today.clone(),
-);
-```
-
-What value should `answer_a` contain?
+What set should `answer_a` contain?
 :::answer
 ```rust
-vec![("Logan", "Provo")]
+HashSet::from([
+    ("Logan", "Provo"),
+])
 ```
 :::
 
 :::qa
-After `run` returns, did `roads_today` change?
-:::answer
-No. It still contains the same two tuples:
+Now compare one tuple in the two sets:
 
 ```rust
-roads_today.contains(&("Logan", "Salt Lake City")) // true
-roads_today.contains(&("Salt Lake City", "Provo")) // true
+answer_a.contains(
+    &("Logan", "Provo"),
+) // true
+
+roads_today.contains(
+    &("Logan", "Provo"),
+) // false
 ```
 
-The generated Rust interface consumes owned rows, so `.clone()` gave it an
-owned copy and left `roads_today` available for this check. `answer_a` is
-stored separately; `("Logan", "Provo")` was not inserted into the input.
+How can both answers be correct?
+:::answer
+`answer_a` and `roads_today` are different relations. The query placed the
+derived tuple in its result; it did not insert the tuple into its input.
 :::
 
 :::law CQ evaluation does not update its input
 In the pure CQ semantics used here, evaluating a query on an input database
-instance produces a separate result instance. It does not add tuples to or
-remove tuples from the input. An update is a different operation; `.clone()`
-is only a detail of this Rust interface.
+instance produces a separate result relation. It does not add tuples to or
+remove tuples from the input. An update is a different operation.
 :::
 
 :::qa
-Does this `Vec` mean that the logical query result is an ordered list?
-:::answer
-No. The logical result is a set. The current `run` method removes duplicates
-and materializes that set as a lexicographically sorted `Vec`, which gives Rust
-tests one deterministic representation.
-:::
-
-:::qa
-Now the caller constructs a different input by adding one road:
+Now construct a different input by adding one road:
 
 ```rust
 let more_roads: HashSet<Road> = HashSet::from([
@@ -952,18 +1093,16 @@ let more_roads: HashSet<Road> = HashSet::from([
     ("Provo", "Ogden"),
 ]);
 
-let answer_b = TwoHopRoads::run(
-    more_roads.clone(),
-);
+let answer_b = two_hop(&more_roads);
 ```
 
-What value should `answer_b` contain?
+What set should `answer_b` contain?
 :::answer
 ```rust
-vec![
+HashSet::from([
     ("Logan", "Provo"),
     ("Salt Lake City", "Ogden"),
-]
+])
 ```
 :::
 
@@ -975,43 +1114,60 @@ exactly two `road` atoms.
 :::
 
 :::qa
-The MiniLinq text stayed fixed, but its input and output changed:
+Compare two evaluations of the same written rule `q`:
 
 ```text
-A(road) = { (Logan, Salt Lake City), (Salt Lake City, Provo) }
-q(A)    = { (Logan, Provo) }
+A(road) = {
+    ("Logan", "Salt Lake City"),
+    ("Salt Lake City", "Provo")
+}
+q(A) = {
+    ("Logan", "Provo")
+}
 
-B(road) = { (Logan, Salt Lake City), (Salt Lake City, Provo), (Provo, Ogden) }
-q(B)    = { (Logan, Provo), (Salt Lake City, Ogden) }
+B(road) = {
+    ("Logan", "Salt Lake City"),
+    ("Salt Lake City", "Provo"),
+    ("Provo", "Ogden")
+}
+q(B) = {
+    ("Logan", "Provo"),
+    ("Salt Lake City", "Ogden")
+}
 ```
 
-What, then, is fixed, and what varies?
+What changed between them, and what did not?
 :::answer
 The query text `q` is fixed. The input instance varies, and the result varies
 with it.
 :::
 
-:::qa
-Now we have earned two names.
+:::definition Query mapping and denotation
+A **query** is the written syntactic object, such as our fixed rule `q`.
 
-The MiniLinq rule is a **query**: a syntactic object. Its meaning is the
-**query mapping** that sends each permitted input instance to the output
-instance produced by the rule.
-
-Was the earlier Rust function `is_road` already such a query mapping?
-:::answer
-Not as written. In our shorthand, `roads` was fixed while the candidate tuple
-varied. A query mapping instead keeps the query fixed while the database
-instance varies.
+For this relation-valued query, its **query mapping** sends every permitted input
+database instance `I` to the result relation `q(I)`. That mapping—what result
+the query assigns to every permitted input—is the query's **denotation**.
 :::
 
 :::qa
-Is returning `bool` what prevents `is_road` from being a query?
+Why was our earlier shorthand not already the same database-to-result mapping
+as `q`?
+
+```text
+is_road(candidate)
+```
+
 :::answer
-No. If the candidate were fixed in advance and the database instance varied,
-the same membership test could define a **Boolean query**. Its result is a
-truth value, equivalently represented as a zero-arity result relation.
+There, `roads` was fixed while the separately supplied candidate varied. That
+is not the input-to-result mapping we just gave `q`.
+
+If we instead fixed the candidate—for example, always asking whether
+`("Logan", "Provo")` is present—and varied the database instance, membership
+would return one Boolean for each database instance.
 :::
+
+A query whose result is `true` or `false` is called a **Boolean query**.
 
 :::alice
 Chapter 4, p. 37 - query syntax and query mappings; pp. 41-42 - rule-based
@@ -1019,44 +1175,26 @@ conjunctive queries and their meaning.
 :::
 
 :::qa
-The current homework stage deliberately preserves the written body order.
-Is that order part of what the query means, or a choice made by this compiler
-stage?
+Suppose we swap the two loops: search for the second road first and the first
+road second, while keeping the same equality test and insertion. Should the
+result set change?
 :::answer
-A choice made by this stage.
-
-A later optimizer could search `road(via, to)` before `road(from, via)` and
-still return the same `q(A)`.
+No. The search order changes, but the set of endpoint pairs satisfying the rule
+does not.
 :::
 
 :::qa
-Suppose one generated program searches the first atom first, while another
-searches the second atom first. On input `A`, must they perform the same work?
+Suppose another function returns `{ ("Logan", "Ogden") }` on input `A`. Could it
+still implement this query?
 :::answer
-No. They may use different orders or indexes and still both return:
-
-```rust
-vec![("Logan", "Provo")]
-```
+No. Different machinery is allowed; a different denotation is not.
+`("Logan", "Ogden")` is not in `q(A)`.
 :::
 
-:::qa
-Suppose the second program instead returns:
-
-```rust
-vec![("Logan", "Ogden")]
-```
-
-Could it still be a correct translation of the query on `A`?
-:::answer
-No. `("Logan", "Ogden")` is not in `q(A)`.
-:::
-
-:::qa
-Then what must a correct translation from the MiniLinq rule to Rust preserve?
-:::answer
-For every permitted input instance `A`, the generated program must produce
-exactly the result relation `q(A)` denoted by the query.
+:::law Same meaning, different machinery
+An executable implementation may change the search order, storage, and amount
+of work. It implements `q` correctly only if, for every permitted input
+instance `A`, it returns exactly `q(A)`.
 :::
 
 :::alice
@@ -1064,23 +1202,93 @@ Chapter 1, pp. 4 and 6 - compiling requests against a logical representation
 into executable programs.
 :::
 
-:::notation MiniLinq homework notation
-These are the spellings the dialogue has now exercised:
+:::qa
+We now have permitted forms and an agreed meaning for each one.
+:::answer
+Then this is already a language, even though `rustc` does not understand it.
 
-| DSL spelling | What it did in the example |
+And because its fixed queries are interpreted over database instances and
+produce results without updating those instances, it is a database query
+language?
+:::
+
+:::definition Database query language
+A **database query language** provides syntactic forms for queries over
+database instances. Under its semantics, each query denotes a query mapping
+from permitted input instances to results. Our conjunctive query returns a
+relation; a Boolean query returns a truth value.
+:::
+
+:::notation Forms earned so far
+| Form | What it did in the example |
 |---|---|
-| `struct TwoHopRoads;` | Named the generated Rust query program. |
-| `relation road(City, City);` | Declared input relation `road` with two ordered `City` columns. |
-| `two_hop(from, to)` | Named the output relation and selected the values of `from` and `to`. |
+| `relation road(City, City);` | Declared input relation `road` with two ordered `City` positions. |
+| `two_hop(from, to)` | Named the output relation and kept the values of `from` and `to`. |
 | `:-` | Read as “if.” |
 | The comma | Required both body atoms: logical “and.” |
 | `.` | Ended the rule. |
 
 `from`, `via`, and `to` are logical variables. They receive values through the
-valuations tested above; they are not Rust bindings. The declared column types
-determine the runtime row type; here it is `(City, City)`.
+valuations tested above; they are not Rust bindings. The database instance
+supplies the actual input tuples.
+:::
 
-The earlier expressions such as `road("Logan", "Provo")` were semantic
-notation. Current MiniLinq atoms contain identifiers only; concrete values
-enter through the Rust input rows. MiniLinq has no fact-insertion syntax.
+:::qa
+If we delete the hand-written `two_hop` function and leave only the bare rule,
+what is still missing between our query language and executable Rust?
+:::answer
+Something must read the rule and produce Rust with the same denotation.
+
+That missing piece is a compiler. How do we build the smallest one?
+:::
+
+:::recap The formal core
+Rust source, Rust types, values, and logical objects are distinct. `Road` names
+the required shape of one Rust row; a `HashSet<Road>` represents a finite set of
+such rows. A declaration `relation r(T1, ..., Tn);` specifies a relation
+schema: a logical name $r$, arity $n$, and an ordered list of tuple-position
+types, but no current tuples. A relation instance for that schema is a finite
+relation $R\subseteq T_1\times\cdots\times T_n$. A database schema is a finite
+collection of relation schemas with distinct names. A database instance $I$
+assigns each declared name $r$ one matching relation instance, written $I(r)$.
+The database is the data represented by $I$; a DBMS is the software that
+manages such data.
+
+For a ground atom $r(a_1,\ldots,a_n)$,
+$$
+I\models r(a_1,\ldots,a_n)
+\quad\text{exactly when}\quad
+(a_1,\ldots,a_n)\in I(r).
+$$
+A valuation $v$ assigns each logical variable a value of the required type and
+turns an atom with variables into a ground atom. An instance is a model of a
+ground atom exactly when it satisfies that atom. If a tuple is absent from
+$I(r)$, the corresponding ground atom is false in $I$. The closed-world
+assumption adds the application-level claim that $I$ records all relevant
+facts, permitting database absence to be read as falsity about the represented
+application; it does not establish falsity in the physical world.
+
+A conjunctive query $q$ has a head `q(x1, ..., xk)` and a conjunctive body
+$A_1,\ldots,A_m$, written `head :- body.` Every head variable occurs in the
+body. For each permitted input instance $I$,
+$$
+q(I)=
+\left\{
+\bigl(v(x_1),\ldots,v(x_k)\bigr)
+\;\middle|\;
+v\text{ is an appropriately typed valuation making every }A_i
+\text{ true in }I
+\right\}.
+$$
+The head selects and orders the values in a result tuple. Values assigned to
+body-only variables are witnesses: they establish membership in $q(I)$ but do
+not appear in the result tuple.
+
+The denotation of the written query $q$ is the mapping $I\mapsto q(I)$; a
+Boolean query instead maps each permitted $I$ to a truth value. Query evaluation
+produces a result without adding tuples to or removing tuples from its input.
+An executable implementation is correct exactly when it returns $q(I)$ for
+every permitted input instance $I$, regardless of its search order, storage, or
+amount of work. A compiler for this language must construct such an executable
+program while preserving that denotation.
 :::
