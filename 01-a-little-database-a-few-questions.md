@@ -3,6 +3,7 @@ title: A Little Database, A Bit Rustic
 subtitle: Conversation 1.1 — Not Ideas About the Database but the Database Itself
 author: Modern Query Processing
 date: Fall 2026
+status: Work in progress
 left_speaker: Ada
 right_speaker: Alice
 ---

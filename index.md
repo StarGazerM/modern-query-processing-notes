@@ -3,6 +3,7 @@ title: Modern Query Processing
 subtitle: Conversational notes from meaning to execution
 author: Yihao Sun
 date: Fall 2026
+status: Work in progress
 left_speaker: Ada
 right_speaker: Alice
 ---

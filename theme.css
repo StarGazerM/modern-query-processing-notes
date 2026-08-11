@@ -61,6 +61,19 @@ body {
   letter-spacing: -0.045em;
 }
 
+.status-badge {
+  display: inline-block;
+  margin: 0 0 22px;
+  padding: 6px 11px;
+  border: 1px solid var(--law);
+  border-radius: 999px;
+  color: var(--law);
+  background: var(--law-soft);
+  font: 750 0.7rem/1.2 var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .subtitle {
   max-width: 760px;
   margin: 20px 0 0;
