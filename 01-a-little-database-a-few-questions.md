@@ -324,12 +324,6 @@ each permitted member.
 :::definition Binary relation
 Let $A$ and $B$ be sets of values. A **binary relation** between them is a set
 of ordered pairs $(a, b)$, where $a$ comes from $A$ and $b$ comes from $B$.
-
-When we write set notation, we also use `City` for the set of values having the
-Rust type `City`.
-
-Each member of `roads` is one tuple; `roads` is the relation. Rust represents
-this particular finite relation as a `HashSet<Road>`.
 :::
 
 :::qa
@@ -439,13 +433,7 @@ Chapter 3, p. 31 - relation names and arity.
 :::
 
 :::definition Relation schema and relation instance
-In
-
-```text
-relation road(City, City);
-```
-
-the name `road` together with its ordered types forms a **relation schema**.
+A symbol name together with its ordered types forms a **relation schema**.
 
 A **relation instance** over this schema is any finite relation
 $R \subseteq City \times City$, where $City \times City$ means all ordered
@@ -478,82 +466,76 @@ and the type-value analogy.
 :::
 
 :::qa
-Now add one more declaration:
+How many miles is the road from Logan to Salt Lake City?
+:::answer
+```text
+("Logan", "Salt Lake City", 82)
+```
+
+Wait. That has three positions. It cannot be a member of `road`, whose tuples
+have two positions. The old relation can say that the city pair is a stored
+road, but it has no place for the number `82`.
+
+Perhaps road length needs another relation:
 
 ```text
 relation road_length(City, City, u32);
 ```
 
-Is `roads_today` enough to tell us the entire contents of today's database?
-:::answer
-No. It gives us the current instance of `road`, but says nothing about the
-current instance of `road_length`.
+The first two positions identify the city pair. The third position records the
+length. Here `u32` is Rust's type for a non-negative whole number; we use it for
+whole miles.
 :::
 
-:::definition Database schema and database instance
-A **database schema** is a finite collection of relation schemas with distinct
-relation names.
+:::qa
+What data must today's database contain if it knows that answer?
+:::answer
+```rust
+let road_lengths: HashSet<(City, City, u32)> =
+    HashSet::from([
+        ("Logan", "Salt Lake City", 82),
+    ]);
+```
 
-Our database schema now contains two relation schemas:
+This is the current relation instance assigned to `road_length`.
+:::
+
+:::qa
+Now we have two declarations:
 
 ```text
 relation road(City, City);
 relation road_length(City, City, u32);
 ```
-
-A **database instance** over that schema assigns every declared relation name
-exactly one relation instance that matches its schema.
-
-For example, today's database instance might be `I`:
-
-```text
-I(road) = roads_today
-I(road_length) = { ("Logan", "Salt Lake City", 82) }
-```
-
-Tomorrow's could be `J`:
-
-```text
-J(road) = roads_tomorrow
-J(road_length) = { ("Logan", "Salt Lake City", 82) }
-```
-
-Thus `I` and `J` are two database instances over the same database schema.
-They assign different instances to `road` and the same instance to
-`road_length`.
-
-In general, `I(r)` denotes the relation instance that `I` assigns to the
-declared name `r`; this is mathematical lookup notation, not a Rust function
-call. Strictly, `roads_today` is the Rust value representing the mathematical
-relation `I(road)`.
-:::
-
-:::qa
-At the beginning, you guessed that a database was software. Return to that
-guess: where does `I` belong, and what has not yet appeared in our example?
+and their instances.
+Let's call this a **database**.
 :::answer
-`I` describes the current data, so it belongs on the database side. The software
-that stores, queries, and changes such data has not appeared at all.
+**database**!
+
+So its not a software.
 :::
+
 
 :::definition Database and DBMS
 A **database** is an organized collection of data. In our logical account, its
-current contents are represented by a database instance such as `I`.
+current contents are represented by a database instance.
 
 A **database management system**, or **DBMS**, is software that stores,
 queries, updates, and otherwise manages databases.
-:::
-
 A complete DBMS does much more. We begin with the language used to ask for data
 and the processing needed to answer those requests.
+:::
 
 :::alice
 Chapter 1, p. 3 - the distinction between a database and a DBMS.
 :::
 
 :::qa
-Return to `I`.
+Suppose today's database instance is named `I`. It must assign a current
+relation instance to the name `road`.
 
+What could that one entry look like?
+:::answer
 ```text
 I(road) = {
     ("Logan", "Salt Lake City"),
@@ -561,7 +543,14 @@ I(road) = {
 }
 ```
 
-Is this statement true in `I`?
+Read `I(road)` as: look up `road` inside the database instance `I`.
+
+It gives the current relation instance for `road`. This is mathematical
+notation, not Rust code.
+:::
+
+:::qa
+Using that entry, is this statement true in `I`?
 
 ```text
 road("Logan", "Salt Lake City")
@@ -618,13 +607,7 @@ $$
 is a **relational atom**. Each $t_i$ is a term for the corresponding tuple
 position: either a data literal denoting a value, or a logical variable.
 
-An atom containing no variables is **ground**. For example,
-
-```text
-road("Logan", "Provo")
-```
-
-is a ground atom naming the complete tuple `("Logan", "Provo")`.
+An atom containing no variables is **ground**.
 :::
 
 :::qa
@@ -765,21 +748,7 @@ relation in which that tuple was tested.
 
 :::definition Valuation and truth of an atom
 A **valuation** assigns a value of the appropriate type to each logical
-variable. Call our first choice `v`:
-
-```text
-v(from) = "Logan"
-v(to)   = "Salt Lake City"
-```
-
-Applying `v` to `road(from, to)` produces the ground atom
-
-```text
-road("Logan", "Salt Lake City")
-```
-
-An instance satisfies an atom under `v` exactly when it satisfies the resulting
-ground atom.
+variable in a relational atom. A **ground atom** is an atom where all variables are valuated.
 :::
 
 :::alice
