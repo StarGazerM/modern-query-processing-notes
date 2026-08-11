@@ -4,9 +4,10 @@ These notes use a small Markdown convention to produce a Friedman-style,
 two-speaker dialogue. The renderer has no package dependencies; it uses the
 Node.js already available in the development environment.
 
-The published notes will be available through GitHub Pages. `index.md` is the
-landing page; numbered conversations and `aside-*` files are rendered as
-individual pages.
+Read the published notes at
+[pldi.me/modern-query-processing-notes](https://pldi.me/modern-query-processing-notes/).
+`index.md` is the landing page; numbered conversations and `aside-*` files are
+rendered as individual pages.
 
 ## Start a note
 
