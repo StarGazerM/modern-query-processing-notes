@@ -420,139 +420,56 @@ No. It gives the name `road` and the types of its two positions, but no current
 city values. I still need a set such as `roads_today` or `roads_tomorrow`.
 :::
 
-:::qa
-Suppose `road` refers to `roads_today` today and to `roads_tomorrow` tomorrow.
-Would either set violate the declaration?
-:::answer
-No. Every member of either set has the declared two-position shape.
-
-The number of members may change; the declaration need not.
-:::
-
-:::qa
-The declaration contains two occurrences of `City`. `roads_today` contains two
-tuples, while `roads_tomorrow` contains three.
-
-What do the two occurrences of `City` count?
-:::answer
-The two ordered positions in each tuple, not the number of tuples in the set.
-:::
-
 :::definition Arity
-The **arity** of a relation declaration is the number of ordered positions in
-each tuple. `road` has arity two, no matter how many tuples its current content
-has.
+The **arity** of a relation is the number of ordered positions in each of its
+tuples. It is not the number of tuples currently in the relation.
+:::
+
+:::qa
+What is the arity of `road`?
+:::answer
+Two.
+
+Every tuple in `road` has two ordered positions, as declared by
+`relation road(City, City);`.
 :::
 
 :::alice
 Chapter 3, p. 31 - relation names and arity.
 :::
 
-:::qa
-So both the Rust alias `Road` and the declaration describe two ordered
-positions.
-:::answer
-Then what did the logical name `road` add?
-:::
-
-:::qa
-`Road` describes the shape of one Rust row:
-
-```rust
-type Road = (City, City);
-```
-
-The declaration adds the stable logical name `road`, whose current content is a
-set of such rows.
-
-Could the empty set be that current content?
-
-```rust
-let no_roads: HashSet<Road> =
-    HashSet::new();
-```
-:::answer
-Yes. Nothing in the declaration requires at least one tuple. With no members,
-there cannot be a member of the wrong shape.
-
-It is perfectly legal—just a disappointing travel guide.
-:::
-
-:::qa
-What about this one?
-
-```rust
-let strange_roads: HashSet<Road> =
-    HashSet::from([
-        ("Apple", "Banana"),
-    ]);
-```
-
-Could it be the current content of `road`?
-:::answer
-Yes—unfortunately. `City` is only an alias for `&'static str`, so both words
-have type `City`.
-
-The stored claim may be nonsense. Membership in the set does not by itself
-certify geography; Rust does not come with an atlas.
-:::
-
-:::qa
-Could this be the current content of `road`?
-
-```text
-{ ("Logan", "Salt Lake City", "Provo") }
-```
-:::answer
-No. Its only tuple has three positions, while the declaration permits two.
-:::
-
-:::qa
-Could this tuple belong to the current content of `road`?
-
-```text
-("Logan", 42)
-```
-:::answer
-No. Its second position must have type `City`, but `42` is an integer. The
-declaration and the Rust alias both require two ordered positions, each of type
-`City`.
-:::
-
-:::qa
-We tried four possible contents for `road`:
-
-- no tuples;
-- the pair `("Apple", "Banana")`;
-- one tuple with three positions;
-- the pair `("Logan", 42)`.
-
-Which two did the declaration reject, and what did they have in common?
-:::answer
-It rejected the three-position tuple and `("Logan", 42)`. Both violate the
-declared tuple shape.
-
-The declaration did not reject the empty set or Apple and Banana: it fixes
-neither the number of tuples nor whether the stored claims make geographic
-sense.
-:::
-
 :::definition Relation schema and relation instance
-In this notation,
+In
 
 ```text
 relation road(City, City);
 ```
 
-is a **relation schema**. It fixes the relation name and the permitted shape of
-its tuples: arity two, with a `City` value in each ordered position.
+the name `road` together with its ordered types forms a **relation schema**.
 
 A **relation instance** over this schema is any finite relation
 $R \subseteq City \times City$, where $City \times City$ means all ordered
-pairs of `City` values.
+pairs of `City` values. The schema fixes the permitted form; an instance
+chooses which pairs are present.
+:::
 
-The Rust type `HashSet<Road>` already enforces the row shape in this example.
-The logical declaration additionally gives the relation the name `road`.
+:::qa
+How many relation instances of `road` have we already written?
+:::answer
+Two. `roads_today` represents one, and `roads_tomorrow` represents another.
+They have different tuples under the same relation schema.
+:::
+
+:::qa
+Give me one more relation instance of `road`.
+:::answer
+The empty set:
+
+```rust
+let no_roads: HashSet<Road> = HashSet::new();
+```
+
+The schema permits it; it does not require any tuple to be present.
 :::
 
 :::alice
@@ -561,44 +478,54 @@ and the type-value analogy.
 :::
 
 :::qa
-Let `I` name today's choice:
+Now add one more declaration:
 
 ```text
-I(road) = roads_today
+relation road_length(City, City, u32);
 ```
 
-How would you read this equation?
+Is `roads_today` enough to tell us the entire contents of today's database?
 :::answer
-In `I`, the logical name `road` denotes the finite relation represented by the
-Rust value `roads_today`.
-
-I am reading `I(road)` as mathematical lookup notation, not as a Rust function
-call.
+No. It gives us the current instance of `road`, but says nothing about the
+current instance of `road_length`.
 :::
 
 :::definition Database schema and database instance
 A **database schema** is a finite collection of relation schemas with distinct
 relation names.
 
+Our database schema now contains two relation schemas:
+
+```text
+relation road(City, City);
+relation road_length(City, City, u32);
+```
+
 A **database instance** over that schema assigns every declared relation name
 exactly one relation instance that matches its schema.
 
-If `I` is a database instance, `I(r)` denotes the relation that `I` assigns to
-the declared name `r`. Here the schema contains only `road`, with
+For example, today's database instance might be `I`:
 
 ```text
 I(road) = roads_today
+I(road_length) = { ("Logan", "Salt Lake City", 82) }
 ```
 
-Strictly, `I(road)` is a mathematical relation and `roads_today` is the Rust
-value representing it. When no confusion results, we identify a `HashSet` value
-with the finite set it represents.
-
-Tomorrow's database instance could be named `J`, with
+Tomorrow's could be `J`:
 
 ```text
 J(road) = roads_tomorrow
+J(road_length) = { ("Logan", "Salt Lake City", 82) }
 ```
+
+Thus `I` and `J` are two database instances over the same database schema.
+They assign different instances to `road` and the same instance to
+`road_length`.
+
+In general, `I(r)` denotes the relation instance that `I` assigns to the
+declared name `r`; this is mathematical lookup notation, not a Rust function
+call. Strictly, `roads_today` is the Rust value representing the mathematical
+relation `I(road)`.
 :::
 
 :::qa
