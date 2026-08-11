@@ -1,0 +1,67 @@
+name: Build and deploy notes
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Check renderer
+        run: |
+          node --check render.mjs
+          node --check build-site.mjs
+
+      - name: Build notes
+        run: node build-site.mjs
+
+      - name: Check published entry points
+        run: |
+          test -s build/index.html
+          test -s build/01-a-little-database-a-few-questions.html
+          test -s build/aside-a-little-rust-side-by-side.html
+
+      - name: Configure Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v6
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: build
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    permissions:
+      actions: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

@@ -1,6 +1,6 @@
 ---
 title: A Little Database, A Bit Rustic
-subtitle: Conversation 1.1 — Where do queries fit?
+subtitle: Conversation 1.1 — Not Ideas About the Database but the Database Itself
 author: Modern Query Processing
 date: Fall 2026
 left_speaker: Ada
@@ -9,7 +9,18 @@ right_speaker: Alice
 
 # Before the first query
 
+> After Wallace Stevens's [“Not Ideas About the Thing But the Thing
+> Itself”](https://poets.org/poem/not-ideas-about-thing-thing-itself).
+
 :::qa
+what is mini-linq?
+:::answer
+I don't know.
+:::
+
+:::qa
+It a database query language, I will teach you what it is and how to build.
+
 What is a database?
 :::answer
 My first guess is: software that stores and manages data on a computer.
@@ -323,8 +334,7 @@ schema-instance distinction next.
 :::
 
 :::qa
-Now compare two values.
-
+Now compare:
 ```rust
 let roads_today: HashSet<Road> =
     HashSet::from([
@@ -340,7 +350,7 @@ let roads_tomorrow: HashSet<Road> =
     ]);
 ```
 
-Do they have the same Rust type?
+Do they have the same **type**?
 :::answer
 Yes. Both have type `HashSet<Road>`.
 :::
@@ -351,48 +361,33 @@ Do they contain the same road tuples?
 No. `roads_tomorrow` contains one more tuple.
 :::
 
-:::qa
-The MiniLinq homework declares the logical input like this:
-
+:::notation Reading the MiniLinq declaration
 ```text
-input road/2;
+relation road(City, City);
 ```
 
-Does `/2` mean that `road` contains exactly two tuples?
-:::answer
-No. `roads_tomorrow` already gives a counterexample: it contains three tuples.
+`road` is the logical relation name. The two entries inside the parentheses
+are its ordered column types. Their number, two, is the relation's **arity**.
+It is not the number of tuples stored in a particular instance.
 
-`/2` says that each `road` tuple has two positions. We call this number its
-**arity**.
+MiniLinq borrows this declaration shape from
+[Ascent](https://docs.rs/crate/ascent/latest). In MiniLinq, a declared relation
+is supplied by the Rust caller; the declaration itself inserts no tuples.
+:::
+
+:::alice
+Chapter 3, p. 31 - relation names and arity.
 :::
 
 :::qa
-Now change only the name.
-
-```text
-input rail/2;
-```
-
-Could `rail/2` use the same two-position Rust row shape as `road/2`?
-:::answer
-Yes.
-:::
-
-:::qa
-Then are `road/2` and `rail/2` the same logical relation?
-:::answer
-No. Their arity is the same, but their relation names differ.
-:::
-
-:::qa
-So is this Rust alias the complete logical description of the relation?
+Does this Rust alias also declare the logical relation name `road`?
 
 ```rust
 type Road = (City, City);
 ```
 :::answer
-No. `Road` gives the host-language shape of one row. It does not supply the
-logical relation name `road`.
+No. `Road` gives the host-language shape of one row; it does not create a
+logical relation named `road`.
 :::
 
 :::qa
@@ -403,7 +398,7 @@ let no_roads: HashSet<Road> =
     HashSet::new();
 ```
 
-Can the empty set be a relation instance over `road/2`?
+Can the empty set be a relation instance over `relation road(City, City);`?
 :::answer
 Yes. It is finite, and it contains no tuple of the wrong shape.
 
@@ -420,7 +415,7 @@ let strange_roads: HashSet<Road> =
     ]);
 ```
 
-Is it a relation instance over `road/2`?
+Is it a relation instance over `relation road(City, City);`?
 :::answer
 Yes. It is a finite set of tuples containing two `City` values.
 
@@ -429,7 +424,7 @@ certify geography; Rust has not earned that degree.
 :::
 
 :::qa
-Is this a relation instance over `road/2`?
+Is this a relation instance over `relation road(City, City);`?
 
 ```text
 {
@@ -441,45 +436,47 @@ Is this a relation instance over `road/2`?
 }
 ```
 :::answer
-No. Its only tuple has three positions, while `road/2` requires two.
+No. Its only tuple has three positions, while the declaration has two column
+types.
 :::
 
 :::qa
-Does `road/2` alone reject this tuple?
+Does the MiniLinq declaration reject this tuple?
 
 ```text
 ("Logan", 42)
 ```
 :::answer
-No. It still has two positions. The Rust type `Road` rejects it because `42`
-is not a `City`; the logical declaration `road/2` records only the name and
-arity.
+Yes. Its second position must have type `City`, but `42` is an integer. The
+declaration and the Rust alias now agree on both the arity and the two column
+types.
 :::
 
 :::qa
 We can now name the distinction.
 
-The relation name together with its arity, `road/2`, is a **relation schema**
-in our MiniLinq notation. Each current finite set of two-position tuples is a
-**relation instance** over that schema.
+The relation name together with its ordered column types,
+`relation road(City, City);`, is a **relation schema** in our MiniLinq
+notation. Each current finite set of matching tuples is a **relation instance**
+over that schema.
 
 Between `roads_today` and `roads_tomorrow`, which one changed: the schema or
 the instance?
 :::answer
-The instance changed. The schema remained `road/2`.
+The instance changed. The schema remained `relation road(City, City);`.
 :::
 
 :::qa
 Then how can we decide whether a new finite set `S` is a relation instance
-over `road/2`?
+over `relation road(City, City);`?
 :::answer
 Check two things:
 
 1. `S` is a finite set.
-2. Every tuple in `S` has two positions.
+2. Every tuple in `S` has two positions, both containing `City` values.
 
-The Rust type `HashSet<Road>` adds a separate host-language check for the row
-representation used in our string example.
+In this example, the Rust type `HashSet<Road>` enforces exactly that host-side
+row shape before MiniLinq ever sees the instance.
 :::
 
 :::alice
@@ -517,8 +514,8 @@ instance belongs to the name `road`.
 :::
 
 :::qa
-Our database schema has only `road/2`. What, then, is the whole database
-instance?
+Our database schema has only `relation road(City, City);`. What, then, is the
+whole database instance?
 :::answer
 `I`. It supplies the current content of `road`.
 :::
@@ -832,7 +829,7 @@ MiniLinq homework:
 ```rust
 ::mini_linq::mini_linq! {
     struct TwoHopRoads;
-    input road/2;
+    relation road(City, City);
     two_hop(from, to) :-
         road(from, via),
         road(via, to).
@@ -892,55 +889,40 @@ return only the two endpoints.
 :::qa
 Does the MiniLinq program contain the actual road tuples?
 :::answer
-No. `input road/2;` declares the input relation. A Rust caller supplies one
-particular instance when the generated program runs.
+No. `relation road(City, City);` declares the input relation's name and column
+types. A Rust caller supplies one particular instance when the generated
+program runs.
 :::
 
 :::qa
-To run this example with the completed homework's fixed `[i32; n]` row
-representation, let us encode the city names as integer IDs:
-
-```text
-0 = Logan
-1 = Salt Lake City
-2 = Provo
-```
-
-Give the same two roads a Rust name, then run the query:
+Run the query on the same `roads_today` instance we already inspected:
 
 ```rust
-let road_rows_a = vec![
-    [0, 1],
-    [1, 2],
-];
-
 let answer_a = TwoHopRoads::run(
-    road_rows_a.clone(),
+    roads_today.clone(),
 );
 ```
 
 What value should `answer_a` contain?
 :::answer
 ```rust
-vec![[0, 2]]
+vec![("Logan", "Provo")]
 ```
 :::
 
 :::qa
-After `run` returns, did `road_rows_a` change?
+After `run` returns, did `roads_today` change?
 :::answer
-No. It still contains:
+No. It still contains the same two tuples:
 
 ```rust
-vec![
-    [0, 1],
-    [1, 2],
-]
+roads_today.contains(&("Logan", "Salt Lake City")) // true
+roads_today.contains(&("Salt Lake City", "Provo")) // true
 ```
 
 The generated Rust interface consumes owned rows, so `.clone()` gave it an
-owned copy and left `road_rows_a` available for this check. `answer_a` is
-stored separately; `[0, 2]` was not inserted into the input.
+owned copy and left `roads_today` available for this check. `answer_a` is
+stored separately; `("Logan", "Provo")` was not inserted into the input.
 :::
 
 :::law CQ evaluation does not update its input
@@ -959,21 +941,17 @@ tests one deterministic representation.
 :::
 
 :::qa
-Now the caller constructs a different input by adding one city and one road.
-
-```text
-3 = Ogden
-```
+Now the caller constructs a different input by adding one road:
 
 ```rust
-let road_rows_b = vec![
-    [0, 1],
-    [1, 2],
-    [2, 3],
-];
+let more_roads: HashSet<Road> = HashSet::from([
+    ("Logan", "Salt Lake City"),
+    ("Salt Lake City", "Provo"),
+    ("Provo", "Ogden"),
+]);
 
 let answer_b = TwoHopRoads::run(
-    road_rows_b.clone(),
+    more_roads.clone(),
 );
 ```
 
@@ -981,28 +959,28 @@ What value should `answer_b` contain?
 :::answer
 ```rust
 vec![
-    [0, 2],
-    [1, 3],
+    ("Logan", "Provo"),
+    ("Salt Lake City", "Ogden"),
 ]
 ```
 :::
 
 :::qa
-Should `[0, 3]` also appear?
+Should `("Logan", "Ogden")` also appear?
 :::answer
-No. Reaching `3` from `0` takes three roads. The query body contains exactly
-two `road` atoms.
+No. Reaching Ogden from Logan takes three roads. The query body contains
+exactly two `road` atoms.
 :::
 
 :::qa
 The MiniLinq text stayed fixed, but its input and output changed:
 
 ```text
-A(road) = { [0, 1], [1, 2] }
-q(A)    = { [0, 2] }
+A(road) = { (Logan, Salt Lake City), (Salt Lake City, Provo) }
+q(A)    = { (Logan, Provo) }
 
-B(road) = { [0, 1], [1, 2], [2, 3] }
-q(B)    = { [0, 2], [1, 3] }
+B(road) = { (Logan, Salt Lake City), (Salt Lake City, Provo), (Provo, Ogden) }
+q(B)    = { (Logan, Provo), (Salt Lake City, Ogden) }
 ```
 
 What, then, is fixed, and what varies?
@@ -1056,7 +1034,7 @@ searches the second atom first. On input `A`, must they perform the same work?
 No. They may use different orders or indexes and still both return:
 
 ```rust
-vec![[0, 2]]
+vec![("Logan", "Provo")]
 ```
 :::
 
@@ -1064,12 +1042,12 @@ vec![[0, 2]]
 Suppose the second program instead returns:
 
 ```rust
-vec![[0, 3]]
+vec![("Logan", "Ogden")]
 ```
 
 Could it still be a correct translation of the query on `A`?
 :::answer
-No. `[0, 3]` is not in `q(A)`.
+No. `("Logan", "Ogden")` is not in `q(A)`.
 :::
 
 :::qa
@@ -1090,17 +1068,17 @@ These are the spellings the dialogue has now exercised:
 | DSL spelling | What it did in the example |
 |---|---|
 | `struct TwoHopRoads;` | Named the generated Rust query program. |
-| `input road/2;` | Declared input relation `road` with arity two. |
+| `relation road(City, City);` | Declared input relation `road` with two ordered `City` columns. |
 | `two_hop(from, to)` | Named the output relation and selected the values of `from` and `to`. |
 | `:-` | Read as “if.” |
 | The comma | Required both body atoms: logical “and.” |
 | `.` | Ended the rule. |
 
 `from`, `via`, and `to` are logical variables. They receive values through the
-valuations tested above; they are not Rust bindings. An arity-`n` runtime row
-in the current homework is `[i32; n]`.
+valuations tested above; they are not Rust bindings. The declared column types
+determine the runtime row type; here it is `(City, City)`.
 
 The earlier expressions such as `road("Logan", "Provo")` were semantic
 notation. Current MiniLinq atoms contain identifiers only; concrete values
-enter through the Rust input rows.
+enter through the Rust input rows. MiniLinq has no fact-insertion syntax.
 :::

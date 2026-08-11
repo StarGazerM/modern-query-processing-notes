@@ -79,6 +79,13 @@ function findClosingMarker(lines, start) {
   return -1;
 }
 
+function findMarker(lines, start, marker) {
+  for (let index = start; index < lines.length; index += 1) {
+    if (lines[index].trim() === marker) return index;
+  }
+  return -1;
+}
+
 function renderMarkdown(markdown, state) {
   const lines = markdown.replaceAll("\r\n", "\n").split("\n");
   const output = [];
@@ -90,6 +97,53 @@ function renderMarkdown(markdown, state) {
 
     if (trimmed === "") {
       index += 1;
+      continue;
+    }
+
+    if (trimmed.startsWith(":::compare")) {
+      const rustIndex = findMarker(lines, index + 1, ":::rust");
+      if (rustIndex < 0) {
+        throw new Error(`Comparison near line ${index + 1} has no :::rust marker`);
+      }
+      const closeIndex = findClosingMarker(lines, rustIndex + 1);
+      if (closeIndex < 0) {
+        throw new Error(`Comparison near line ${index + 1} has no closing ::: marker`);
+      }
+      const nextNoticeIndex = findMarker(lines, rustIndex + 1, ":::notice");
+      const noticeIndex = nextNoticeIndex >= 0 && nextNoticeIndex < closeIndex
+        ? nextNoticeIndex
+        : -1;
+
+      state.comparisonNumber += 1;
+      const number = String(state.comparisonNumber).padStart(2, "0");
+      const title = trimmed.slice(":::compare".length).trim() || `Comparison ${number}`;
+      const titleId = `comparison-${state.comparisonNumber}-title`;
+      const leftEnd = rustIndex;
+      const rightEnd = noticeIndex >= 0 ? noticeIndex : closeIndex;
+      const leftBody = lines.slice(index + 1, leftEnd).join("\n");
+      const rightBody = lines.slice(rustIndex + 1, rightEnd).join("\n");
+      const noticeBody = noticeIndex >= 0
+        ? lines.slice(noticeIndex + 1, closeIndex).join("\n")
+        : "";
+      output.push(`
+<section class="compare-row" aria-labelledby="${titleId}">
+  <header class="compare-heading">
+    <span class="compare-number">${number}</span>
+    <h2 id="${titleId}">${renderInline(title)}</h2>
+  </header>
+  <div class="compare-grid">
+    <div class="compare-card python-card">
+      <div class="eyebrow">${renderInline(state.leftSpeaker)}</div>
+      ${renderMarkdown(leftBody, state)}
+    </div>
+    <div class="compare-card rust-card">
+      <div class="eyebrow">${renderInline(state.rightSpeaker)}</div>
+      ${renderMarkdown(rightBody, state)}
+    </div>
+  </div>
+  ${noticeBody ? `<aside class="compare-notice"><strong>Notice.</strong><div>${renderMarkdown(noticeBody, state)}</div></aside>` : ""}
+</section>`);
+      index = closeIndex + 1;
       continue;
     }
 
@@ -312,7 +366,12 @@ function renderDocument(source, theme) {
     .filter(Boolean)
     .map((item) => `<span>${renderInline(item)}</span>`)
     .join("");
-  const state = { exchangeNumber: 0, leftSpeaker, rightSpeaker };
+  const state = {
+    exchangeNumber: 0,
+    comparisonNumber: 0,
+    leftSpeaker,
+    rightSpeaker,
+  };
 
   return `<!doctype html>
 <html lang="en">
@@ -337,6 +396,10 @@ function renderDocument(source, theme) {
       ${subtitle ? `<p class="subtitle">${renderInline(subtitle)}</p>` : ""}
       ${byline ? `<div class="byline">${byline}</div>` : ""}
     </header>
+    <nav class="site-nav" aria-label="Course notes">
+      <a href="index.html">All notes</a>
+      <a href="https://github.com/StarGazerM/modern-query-processing-notes">Source</a>
+    </nav>
     <main>${renderMarkdown(body, state)}</main>
   </article>
 </body>

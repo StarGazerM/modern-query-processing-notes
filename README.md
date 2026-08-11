@@ -4,12 +4,16 @@ These notes use a small Markdown convention to produce a Friedman-style,
 two-speaker dialogue. The renderer has no package dependencies; it uses the
 Node.js already available in the development environment.
 
+The published notes will be available through GitHub Pages. `index.md` is the
+landing page; numbered conversations and `aside-*` files are rendered as
+individual pages.
+
 ## Start a note
 
 Copy `template.md`, change its front matter, and replace the sample dialogue:
 
 ```text
-cp doc/notes/template.md doc/notes/01-cq-meaning.md
+cp template.md 01-cq-meaning.md
 ```
 
 Write each exchange as:
@@ -63,29 +67,60 @@ homework. It is visually distinct from definitions and laws:
 
 ```text
 :::notation MiniLinq homework notation
-`input road/2;` declares a relation named `road` with arity two.
+`relation road(City, City);` declares a host-supplied relation named `road`
+with two ordered `City` columns; it inserts no tuples.
 :::
 ```
 
 ## Render
 
 ```text
-node doc/notes/render.mjs doc/notes/01-cq-meaning.md
+node render.mjs 01-cq-meaning.md
 ```
 
-The command writes `doc/notes/build/01-cq-meaning.html`. Open that file in a
+The command writes `build/01-cq-meaning.html`. Open that file in a
 browser. The output is self-contained except for MathJax, which is loaded from
 a CDN when mathematical notation is present.
+
+Build the complete published site with:
+
+```text
+node build-site.mjs
+```
 
 During editing, rebuild automatically after each save:
 
 ```text
-node doc/notes/render.mjs --watch doc/notes/01-cq-meaning.md
+node render.mjs --watch 01-cq-meaning.md
 ```
 
 The browser layout uses two columns on wide screens and stacks Alice's turn
 under Ada's on narrow screens. Browser printing uses a white, page-friendly
 layout.
+
+## Build a side-by-side phrasebook
+
+Use a neutral comparison block when two columns show equivalent notation rather
+than a conversation:
+
+````text
+:::compare Test one candidate
+```python
+present = candidate in roads
+```
+:::rust
+```rust
+let present = roads.contains(&candidate);
+```
+:::notice
+Both expressions read the set and produce a Boolean.
+:::
+````
+
+The left and right labels still come from `left_speaker` and `right_speaker` in
+the front matter. Comparison cards have equal width and aligned tops; the notice
+spans both columns. See `aside-a-little-rust-side-by-side.md` for a complete
+Python-to-Rust example.
 
 ## Authoring discipline
 
