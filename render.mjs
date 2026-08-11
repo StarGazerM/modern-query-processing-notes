@@ -100,6 +100,33 @@ function renderMarkdown(markdown, state) {
       continue;
     }
 
+    if (trimmed === ":::cards") {
+      const closeIndex = findClosingMarker(lines, index + 1);
+      if (closeIndex < 0) {
+        throw new Error(`Card grid near line ${index + 1} has no closing ::: marker`);
+      }
+      const cards = lines
+        .slice(index + 1, closeIndex)
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+        .map((entry) => {
+          const match = entry.match(/^\[([^\]]+)\]\(([^)\s]+)\)\s*\|\s*(.+)$/);
+          if (!match) {
+            throw new Error(
+              `Card near line ${index + 1} must use [Title](url) | Description`,
+            );
+          }
+          return `<a class="course-card" href="${escapeHtml(match[2])}">
+  <strong>${renderInline(match[1])}</strong>
+  <span>${renderInline(match[3])}</span>
+  <span class="course-card-action" aria-hidden="true">Read on&nbsp;→</span>
+</a>`;
+        });
+      output.push(`<section class="course-card-grid">${cards.join("\n")}</section>`);
+      index = closeIndex + 1;
+      continue;
+    }
+
     if (trimmed.startsWith(":::compare")) {
       const rustIndex = findMarker(lines, index + 1, ":::rust");
       if (rustIndex < 0) {
@@ -361,6 +388,7 @@ function renderDocument(source, theme) {
   const author = metadata.author ?? "";
   const date = metadata.date ?? "";
   const status = metadata.status ?? "";
+  const layout = slugify(metadata.layout ?? "dialogue");
   const leftSpeaker = metadata.left_speaker ?? "Ada";
   const rightSpeaker = metadata.right_speaker ?? "Alice";
   const byline = [author, date]
@@ -391,18 +419,27 @@ function renderDocument(source, theme) {
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
 <body>
-  <article class="page" id="lecture-note">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <article class="page layout-${layout}" id="lecture-note">
     <header class="title-block">
       ${status ? `<p class="status-badge">${renderInline(status)}</p>` : ""}
       <h1>${renderInline(title)}</h1>
       ${subtitle ? `<p class="subtitle">${renderInline(subtitle)}</p>` : ""}
       ${byline ? `<div class="byline">${byline}</div>` : ""}
     </header>
-    <nav class="site-nav" aria-label="Course notes">
-      <a href="index.html">All notes</a>
+    <nav class="site-nav" aria-label="Course website">
+      <a href="index.html">Home</a>
+      <a href="syllabus.html">Syllabus</a>
+      <a href="schedule.html">Schedule</a>
+      <a href="project.html">Project</a>
+      <a href="index.html#course-notes">Notes</a>
       <a href="https://github.com/StarGazerM/modern-query-processing-notes">Source</a>
     </nav>
-    <main>${renderMarkdown(body, state)}</main>
+    <main id="main-content">${renderMarkdown(body, state)}</main>
+    <footer class="site-footer">
+      <span>Modern Query Processing · Fall 2026</span>
+      <a href="https://pldi.me/">Yihao Sun</a>
+    </footer>
   </article>
 </body>
 </html>`;

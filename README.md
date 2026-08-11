@@ -1,18 +1,45 @@
-# Conversational course notes
+# Modern Query Processing course site
 
-> **Status:** Work in progress. The notes are public so students can read them
-> as they develop; content and organization may still change.
+> **Status:** Work in progress. The syllabus, schedule, project contract, and
+> notes are public so students can read the course as it develops.
 
-These notes use a small Markdown convention to produce a Friedman-style,
-two-speaker dialogue. The renderer has no package dependencies; it uses the
-Node.js already available in the development environment.
+This repository is the canonical public website for the Fall 2026 Modern Query
+Processing course. A dependency-free Node.js renderer builds ordinary course
+pages, Friedman-style dialogues, and side-by-side reference pages into one
+site with shared navigation and visual language.
 
-Read the published notes at
+Read the published course site at
 [pldi.me/modern-query-processing-notes](https://pldi.me/modern-query-processing-notes/).
-`index.md` is the landing page; numbered conversations and `aside-*` files are
-rendered as individual pages.
 
-## Start a note
+## Site structure
+
+- `index.md` is the course homepage.
+- `syllabus.md`, `schedule.md`, and `project.md` are the canonical course
+  documents.
+- Numbered files are conversational notes.
+- `aside-*` files are quick-reference pages such as the Python-to-Rust
+  phrasebook.
+
+Each source selects its presentation without changing the Markdown authoring
+model:
+
+```text
+layout: home
+layout: prose
+layout: dialogue
+layout: comparison
+```
+
+Use a card grid on the homepage or another course-level page as follows:
+
+```text
+:::cards
+[Read the syllabus](syllabus.html) | Outcomes, assessment, and policies.
+[Follow the schedule](schedule.html) | Topics, readings, and release dates.
+:::
+```
+
+## Start a conversational note
 
 Copy `template.md`, change its front matter, and replace the sample dialogue:
 
@@ -90,6 +117,12 @@ Build the complete published site with:
 
 ```text
 node build-site.mjs
+```
+
+Validate every generated internal link and anchor with:
+
+```text
+node check-site.mjs
 ```
 
 During editing, rebuild automatically after each save:

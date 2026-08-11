@@ -3,6 +3,7 @@ title: The Little Joiner
 subtitle: Conversation 0 — Authoring template
 author: Modern Query Processing
 date: Fall 2026
+layout: dialogue
 left_speaker: Ada
 right_speaker: Alice
 ---
