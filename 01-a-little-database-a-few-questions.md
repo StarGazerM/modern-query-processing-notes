@@ -12,9 +12,6 @@ next: [Conversation 1.2 · By Indirections Find Directions Out](02-the-relation-
 
 # What's in a name?
 
-> After Juliet's question in Shakespeare's
-> [*Romeo and Juliet*](https://www.folger.edu/explore/shakespeares-works/romeo-and-juliet/read/2/2/).
-
 :::qa
 What is a database?
 :::answer

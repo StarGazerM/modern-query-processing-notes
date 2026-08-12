@@ -67,6 +67,7 @@ types, bindings, and programs matter more than isolated terminology.
 :::cards
 [Conversation 1.1 · What's in a Name?](01-a-little-database-a-few-questions.html) | Establish data, relation schemas, database schemas, instances, and the DBMS before asking a query.
 [Conversation 1.2 · By Indirections Find Directions Out](02-the-relation-that-wasnt-stored.html) | Move from recorded facts through valuations and conjunction to a rule-based query and its separate image.
+[Rust Conversation R.1 · The Code That Became a Value](rust-01-the-code-that-became-a-value.html) | Inspect one familiar macro, represent grammatical shape with Rust values, and build a typed relation declaration.
 [A Little Rust, Side by Side](aside-a-little-rust-side-by-side.html) | A Python-to-Rust cheat sheet for reading the project and the course text.
 :::
 

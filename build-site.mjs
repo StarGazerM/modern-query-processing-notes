@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
-const notePattern = /^(?:\d{2}-|aside-).+\.md$/;
+const notePattern = /^(?:\d{2}-|rust-\d{2}-|aside-).+\.md$/;
 const noteSources = readdirSync(scriptDirectory)
   .filter((name) => notePattern.test(name))
   .sort();
