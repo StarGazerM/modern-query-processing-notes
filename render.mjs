@@ -469,6 +469,38 @@ function parseFrontMatter(source) {
   return [metadata, normalized.slice(end + 5)];
 }
 
+function parseNavigationLink(value, field) {
+  if (!value) return null;
+  const match = value.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
+  if (!match) {
+    throw new Error(
+      `Front matter field ${field} must use [Title](relative-url)`,
+    );
+  }
+  return { title: match[1], href: match[2] };
+}
+
+function renderConversationNavigation(previous, next) {
+  if (!previous && !next) return "";
+  const renderLink = (target, direction) => {
+    if (!target) return `<span class="conversation-nav-spacer" aria-hidden="true"></span>`;
+    const previousLink = direction === "previous";
+    const label = previousLink ? "Previous conversation" : "Next conversation";
+    const arrow = previousLink ? "←" : "→";
+    return `<a class="conversation-nav-link conversation-nav-${direction}" href="${escapeHtml(target.href)}" rel="${previousLink ? "prev" : "next"}">
+  <span class="conversation-nav-arrow" aria-hidden="true">${arrow}</span>
+  <span class="conversation-nav-copy">
+    <span class="conversation-nav-label">${label}</span>
+    <strong>${renderInline(target.title)}</strong>
+  </span>
+</a>`;
+  };
+  return `<nav class="conversation-nav" id="conversation-navigation" aria-label="Conversation navigation">
+  ${renderLink(previous, "previous")}
+  ${renderLink(next, "next")}
+</nav>`;
+}
+
 function renderDocument(source, theme) {
   const [metadata, body] = parseFrontMatter(source);
   const title = metadata.title ?? sourceStem;
@@ -479,6 +511,8 @@ function renderDocument(source, theme) {
   const layout = slugify(metadata.layout ?? "dialogue");
   const leftSpeaker = metadata.left_speaker ?? "Ada";
   const rightSpeaker = metadata.right_speaker ?? "Alice";
+  const previous = parseNavigationLink(metadata.previous, "previous");
+  const next = parseNavigationLink(metadata.next, "next");
   const byline = [author, date]
     .filter(Boolean)
     .map((item) => `<span>${renderInline(item)}</span>`)
@@ -527,6 +561,7 @@ function renderDocument(source, theme) {
       <a href="https://github.com/StarGazerM/modern-query-processing-notes">Source</a>
     </nav>
     <main id="main-content">${renderMarkdown(body, state)}</main>
+    ${renderConversationNavigation(previous, next)}
     <footer class="site-footer">
       <span>Modern Query Processing · Fall 2026</span>
       <a href="https://pldi.me/">Yihao Sun</a>

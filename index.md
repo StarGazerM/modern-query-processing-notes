@@ -23,7 +23,7 @@ how query shape limits the work it should have to do.
 [Read the syllabus](syllabus.html) | Outcomes, prerequisites, assessment, participation, and course policies.
 [Follow the schedule](schedule.html) | Fifteen weeks of topics, primary readings, practica, and release dates.
 [Understand the project](project.html) | One cumulative Rust implementation, released in three inspectable stages.
-[Open the first conversation](01-a-little-database-a-few-questions.html) | Begin with the database itself, then make queries precise in mathematics and code.
+[Open the first conversation](01-a-little-database-a-few-questions.html) | Begin with values, relations, database instances, and the conditions under which logical statements are true.
 :::
 
 # Course at a glance
@@ -65,7 +65,8 @@ Pause at a question, predict an answer, and then read across. Exact tuples,
 types, bindings, and programs matter more than isolated terminology.
 
 :::cards
-[Conversation 1.1 · The Database Itself](01-a-little-database-a-few-questions.html) | Replace the database-as-black-box picture with a relation that is mathematically defined and executable in Rust.
+[Conversation 1.1 · The Database Itself](01-a-little-database-a-few-questions.html) | Replace the database-as-black-box picture with relations, instances, atoms, valuations, and conjunction.
+[Conversation 1.2 · The Relation That Wasn't Stored](02-the-relation-that-wasnt-stored.html) | Turn a conjunction into a rule, separate its result from its input, and define the query's image.
 [A Little Rust, Side by Side](aside-a-little-rust-side-by-side.html) | A Python-to-Rust cheat sheet for reading the project and the course text.
 :::
 

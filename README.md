@@ -147,19 +147,33 @@ A recap may consolidate earlier definitions and laws, but it must not introduce
 a concept required to understand the preceding conversation. Prefer connected
 formal prose over another sequence of questions.
 
-## Separate meaning from Rust wiring
+Link adjacent conversations through front matter. The renderer places these as
+accessible navigation cards after the conversation and hides them when printing:
+
+```text
+previous: [Conversation 1.1 · The Database Itself](01-a-little-database-a-few-questions.html)
+next: [Conversation 1.2 · The Relation That Wasn't Stored](02-the-relation-that-wasnt-stored.html)
+```
+
+## Separate denotation from evaluation
 
 In a conceptual conversation, show bare query forms in a `text` fence. They are
-the language being investigated, not Rust that can compile by itself. When an
-executable account of their meaning is needed, show a separate ordinary Rust
-function in a `rust` fence and compile-check that function.
+the language being investigated, not Rust that can compile by itself. A
+conversation may stop after the notation and its denotation are understood.
 
-Delay the host-language envelope—the implementation name, macro invocation,
-generated item name, callable API, ownership choices, and materialization
-format—to a guided `lab-*` note. That lab should make each piece necessary by
-first trying to give the already-understood query notation a home in Rust.
-The conversation establishes what a query denotes; the lab later constructs
-machinery that must preserve that meaning.
+Do not jump directly from a conjunctive query to a hand-written Rust loop and
+present that loop as its implementation. The space between them is course
+content. Later conversations should make each intermediate account necessary:
+first relational algebra, then a pull-oriented iterator or Volcano account,
+and then a push-oriented account. Students should help derive each account and
+test it against the denotation already established.
+
+Only after a Rust-shaped operational account has been earned should a guided
+`lab-*` note introduce the host-language envelope—the implementation name,
+macro invocation, generated item name, callable API, ownership choices, and
+materialization format. Every later implementation must preserve the earlier
+denotation, but it need not resemble the query syntax or perform the same
+sequence of operations.
 
 ## Render
 
