@@ -17,7 +17,7 @@ right_speaker: Alice
 :::qa
 What is a database?
 :::answer
-My first guess is: software that stores and manages data on a computer.
+My first guess is software that stores and manages data on a computer.
 :::
 
 :::qa
@@ -35,8 +35,7 @@ Suppose Rust evaluates this statement:
 let road = ("Logan", "Salt Lake City");
 ```
 
-Which part could serve as data about a road: the source statement, or the value
-produced by evaluating it?
+Is this data?
 :::answer
 The statement is code. The tuple value it produces can serve as data.
 
@@ -49,9 +48,10 @@ running program.
 type City = &'static str;
 type Road = (City, City);
 ```
-Do these two lines create a pair of cities?
+
+Is this data?
 :::answer
-No. They name permitted forms of values; they do not create a value.
+No. They describe shapes that data may have; neither line creates a value.
 :::
 
 ::::review Rust string literals
@@ -73,45 +73,39 @@ story.
 :::
 ::::
 
-:::qa
-What does the annotation `: Road` contribute here?
-
-```rust
-let road: Road = (
-    "Logan",
-    "Salt Lake City",
-);
-```
-:::answer
-It requires the tuple value to fit whatever form `Road` permits. The tuple is
-still the value that can serve as data.
-
-Then perhaps `Road` is the set of all such data?
-:::
 
 :::qa
-Which of these statements will Rust reject?
+Are these roads?
 
 ```rust
-let apple_slc: Road =
-    ("Apple", "Salt Lake City");
-let apple_banana: Road =
-    ("Apple", "Banana");
+("Apple", "Salt Lake City");
+("Apple", "Banana");
 ```
 :::answer
-Neither. Rust even accepts Apple to Banana.
+Neither. But each has the shape required by `Road`; Rust would accept either
+where a `Road` value is expected.
 
 So `Road` distinguishes shape, not geography.
 :::
 
 :::qa
-Exactly. Rust can decide whether an expression has type `Road`—here, whether it
-produces a pair of `City` values. A type describes a decidable property; it does
-not remember the values that passed the check.
+Exactly. `Road` is a **type**. It describes a decidable property: whether a
+value has the required shape.
 
-How could we store exactly the pairs we accept?
+You can answer “yes” to whether a road exists by searching for a road in the
+world: if you find one, you have proved that it exists. But answering “no” to
+this question requires enumerating all roads in the world, which is not
+possible.
+
+Therefore, this question is **semi-decidable** and cannot be captured by a
+**type**.
+
+But being unable to say “no” does not mean that we cannot answer anything.
+
 :::answer
-In a `HashSet<Road>`:
+
+For a program that needs an answer now, we must keep track of the roads it is
+allowed to know:
 
 ```rust
 use std::collections::HashSet;
@@ -121,10 +115,30 @@ let roads = HashSet::from([
     ("Salt Lake City", "Provo"),
 ]);
 ```
+
+We surrender the grand question, “Is this a road?” and ask a smaller one:
+“According to what we have recorded, is this a road?”
 :::
 
 :::qa
-How could we turn that stored set into a yes-or-no test for one candidate?
+Let us call “what we have recorded” our **world**. Reading a question as
+“according to what we have recorded” uses the **closed-world assumption**. We
+will define these terms formally later.
+
+Now, are these roads?
+
+```rust
+("Apple", "Salt Lake City");
+("Apple", "Banana");
+```
+:::answer
+No. According to what we have recorded, they are not roads.
+:::
+
+:::qa
+Good. That was easy for you, but computer scientists also want to know whether
+this question is computable. Under the CWA, it is. How?
+
 :::answer
 Perhaps with a named function:
 
@@ -149,7 +163,7 @@ is_road(
 
 ::::review Rust borrowing
 :::qa
-Start with a freshly recreated `roads`, then ask the same question twice:
+Recreate `roads`, then ask the same question twice:
 
 ```rust
 is_road(
@@ -162,7 +176,7 @@ is_road(
 );
 ```
 :::answer
-Ahhh, Rust rejects the second call. It says the first call moved `roads`.
+Ahhh—Rust rejects the second call. It says the first call moved `roads`.
 :::
 
 :::qa
@@ -244,99 +258,44 @@ No. This `&` is attached to `road`, not `roads`. It must refer to the candidate.
 :::
 ::::
 
-Keep the version we will use from now on:
-
+:::qa
 ```rust
-fn is_road(
-    roads: &HashSet<Road>,
-    road: Road,
-) -> bool {
-    roads.contains(&road)
-}
+is_road(&roads, ("Logan", "Provo"))
 ```
 
-For the next few questions, `roads` stays fixed. We will abbreviate
-
-```rust
-is_road(&roads, candidate)
-```
-
-as
+This is concrete Rust code, but scientists are lazy. When `roads` is
+understood, they abbreviate it as:
 
 ```text
-is_road(candidate)
+road("Logan", "Provo")
 ```
 
-:::qa
-Using that shorthand, what does this call return, and what does `roads` contain
-afterward?
+They call `road`—not `Road`—a **relation**, and `is_road` its **membership
+predicate**.
 
-```text
-is_road(("Logan", "Provo"))
-```
 :::answer
-It returns `false`, and `roads` still contains exactly its original two tuples.
-The hidden first argument was `&roads`; the function only inspected it.
-
-But we all know that there is a two-road route from Logan to Provo. Why does
-`is_road` say `false`?
-:::
-
-:::qa
-Trace the only test performed by the function:
-
-```rust
-roads.contains(&("Logan", "Provo"))
-```
-
-What question were you expecting instead?
-:::answer
-Whether there is some intermediate city joined to Logan and Provo by two stored
-roads. Direct membership and a two-road route are different questions.
-:::
-
-:::qa
-Suppose two sources report the same road, and we insert both reports:
+I am surprised they are not tired of writing:
 
 ```rust
 HashSet::<Road>::from([
     ("Logan", "Salt Lake City"),
-    ("Logan", "Salt Lake City"),
 ])
 ```
-
-Can this `HashSet` later tell us that there were two reports?
-:::answer
-No. It contains one tuple. A set remembers membership, not how many times a
-member was inserted.
 :::
 
 :::qa
-We now have three different things: the type `Road`, one pair such as
-`("Logan", "Salt Lake City")`, and the value `roads`.
+They are. They write:
 
-Which one is a member, and which one is the whole set whose membership we test?
+```text
+I(road) = {
+    ("Logan", "Salt Lake City")
+}
+```
+
+They call `I(road)` a **relation instance** of `road`. It is also the
+**interpretation** of the relation name `road` in `I`.
 :::answer
-The pair is one member. `roads` is the whole set. `Road` is the Rust type of
-each permitted member.
-:::
-
-:::definition Binary relation
-Let $A$ and $B$ be sets of values. A **binary relation** between them is a set
-of ordered pairs $(a, b)$, where $a$ comes from $A$ and $b$ comes from $B$.
-:::
-
-:::qa
-So `roads` is the relation.
-:::answer
-Then `is_road` is only its membership test, not another source of road facts?
-:::
-
-:::law Membership
-For the fixed relation `roads` and every `candidate: Road`,
-`is_road(candidate)` is `true` exactly when `candidate` is a member of `roads`.
-We therefore call `is_road` the **membership predicate** of `roads`; the
-relation determines every answer it gives.
+Neat. So `I` is something larger than the `road` relation alone.
 :::
 
 :::alice
@@ -344,120 +303,108 @@ Chapter 3, Section 3.3, p. 32 - the finite-set-of-tuples view.
 :::
 
 :::qa
-Now compare:
-```rust
-let roads_today: HashSet<Road> =
-    HashSet::from([
-        ("Logan", "Salt Lake City"),
-        ("Salt Lake City", "Provo"),
-    ]);
+Yes. Before we give `I` a name, consider:
 
-let roads_tomorrow: HashSet<Road> =
-    HashSet::from([
-        ("Logan", "Salt Lake City"),
-        ("Salt Lake City", "Provo"),
-        ("Logan", "Provo"),
-    ]);
+```text
+I0(road) = {
+    ("Logan", "Salt Lake City"),
+    ("Logan", "Salt Lake City")
+}
 ```
 
-What stayed fixed, and what changed?
-:::answer
-Both values have type `HashSet<Road>`. Their contents differ:
-`roads_tomorrow` additionally contains `("Logan", "Provo")`.
+Is `I0(road)` the same relation as `I(road)`?
 
-The question is still about roads. Must its name change whenever the Rust
-binding changes?
+:::answer
+Yes. The braces denote a set, just as our `HashSet` did. Duplicates do not
+count.
+
+So a relation is mathematically a *set*.
 :::
 
 :::qa
-No. Our notation needs a stable name independent of
-either Rust binding. Let us try:
+```text
+I1(road) = {
+    ("Logan", "Salt Lake City"),
+    ("Salt Lake City", "Logan")
+}
+```
+Does `I1(road)` describe one road or two?
+:::answer
+That depends on what `road` means. Are I-15 South and I-15 North the same road?
+If they are, I would say one; if not, two.
+:::
+
+:::qa
+Good. As a set, `I1(road)` contains two distinct tuples. Whether those tuples
+describe one physical road or two depends on their **interpretation**. We will
+study that distinction more deeply later.
+:::answer
+Okay.
+:::
+
+:::qa
+Is
+
+```text
+I2(road) = {
+    ("Logan", "Salt Lake City"),
+    ("Logan", 1, 2)
+}
+```
+
+an instance of `road`?
+:::answer
+No. There are two problems:
+
+1. `1` and `2` do not have type `City`.
+2. A `road` tuple has two positions, not three.
+:::
+
+:::qa
+Right. Before giving an instance, we must declare the relation's name and tuple
+shape. This is called its **relation schema**.
 
 ```text
 relation road(City, City);
 ```
 
-Read as much of that line as you can, and stop where it becomes uncertain.
+The number of positions in each tuple is called the relation's **arity**.
 :::answer
-It is not Rust, and `relation` suggests that the line declares the stable name
-`road`. But `road(City, City)` still looks like a function call wearing a
-semicolon. Are we calling it with two values?
-:::
-
-:::qa
-Put one candidate beneath the new line:
-
-```text
-relation road( City ,       City       );
-               "Logan", "Salt Lake City"
-```
-
-The lower line supplies values. What might the two occurrences of `City` be
-specifying?
-:::answer
-The permitted types of two ordered positions: `"Logan"` fits the first `City`,
-and `"Salt Lake City"` fits the second.
-
-So `relation road(City, City);` declares the name and tuple shape; it is not
-calling `road` with two values.
-:::
-
-:::qa
-With only this declaration, can you tell whether the Logan-to-Salt-Lake-City
-tuple is currently stored?
-
-```text
-relation road(City, City);
-```
-:::answer
-No. It gives the name `road` and the types of its two positions, but no current
-city values. I still need a set such as `roads_today` or `roads_tomorrow`.
-:::
-
-:::definition Arity
-The **arity** of a relation is the number of ordered positions in each of its
-tuples. It is not the number of tuples currently in the relation.
-:::
-
-:::qa
-What is the arity of `road`?
-:::answer
-Two.
-
-Every tuple in `road` has two ordered positions, as declared by
-`relation road(City, City);`.
-:::
-
-:::alice
-Chapter 3, p. 31 - relation names and arity.
-:::
-
-:::definition Relation schema and relation instance
-A symbol name together with its ordered types forms a **relation schema**.
-
-A **relation instance** over this schema is any finite relation
-$R \subseteq City \times City$, where $City \times City$ means all ordered
-pairs of `City` values. The schema fixes the permitted form; an instance
-chooses which pairs are present.
-:::
-
-:::qa
-How many relation instances of `road` have we already written?
-:::answer
-Two. `roads_today` represents one, and `roads_tomorrow` represents another.
-They have different tuples under the same relation schema.
-:::
-
-:::qa
-Give me one more relation instance of `road`.
-:::answer
-The empty set:
+I see. In Rust, that tuple shape appears in:
 
 ```rust
-let no_roads: HashSet<Road> = HashSet::new();
+let road: HashSet<(City, City)> = HashSet::new();
 ```
+:::
 
-The schema permits it; it does not require any tuple to be present.
+:::definition Relation
+Under the conventional perspective, a **relation** (or relation instance) is a
+(possibly empty) finite set of tuples.
+:::
+
+:::qa
+Good. Now it is your turn to write like a database researcher.
+
+I want to record distances between cities in Utah. What relation schema and
+example relation instance should I use?
+:::answer
+```text
+relation road_length(City, City, u32);
+
+I(road_length) = {
+    ("Logan", "Salt Lake City", 82)
+}
+```
+:::
+
+:::qa
+In Rust?
+:::answer
+```rust
+let road_length: HashSet<(City, City, u32)> = HashSet::from([
+    ("Logan", "Salt Lake City", 82)
+]);
+```
 :::
 
 :::alice
@@ -465,63 +412,55 @@ Chapter 3, Section 3.1, pp. 29-31, and Section 3.3, p. 32 - schema, instance,
 and the type-value analogy.
 :::
 
+
 :::qa
-How many miles is the road from Logan to Salt Lake City?
+Now put the relations we care about, and one instance of each, together:
+
+```text
+{
+    relation road(City, City);
+    relation road_length(City, City, u32);
+}
+{
+    I(road) = {
+        ("Logan", "Salt Lake City"),
+        ("Salt Lake City", "Provo")
+    }
+    I(road_length) = {
+        ("Logan", "Salt Lake City", 82)
+    }
+}
+```
+
+We can now refine your earlier guess about a database.
 :::answer
-```text
-("Logan", "Salt Lake City", 82)
-```
+A **database**!
+:::
 
-Wait. That has three positions. It cannot be a member of `road`, whose tuples
-have two positions. The old relation can say that the city pair is a stored
-road, but it has no place for the number `82`.
+:::definition Database schema and database instance
+A **database schema** is a finite collection of relation schemas with distinct
+names.
 
-Perhaps road length needs another relation:
-
-```text
-relation road_length(City, City, u32);
-```
-
-The first two positions identify the city pair. The third position records the
-length. Here `u32` is Rust's type for a non-negative whole number; we use it for
-whole miles.
+A **database instance** over that schema assigns each relation name exactly one
+relation instance matching that relation's schema.
 :::
 
 :::qa
-What data must today's database contain if it knows that answer?
+Is a database a piece of software?
 :::answer
-```rust
-let road_lengths: HashSet<(City, City, u32)> =
-    HashSet::from([
-        ("Logan", "Salt Lake City", 82),
-    ]);
-```
-
-This is the current relation instance assigned to `road_length`.
+No. These expressions describe organized data, including its schema and its
+current instance. The software that stores and manages that data must have
+another name.
 :::
-
-:::qa
-Now we have two declarations:
-
-```text
-relation road(City, City);
-relation road_length(City, City, u32);
-```
-and their instances.
-Let's call this a **database**.
-:::answer
-**database**!
-
-So its not a software.
-:::
-
 
 :::definition Database and DBMS
 A **database** is an organized collection of data. In our logical account, its
-current contents are represented by a database instance.
+schema describes its permitted structure, and a database instance describes its
+current contents.
 
 A **database management system**, or **DBMS**, is software that stores,
 queries, updates, and otherwise manages databases.
+
 A complete DBMS does much more. We begin with the language used to ask for data
 and the processing needed to answer those requests.
 :::
@@ -531,26 +470,7 @@ Chapter 1, p. 3 - the distinction between a database and a DBMS.
 :::
 
 :::qa
-Suppose today's database instance is named `I`. It must assign a current
-relation instance to the name `road`.
-
-What could that one entry look like?
-:::answer
-```text
-I(road) = {
-    ("Logan", "Salt Lake City"),
-    ("Salt Lake City", "Provo")
-}
-```
-
-Read `I(road)` as: look up `road` inside the database instance `I`.
-
-It gives the current relation instance for `road`. This is mathematical
-notation, not Rust code.
-:::
-
-:::qa
-Using that entry, is this statement true in `I`?
+In the instance `I` above, is this statement true?
 
 ```text
 road("Logan", "Salt Lake City")
@@ -559,42 +479,50 @@ road("Logan", "Salt Lake City")
 Yes. Its tuple belongs to `I(road)`.
 :::
 
-:::qa
-Reverse the two cities.
-
-```text
-road("Salt Lake City", "Logan")
-```
-
-Is it true in `I`?
-:::answer
-No. Ordered tuples do not become equal when we reverse their positions, and
-the reversed tuple is not in `I(road)`.
-:::
 
 :::qa
-The stored roads give us a two-road route:
-
-```text
-Logan -> Salt Lake City -> Provo
-```
-
-What truth value does `I` give to this statement?
-
 ```text
 road("Logan", "Provo")
 ```
 :::answer
 False. The statement asks for one tuple in `I(road)`. It does not ask whether
-Provo can be reached by following several stored roads.
+Provo can be reached by following several stored roads. Under the closed-world
+assumption, the absent tuple gives us a negative answer.
 :::
 
 :::qa
-Does that answer prove that there is no road from Logan to Provo in the real
-world?
+Consider another database instance:
+
+```text
+J(road) = {
+    ("Logan", "Salt Lake City"),
+    ("Logan", "Garden City"),
+    ("Salt Lake City", "Provo"),
+    ("Logan", "Provo")
+}
+```
+
+Is `road("Logan", "Provo")` true in `J`?
 :::answer
-No. It says only that the tuple is absent from `I(road)`. The database may be
-incomplete or mistaken about the physical world.
+Yes. We kept the statement fixed and changed the instance in which we tested
+it.
+:::
+
+:::qa
+```text
+road("Logan", to)
+```
+:::answer
+What is `to`? This seems to do more than evaluate a membership predicate.
+:::
+
+:::qa
+It is a **relational atom**. Here, `to` is a **logical variable**: it represents
+a not-yet-identified value in our known closed world. The first argument is the
+known value `"Logan"`; we say that this argument is **ground**.
+:::answer
+Okay. This seems complicated, but useful. It looks like an intuitive way to
+represent “all cities `to` for which Logan has a road to `to`.”
 :::
 
 :::definition Relational atom and ground atom
@@ -610,53 +538,47 @@ position: either a data literal denoting a value, or a logical variable.
 An atom containing no variables is **ground**.
 :::
 
-:::qa
-Inside the fixed instance `I`, is that absent ground atom false or merely
-unknown?
-:::answer
-False **in `I`**. The instance interprets `road` as exactly `I(road)`, and the
-tuple is absent from that relation.
-
-That answer is about `I`; it does not by itself say whether a direct road exists
-outside the database.
-:::
-
-:::qa
-Suppose we additionally agree that the stored relation contains every
-`road` fact relevant to our application. How may we now read a ground `road`
-atom whose tuple is absent?
-:::answer
-As false about the application we are modeling.
-:::
-
 :::definition Closed-world assumption
-Under the **closed-world assumption**, a ground atom whose tuple is absent is
-taken to be false about the application represented by that database.
+Let \(\Sigma\) be a set of sentences describing a database instance. The
+**closed-world assumption** adds the inference rule
 
-This assumes that the database completely records the relevant facts. It does
-not claim that the database records every fact in the physical world.
+$$
+\frac{\Sigma \not\vdash R(\vec a)}
+     {\Sigma \vdash \neg R(\vec a)}.
+$$
+
+If \(R(\vec a)\) cannot be proved from \(\Sigma\) using conventional
+first-order logic, infer \(\neg R(\vec a)\).
+:::
+
+:::alice
+Chapter 2, Section 2.3, p. 27 - the closed-world assumption as an inference
+rule.
 :::
 
 :::qa
-Now use tomorrow's instance `J`.
-
+Then give me all values of `to` such that Logan has a road to `to` in instance
+`J`.
+:::answer
 ```text
-J(road) = {
-    ("Logan", "Salt Lake City"),
-    ("Salt Lake City", "Provo"),
-    ("Logan", "Provo")
-}
+{"Salt Lake City", "Garden City", "Provo"}
 ```
 
-Is `road("Logan", "Provo")` true in `J`?
-:::answer
-Yes. We kept the statement fixed and changed the instance in which we tested
-it.
+I can also write the answers as ground atoms:
+
+```text
+{
+    road("Logan", "Salt Lake City"),
+    road("Logan", "Garden City"),
+    road("Logan", "Provo"),
+}
+```
 :::
+
 
 :::definition Satisfaction and model
 When a ground atom is true in an instance, we say that the instance
-**satisfies** the statement, or is a **model** of it.
+**satisfies** the atom, or is a **model** of it.
 
 For a ground relational atom,
 
@@ -748,7 +670,11 @@ relation in which that tuple was tested.
 
 :::definition Valuation and truth of an atom
 A **valuation** assigns a value of the appropriate type to each logical
-variable in a relational atom. A **ground atom** is an atom where all variables are valuated.
+variable in a relational atom. Applying a valuation replaces each variable with
+its assigned value and produces a ground atom.
+
+An atom is true in an instance under a valuation exactly when the ground atom
+produced by that valuation is true in the instance.
 :::
 
 :::alice
@@ -768,7 +694,7 @@ to   -> "Provo"
 Evaluate both atoms under those choices:
 
 ```text
-road(from, via)
+road(from, via),
 road(via, to)
 ```
 :::answer
@@ -810,10 +736,11 @@ notation, a comma denotes this “and.”
 :::
 
 :::qa
-Our successful choice used three cities: `from`, `via`, and `to`.
+Our successful valuation assigned cities to three variables: `from`, `via`, and
+`to`.
 
-If the question asks only where a two-road route starts and ends, which values
-should one answer tuple keep?
+If the question asks only where a two-road route starts and ends, which
+variables should determine the two positions of an answer tuple?
 :::answer
 `from` and `to`.
 
@@ -840,10 +767,10 @@ The final period ends the rule.
 :::
 
 :::qa
-The database instance supplies tuples for `road`, but it supplies none for
+The input instance supplies tuples for `road`, while the rule's head names
 `two_hop`. Where do the `two_hop` tuples come from?
 :::answer
-From the rule. Whenever one valuation makes both `road` atoms true, its values
+From the rule. Whenever a valuation makes both `road` atoms true, its values
 for `from` and `to` form a derived `two_hop` tuple.
 :::
 
@@ -877,8 +804,8 @@ relational atoms.
 The expression left of `:-` is the **head**; the conjunction to its right is the
 **body**. Every head variable must also occur in the body. The head selects and
 orders body-variable values for the result; their types follow from the body
-positions in which they occur. Values assigned to body-only variables provide
-the evidence for an answer; such satisfying values are called **witnesses**.
+positions in which they occur. Assignments to body-only variables provide the
+evidence for an answer; these assignments are called **witnesses**.
 
 A tuple belongs to the result exactly when some valuation gives the head
 variables the values in that tuple and makes every body atom true in the input
@@ -1010,7 +937,8 @@ exactly two `road` atoms.
 :::
 
 :::qa
-Compare two evaluations of the same written rule `q`:
+Let `q` denote the fixed `two_hop` rule. Compare its evaluation on two input
+instances:
 
 ```text
 A(road) = {
@@ -1047,8 +975,8 @@ the query assigns to every permitted input—is the query's **denotation**.
 :::
 
 :::qa
-Why was our earlier shorthand not already the same database-to-result mapping
-as `q`?
+Why did our earlier shorthand not define the same kind of database-to-result
+mapping as `q`?
 
 ```text
 is_road(candidate)
@@ -1090,7 +1018,7 @@ No. Different machinery is allowed; a different denotation is not.
 :::law Same meaning, different machinery
 An executable implementation may change the search order, storage, and amount
 of work. It implements `q` correctly only if, for every permitted input
-instance `A`, it returns exactly `q(A)`.
+instance `I`, it returns exactly `q(I)`.
 :::
 
 :::alice
@@ -1103,9 +1031,8 @@ We now have permitted forms and an agreed meaning for each one.
 :::answer
 Then this is already a language, even though `rustc` does not understand it.
 
-And because its fixed queries are interpreted over database instances and
-produce results without updating those instances, it is a database query
-language?
+And because its queries are interpreted over database instances and produce
+results without updating those instances, it is a database query language?
 :::
 
 :::definition Database query language
@@ -1118,15 +1045,15 @@ relation; a Boolean query returns a truth value.
 :::notation Forms earned so far
 | Form | What it did in the example |
 |---|---|
-| `relation road(City, City);` | Declared input relation `road` with two ordered `City` positions. |
+| `relation road(City, City);` | Declared the schema of input relation `road`, with two ordered `City` positions. |
 | `two_hop(from, to)` | Named the output relation and kept the values of `from` and `to`. |
 | `:-` | Read as “if.” |
 | The comma | Required both body atoms: logical “and.” |
 | `.` | Ended the rule. |
 
-`from`, `via`, and `to` are logical variables. They receive values through the
-valuations tested above; they are not Rust bindings. The database instance
-supplies the actual input tuples.
+`from`, `via`, and `to` are logical variables. Valuations assign values to them;
+they are not Rust bindings. The database instance supplies the actual input
+tuples.
 :::
 
 :::qa
@@ -1139,16 +1066,16 @@ That missing piece is a compiler. How do we build the smallest one?
 :::
 
 :::recap The formal core
-Rust source, Rust types, values, and logical objects are distinct. `Road` names
-the required shape of one Rust row; a `HashSet<Road>` represents a finite set of
-such rows. A declaration `relation r(T1, ..., Tn);` specifies a relation
+Rust source text, Rust types, Rust values, and logical objects are distinct.
+`Road` names the required shape of one Rust row; a `HashSet<Road>` represents a
+finite set of such rows. A declaration `relation r(T1, ..., Tn);` specifies a relation
 schema: a logical name $r$, arity $n$, and an ordered list of tuple-position
 types, but no current tuples. A relation instance for that schema is a finite
 relation $R\subseteq T_1\times\cdots\times T_n$. A database schema is a finite
 collection of relation schemas with distinct names. A database instance $I$
 assigns each declared name $r$ one matching relation instance, written $I(r)$.
-The database is the data represented by $I$; a DBMS is the software that
-manages such data.
+Together, the schema and $I$ describe the database at this logical level; a
+DBMS is the software that manages such data.
 
 For a ground atom $r(a_1,\ldots,a_n)$,
 $$
@@ -1156,9 +1083,10 @@ I\models r(a_1,\ldots,a_n)
 \quad\text{exactly when}\quad
 (a_1,\ldots,a_n)\in I(r).
 $$
-A valuation $v$ assigns each logical variable a value of the required type and
-turns an atom with variables into a ground atom. An instance is a model of a
-ground atom exactly when it satisfies that atom. If a tuple is absent from
+A valuation $v$ assigns each logical variable a value of the required type.
+Applying $v$ replaces each variable with its assigned value, producing a ground
+atom. An instance is a model of a ground atom exactly when it satisfies that
+atom. If a tuple is absent from
 $I(r)$, the corresponding ground atom is false in $I$. The closed-world
 assumption adds the application-level claim that $I$ records all relevant
 facts, permitting database absence to be read as falsity about the represented
@@ -1176,7 +1104,7 @@ v\text{ is an appropriately typed valuation making every }A_i
 \text{ true in }I
 \right\}.
 $$
-The head selects and orders the values in a result tuple. Values assigned to
+The head selects and orders the values in a result tuple. Assignments to
 body-only variables are witnesses: they establish membership in $q(I)$ but do
 not appear in the result tuple.
 

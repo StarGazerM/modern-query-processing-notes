@@ -163,6 +163,13 @@ element of the wrong type. Python type annotations describe the intended distinc
 not enforce it by themselves at runtime.
 :::
 
+# Test membership in a collection
+
+Python spells membership with `in`. Rust collections provide methods for the same question:
+`HashSet<T>` uses `contains`, while iterator predicates such as `any` answer more general
+“does a matching item exist?” questions. A named membership function can wrap `contains`
+when the question belongs to the vocabulary of the program.
+
 :::compare Test one candidate
 ```python
 candidate = ("Logan", "Provo")
@@ -488,6 +495,94 @@ let atom = Atom {
 and `atom.relation` or `atom.arguments` reads a field. A struct groups fields that belong to
 the same value; it does not represent a choice among different shapes.
 :::
+
+# Ask for and define a default value
+
+Rust's `Default` trait means “this type has a conventional starting value.” It does not
+invent a value for every type: a type must implement `Default`, and the meaning should be
+unsurprising for that type.
+
+:::compare Ask for a type's default
+```python
+roads: set[tuple[str, str]] = set()
+limit: int = 0
+maybe_road: tuple[str, str] | None = None
+```
+:::rust
+```rust
+let roads: HashSet<Road> = Default::default();
+let limit: usize = Default::default();
+let maybe_road: Option<Road> = Default::default();
+```
+:::notice
+The expected type tells Rust which implementation of `Default` to call. The standard
+defaults used here are an empty `HashSet`, zero, and `None`. Other common defaults include
+`false` for `bool` and empty values for `String` and `Vec<T>`.
+:::
+
+:::compare Use a default only when a value is missing
+```python
+index: dict[str, list[tuple[str, str]]] = {}
+index.setdefault("Logan", []).append(
+    ("Logan", "Provo")
+)
+
+maybe_limit: int | None = None
+limit = 0 if maybe_limit is None else maybe_limit
+```
+:::rust
+```rust
+use std::collections::HashMap;
+
+let mut index: HashMap<City, Vec<Road>> = HashMap::new();
+index.entry("Logan").or_default().push(
+    ("Logan", "Provo")
+);
+
+let maybe_limit: Option<usize> = None;
+let limit = maybe_limit.unwrap_or_default();
+```
+:::notice
+On a `HashMap` entry, `or_default()` inserts the value type's default only when the key is
+absent and returns access to that value. On an `Option<T>`, `unwrap_or_default()` returns
+the value inside `Some`, or `T::default()` for `None`.
+:::
+
+:::compare Derive field-by-field defaults
+```python
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class QueryOptions:
+    distinct: bool = False
+    limit: int = 0
+
+ordinary = QueryOptions()
+limited = QueryOptions(limit=10)
+```
+:::rust
+```rust
+#[derive(Default)]
+struct QueryOptions {
+    distinct: bool,
+    limit: usize,
+}
+
+let ordinary = QueryOptions::default();
+let limited = QueryOptions {
+    limit: 10,
+    ..Default::default()
+};
+```
+:::notice
+`#[derive(Default)]` gives the struct a default by using the default of every field.
+`QueryOptions::default()` builds the whole default value. In the second construction,
+`limit` is supplied explicitly and `..Default::default()` fills the remaining fields.
+:::
+
+If field-by-field defaults are not the intended meaning, write an explicit `impl Default`
+instead of deriving one. If the domain has no honest conventional value, do not implement
+`Default`; require the caller to construct the value explicitly.
 
 # Represent alternatives with an enum
 
