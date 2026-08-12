@@ -144,9 +144,8 @@ variables, no valuation is needed.
 :::qa
 Now let `to` name Ogden, what changes?
 :::answer
-The choice produces `road("Logan", "Ogden")`, which is false in `J` because its
-tuple is absent from `J(road)`. The choice determines a candidate ground atom;
-the instance determines whether that atom is true.
+The assignment produces `road("Logan", "Ogden")`, which is false in `J` because its
+tuple is absent from `J(road)`. .
 :::
 
 :::qa
@@ -348,7 +347,7 @@ But we cannot simply assign an arbitrary relation instance to it. If I write
 ```text
 J(two_hop) = {
     ...,
-    ("Logan", "Logon")
+    ("Provo", "Apple")
 }
 ```
 
