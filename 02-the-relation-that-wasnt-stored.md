@@ -448,44 +448,29 @@ separate output relation schema.
 :::
 
 :::qa
-Let \(q\) name the complete rule we have written.
+Let \(q\) name the complete rule we have written. We call \(q\) a **query** on database instance \(J\)
 :::answer
-Is \(q\) another part of database instance `J`?
+Is \(q\) another part of database for \(J\)?
 :::
 
 :::qa
-No. `J` supplies relation instances such as `J(road)`. The rule \(q\) is a
+No, \(q\) is neither instance or schema.
+`J` supplies relation instances such as `J(road)`. The rule \(q\) is a
 written expression that we interpret over `J`.
 :::answer
-Then what does \(q\) tell us about `J`?
+So, \(q\) is part of DBMS.
 :::
 
 :::qa
-For each pair of cities `(from, to)`, \(q\) asks whether there is some city
-`via` for which
-
-```text
-road(from, via),
-road(via, to)
-```
-
-is true in `J`.
+Can \(q\) only query \(J\)?
 :::answer
-When we collect every pair with that property, do we add those pairs to `J`?
+In common sense, \(q\) should be able to query a database....
+as long as its a schema has `road` rleation.
 :::
 
 :::qa
-No. Evaluating \(q\) does not change `J`. The pairs form a separate result
-relation.
-:::answer
-Is that result a relation instance in the same sense as `J(road)`?
-:::
-
-:::qa
-Yes. Both are finite sets of tuples. Their roles differ: `J(road)` is supplied
-as input, while the other relation is computed by applying \(q\) to `J`.
-
-We write that result as \(q(J)\) and call it the **image of `J` under \(q\)**.
+Yes. We write \(q\) applied on \(J\) as \(q(J)\), call it the **image of `J` under \(q\)**.
+You can have \(q(J)\) as a valid statement too.
 :::answer
 So \(q\) is the query, `J` is its input, and \(q(J)\) is its result relation.
 :::
