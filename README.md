@@ -151,8 +151,8 @@ Link adjacent conversations through front matter. The renderer places these as
 accessible navigation cards after the conversation and hides them when printing:
 
 ```text
-previous: [Conversation 1.1 · The Database Itself](01-a-little-database-a-few-questions.html)
-next: [Conversation 1.2 · The Relation That Wasn't Stored](02-the-relation-that-wasnt-stored.html)
+previous: [Conversation 1.1 · What's in a Name?](01-a-little-database-a-few-questions.html)
+next: [Conversation 1.2 · By Indirections Find Directions Out](02-the-relation-that-wasnt-stored.html)
 ```
 
 ## Separate denotation from evaluation

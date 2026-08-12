@@ -1,16 +1,291 @@
 ---
-title: The Relation That Wasn't Stored
-subtitle: Conversation 1.2 — From a Pattern to a Query
+title: By Indirections Find Directions Out
+subtitle: Conversation 1.2 — From Ground Claims to Query Images
 author: Modern Query Processing
 date: Fall 2026
 status: Work in progress
 layout: dialogue
 left_speaker: Ada
 right_speaker: Alice
-previous: [Conversation 1.1 · The Database Itself](01-a-little-database-a-few-questions.html)
+previous: [Conversation 1.1 · What's in a Name?](01-a-little-database-a-few-questions.html)
 ---
 
-# From a pattern to a query
+# By indirections find directions out
+
+:::qa
+In the instance `I` above, is this statement true?
+
+```text
+road("Logan", "Salt Lake City")
+```
+:::answer
+Yes. It is a membership check against `I(road)`.
+:::
+
+
+:::qa
+```text
+road("Logan", "Provo")
+```
+:::answer
+False. The statement asks for one tuple in `I(road)`. It does not ask whether
+Provo can be reached by following several stored roads. Under the closed-world
+assumption, the absent tuple gives us a negative answer.
+:::
+
+:::qa
+Consider another database instance `J`. It agrees with `I` on `road_length`;
+only its `road` relation changes:
+
+```text
+J(road) = {
+    ("Logan", "Salt Lake City"),
+    ("Logan", "Garden City"),
+    ("Garden City", "Logan"),
+    ("Salt Lake City", "Provo"),
+    ("Logan", "Provo")
+}
+```
+
+Is `road("Logan", "Provo")` true in `J`?
+:::answer
+Yes. We kept the statement fixed and changed the instance in which we tested
+it.
+:::
+
+:::qa
+```text
+road("Logan", to)
+```
+:::answer
+What is `to`? This seems to do more than evaluate a membership predicate.
+:::
+
+:::qa
+It is a **relational atom**. Here, `to` is a **logical variable**: it represents
+a not-yet-identified value in our known closed world. The first argument is the
+known value `"Logan"`; we say that this argument is **ground**.
+:::answer
+Okay. This seems complicated, but useful. It looks like an intuitive way to
+represent “all cities `to` for which Logan has a road to `to`.”
+:::
+
+:::definition Relational atom and ground atom
+For a relation name $r$ of arity $n$, an expression
+
+$$
+r(t_1, \ldots, t_n)
+$$
+
+is a **relational atom**. Each $t_i$ is a term for the corresponding tuple
+position: either a data literal denoting a value, or a logical variable.
+
+An atom containing no variables is **ground**.
+:::
+
+:::definition Closed-world assumption
+Let \(\Sigma\) be a set of sentences describing a database instance. The
+**closed-world assumption** adds the inference rule
+
+$$
+\frac{\Sigma \not\vdash R(\vec a)}
+     {\Sigma \vdash \neg R(\vec a)}.
+$$
+
+If \(R(\vec a)\) cannot be proved from \(\Sigma\) using conventional
+first-order logic, infer \(\neg R(\vec a)\).
+:::
+
+:::alice
+Chapter 2, Section 2.3, p. 27 - the closed-world assumption as an inference
+rule.
+:::
+
+:::qa
+Then give me all values of `to` such that Logan has a road to `to` in instance
+`J`.
+:::answer
+```text
+{"Salt Lake City", "Garden City", "Provo"}
+```
+:::
+
+
+:::qa
+The Garden City answer produced this ground atom:
+
+```text
+road("Logan", "Garden City")
+```
+
+Database researchers compress that claim to
+
+$$
+J \models road(\text{"Logan"}, \text{"Garden City"}).
+$$
+
+:::answer
+So \(\models\) says that this ground atom is true in `J`.
+:::
+
+:::definition Satisfaction of a ground atom
+For a ground relational atom,
+
+$$
+I \models r(a_1, \ldots, a_n)
+$$
+
+exactly when $(a_1, \ldots, a_n) \in I(r)$.
+
+We read this as “$I$ satisfies the atom.” Because a ground atom contains no
+variables, no valuation is needed.
+:::
+
+:::qa
+Now let `to` name Ogden, what changes?
+:::answer
+The choice produces `road("Logan", "Ogden")`, which is false in `J` because its
+tuple is absent from `J(road)`. The choice determines a candidate ground atom;
+the instance determines whether that atom is true.
+:::
+
+:::qa
+We call this assignment a **valuation**, written:
+
+```
+to -> "Ogden"
+```
+:::answer
+Another term! Database researchers love strange terms.
+:::
+
+:::definition Valuation and satisfaction of an atom
+A **valuation** assigns each logical variable in an expression one value of the
+appropriate type. Every occurrence of the same variable receives the same
+value, while data literals remain unchanged. Applying a valuation to a
+relational atom therefore produces a ground atom.
+
+For a relational atom $r(t_1,\ldots,t_n)$ and a valuation $v$, we write
+
+$$
+I \models r(t_1,\ldots,t_n)[v]
+$$
+
+exactly when
+
+$$
+v(t_1,\ldots,t_n) \in I(r).
+$$
+
+In words, $I$ satisfies the atom under $v$ exactly when applying $v$ produces a
+tuple in $I(r)$. Satisfaction of a ground atom is the special case in which
+there are no variables for $v$ to replace.
+:::
+
+:::alice
+Chapter 2, Section 2.3, p. 24 - satisfaction under a variable assignment;
+Chapter 4, pp. 41 and 46 - valuations, tuple membership, and satisfaction of a
+relational atom in a database instance.
+:::
+
+:::qa
+```text
+road("Logan", via),
+road(via, "Provo")
+```
+
+These two atoms share the logical variable `via`. What does that mean?
+
+
+:::answer
+`I` does not contain a direct road from Logan to Provo. Yet its stored roads
+lead there through Salt Lake City. This expression is meant to find that
+indirect route.
+:::
+
+:::qa
+Try this valuation in `I`:
+
+```text
+via -> "Salt Lake City"
+```
+
+Are both atoms true _at the same time_?
+:::answer
+Yes. They become
+
+```text
+road("Logan", "Salt Lake City"),
+road("Salt Lake City", "Provo")
+```
+
+Both tuples belong to `I(road)` at the same time. So the comma appears to mean “and.”
+:::
+
+:::qa
+Now test the same two atoms in `J` with
+
+```text
+via -> "Garden City"
+```
+
+Are both atoms true _at the same time_?
+:::answer
+No. `road("Logan", "Garden City")` is true in `J`, but
+`road("Garden City", "Provo")` is false there.
+:::
+
+:::definition Conjunction
+A **conjunction** is a collection of statements joined by logical “and.”
+
+A conjunction of relational atoms is satisfied in an instance under a valuation
+exactly when every atom is satisfied there under the same valuation:
+
+$$
+I \models (A_1 \land \cdots \land A_m)[v]
+\quad\text{exactly when}\quad
+I \models A_i[v]\text{ for every }i.
+$$
+
+In our rule notation, a comma denotes this “and.”
+:::
+
+:::qa
+Have we written a query yet?
+:::answer
+Not yet. We know when this conjunction is true under one valuation, but we have
+not said which values should become an answer relation.
+:::
+
+:::recap What the database can make true
+For a relational atom $r(t_1,\ldots,t_n)$ and a valuation $v$, satisfaction is
+tuple membership after applying the valuation:
+$$
+I\models r(t_1,\ldots,t_n)[v]
+\quad\text{exactly when}\quad
+v(t_1,\ldots,t_n)\in I(r).
+$$
+A valuation $v$ assigns each logical variable one value of the required type,
+consistently across all its occurrences; it leaves data literals unchanged.
+For a ground atom, no valuation needs to be written. If a tuple is absent from
+$I(r)$, the corresponding ground atom is false in the fixed instance $I$. When
+a positive theory $\Sigma$ describes a database,
+the closed-world assumption additionally permits failure to prove
+$r(\vec a)$ from $\Sigma$ to license inferring $\neg r(\vec a)$. It does not
+establish falsity in the physical world.
+
+For relational atoms $A_1,\ldots,A_m$, one valuation must make every atom in
+a conjunction true at the same time:
+
+$$
+I \models (A_1 \land \cdots \land A_m)[v]
+\quad\text{exactly when}\quad
+I \models A_i[v]\text{ for every }i.
+$$
+
+This tells us whether the conjunction succeeds. It does not yet say which
+values an answer should retain.
+:::
 
 :::qa
 We ended with this conjunction:

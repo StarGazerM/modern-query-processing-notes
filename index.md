@@ -65,8 +65,8 @@ Pause at a question, predict an answer, and then read across. Exact tuples,
 types, bindings, and programs matter more than isolated terminology.
 
 :::cards
-[Conversation 1.1 · The Database Itself](01-a-little-database-a-few-questions.html) | Replace the database-as-black-box picture with relations, instances, atoms, valuations, and conjunction.
-[Conversation 1.2 · The Relation That Wasn't Stored](02-the-relation-that-wasnt-stored.html) | Turn a conjunction into a rule, separate its result from its input, and define the query's image.
+[Conversation 1.1 · What's in a Name?](01-a-little-database-a-few-questions.html) | Establish data, relation schemas, database schemas, instances, and the DBMS before asking a query.
+[Conversation 1.2 · By Indirections Find Directions Out](02-the-relation-that-wasnt-stored.html) | Move from recorded facts through valuations and conjunction to a rule-based query and its separate image.
 [A Little Rust, Side by Side](aside-a-little-rust-side-by-side.html) | A Python-to-Rust cheat sheet for reading the project and the course text.
 :::
 
