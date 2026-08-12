@@ -576,10 +576,24 @@ I can also write the answers as ground atoms:
 :::
 
 
-:::definition Satisfaction and model
-When a ground atom is true in an instance, we say that the instance
-**satisfies** the atom, or is a **model** of it.
+:::qa
+The Garden City answer produced this ground atom:
 
+```text
+road("Logan", "Garden City")
+```
+
+Database researchers compress that claim to
+
+$$
+J \models road(\text{"Logan"}, \text{"Garden City"}).
+$$
+
+:::answer
+So \(\models\) says that this ground atom is true in `J`?
+:::
+
+:::definition Satisfaction of a ground atom
 For a ground relational atom,
 
 $$
@@ -587,169 +601,167 @@ I \models r(a_1, \ldots, a_n)
 $$
 
 exactly when $(a_1, \ldots, a_n) \in I(r)$.
+
+We read this as “$I$ satisfies the atom.” Because a ground atom contains no
+variables, no valuation is needed.
 :::
 
 :::qa
-Which of `I` and `J` are models of each statement?
+Earlier, this atom produced three answers in `J`:
 
 ```text
-road("Logan", "Salt Lake City")
-road("Logan", "Provo")
+road("Logan", to)
 ```
+
+Let `to` name Garden City. Write that choice, then write the ground atom it
+produces.
 :::answer
-Both `I` and `J` are models of the first statement. Only `J` is a model of the
-second.
+```text
+to -> "Garden City"
+```
+
+Then the atom becomes the ground atom
+
+```text
+road("Logan", "Garden City")
+```
+
+which is true in `J`.
 :::
 
 :::qa
-Replace the quoted city values with logical variable names.
+Now let `to` name Ogden:
 
 ```text
-road(from, to)
+to -> "Ogden"
 ```
 
-Can `I` alone tell us whether this atom is true?
+What changes?
 :::answer
-Not yet. `from` and `to` do not identify city values until we choose values for
-them.
+The choice produces `road("Logan", "Ogden")`, which is false in `J` because its
+tuple is absent from `J(road)`. The choice determines a candidate ground atom;
+the instance determines whether that atom is true.
 :::
 
-:::qa
-Choose these values:
+:::definition Valuation and satisfaction of an atom
+A **valuation** assigns each logical variable in an expression one value of the
+appropriate type. Every occurrence of the same variable receives the same
+value, while data literals remain unchanged. Applying a valuation to a
+relational atom therefore produces a ground atom.
 
-```text
-from -> "Logan"
-to   -> "Salt Lake City"
-```
+For a relational atom $r(t_1,\ldots,t_n)$ and a valuation $v$, we write
 
-Which ground atom do we obtain, and is it true in `I`?
-:::answer
-We obtain
+$$
+I \models r(t_1,\ldots,t_n)[v]
+$$
 
-```text
-road("Logan", "Salt Lake City")
-```
+exactly when
 
-and it is true in `I`.
-:::
+$$
+v(t_1,\ldots,t_n) \in I(r).
+$$
 
-:::qa
-Keep `from` fixed. Change only `to`.
-
-```text
-from -> "Logan"
-to   -> "Provo"
-```
-
-Is the resulting atom true in `I`?
-:::answer
-No. It becomes
-
-```text
-road("Logan", "Provo")
-```
-
-whose tuple is absent from `I(road)`.
-:::
-
-:::qa
-Keep those same choices, but replace `I` with `J`. Is the atom true now?
-:::answer
-Yes. The chosen tuple now belongs to `J(road)`. Only the instance changed.
-:::
-
-:::qa
-In the last three tests, we first changed only the chosen value of `to`. Then we
-kept those values and changed `I` to `J`.
-
-What job did the chosen values perform, and what job did the instance perform?
-:::answer
-The chosen values selected one candidate tuple. The instance supplied the
-relation in which that tuple was tested.
-:::
-
-:::definition Valuation and truth of an atom
-A **valuation** assigns a value of the appropriate type to each logical
-variable in a relational atom. Applying a valuation replaces each variable with
-its assigned value and produces a ground atom.
-
-An atom is true in an instance under a valuation exactly when the ground atom
-produced by that valuation is true in the instance.
+In words, $I$ satisfies the atom under $v$ exactly when applying $v$ produces a
+tuple in $I(r)$. Satisfaction of a ground atom is the special case in which
+there are no variables for $v$ to replace.
 :::
 
 :::alice
+Chapter 2, Section 2.3, p. 24 - satisfaction under a variable assignment;
 Chapter 4, pp. 41 and 46 - valuations, tuple membership, and satisfaction of a
-relational atom.
+relational atom in a database instance.
 :::
 
 :::qa
-Extend our choices with one more variable:
-
-```text
-from -> "Logan"
-via  -> "Salt Lake City"
-to   -> "Provo"
-```
-
-Evaluate both atoms under those choices:
-
-```text
-road(from, via),
-road(via, to)
-```
+`I` does not contain a direct road from Logan to Provo. Yet its two stored roads
+take us there through Salt Lake City. Can our notation describe that route
+without naming Salt Lake City?
 :::answer
-The first becomes
+Perhaps with two atoms that share a logical variable:
 
 ```text
-road("Logan", "Salt Lake City")
+road("Logan", via),
+road(via, "Provo")
+```
+:::
+
+:::qa
+Try this valuation in `I`:
+
+```text
+via -> "Salt Lake City"
 ```
 
-and the second becomes
+Are both atoms true?
+:::answer
+Yes. They become
 
 ```text
+road("Logan", "Salt Lake City"),
 road("Salt Lake City", "Provo")
 ```
 
-Both are true in `I`. What does the comma between them require?
+Both tuples belong to `I(road)`. So the comma appears to mean “and.”
 :::
 
 :::qa
-It requires both atoms to be true under the same valuation. Keep `from` and
-`via`, but change `to`:
+Now test the same two atoms in `J` with
 
 ```text
-to -> "Logan"
+via -> "Garden City"
 ```
 
-Are the two atoms still true together?
+Is their conjunction true?
 :::answer
-No. The first atom remains true, but the second becomes
-`road("Salt Lake City", "Logan")`, which is false in `I`.
+No. `road("Logan", "Garden City")` is true in `J`, but
+`road("Garden City", "Provo")` is false there.
 :::
 
 :::definition Conjunction
 A **conjunction** is a collection of statements joined by logical “and.”
 
-A conjunction of relational atoms is true in an instance under a valuation
-exactly when every atom is true there under the same valuation. In our
-notation, a comma denotes this “and.”
+A conjunction of relational atoms is satisfied in an instance under a valuation
+exactly when every atom is satisfied there under the same valuation:
+
+$$
+I \models (A_1 \land \cdots \land A_m)[v]
+\quad\text{exactly when}\quad
+I \models A_i[v]\text{ for every }i.
+$$
+
+In our rule notation, a comma denotes this “and.”
 :::
 
 :::qa
-Our successful valuation assigned cities to three variables: `from`, `via`, and
-`to`.
-
-If the question asks only where a two-road route starts and ends, which
-variables should determine the two positions of an answer tuple?
+That expression is still tied to Logan and Provo.
 :::answer
-`from` and `to`.
+Then I will replace those two city names with logical variables:
 
-`via` helps show that the route exists, but it should not appear in the answer
-tuple. How do we say that?
+```text
+road(from, via),
+road(via, to)
+```
 :::
 
 :::qa
-We write:
+Under our successful valuation, the route is
+
+```text
+Logan -> Salt Lake City -> Provo
+```
+
+What tuple should the answer contain?
+:::answer
+```text
+("Logan", "Provo")
+```
+
+`"Salt Lake City"` is evidence that the route exists, but it is not part of the
+answer.
+:::
+
+:::qa
+We keep the first and last values by writing them before `:-`:
 
 ```text
 two_hop(from, to) :-
@@ -757,35 +769,46 @@ two_hop(from, to) :-
     road(via, to).
 ```
 
-How would you read this rule aloud?
+Does this rule say what you intended?
 :::answer
-`two_hop(from, to)` holds **if** there is a road from `from` to `via` **and** a
+Yes. `two_hop(from, to)` holds **if** there is a road from `from` to `via` **and** a
 road from that same `via` to `to`.
 
-So `:-` reads as “if,” and the comma reads as “and.”
-The final period ends the rule.
+So `:-` reads as “if,” the comma reads as “and,” and the final period ends the
+rule.
 :::
 
 :::qa
-The input instance supplies tuples for `road`, while the rule's head names
-`two_hop`. Where do the `two_hop` tuples come from?
-:::answer
-From the rule. Whenever a valuation makes both `road` atoms true, its values
-for `from` and `to` form a derived `two_hop` tuple.
-:::
-
-:::qa
-For the answer
+`I` contains tuples for `road`, but no stored tuple for `two_hop`. Why does the
+rule nevertheless produce
 
 ```text
 two_hop("Logan", "Provo")
 ```
-
-which value of `via` made the two atoms true in `I`? Does that value appear in
-the answer tuple?
 :::answer
-`"Salt Lake City"` made both atoms true. It justifies the answer, but the answer
-keeps only `"Logan"` and `"Provo"`.
+This valuation makes both body atoms true:
+
+```text
+from -> "Logan"
+via  -> "Salt Lake City"
+to   -> "Provo"
+```
+
+The values of `from` and `to` form the derived tuple. The value of `via` is
+evidence for it, but does not appear in it.
+:::
+
+:::qa
+Could we instead write this head?
+
+```text
+two_hop(from, destination)
+```
+
+What value would a successful body give to `destination`?
+:::answer
+None. `destination` occurs nowhere in the body. Every variable kept by the head
+must also occur in the body.
 :::
 
 :::definition Conjunctive query
@@ -813,19 +836,17 @@ instance.
 :::
 
 :::qa
-Where are `"Logan"`, `"Salt Lake City"`, and today's other actual city names in
-the rule?
+If Utah records another road tomorrow, must we rewrite the `two_hop` rule?
 :::answer
-They are not there. The rule remains fixed; the database instance supplies the
-current `road` tuples when we evaluate it.
+No. The rule contains no particular city names. It remains fixed; tomorrow's
+database instance supplies the new `road` tuples when we evaluate it.
 :::
 
 :::qa
-Suppose we paste the declaration and rule directly into a Rust source file.
-What problem occurs before Rust can inspect any roads?
+Does the rule itself compile as Rust?
 :::answer
-`rustc` does not recognize `relation` or `:-`. The rule is written in our query
-notation, not in Rust.
+No. `rustc` does not recognize `relation` or `:-`. The rule is written in our
+query notation, not in Rust.
 :::
 
 :::qa
@@ -865,14 +886,13 @@ part of the output tuple.
 :::
 
 :::qa
-Apply the Rust function to the same `roads_today` relation we already
-inspected:
+Apply the Rust function to the `roads` set we already inspected:
 
 ```rust
-let answer_a = two_hop(&roads_today);
+let answer = two_hop(&roads);
 ```
 
-What set should `answer_a` contain?
+What set should `answer` contain?
 :::answer
 ```rust
 HashSet::from([
@@ -885,19 +905,19 @@ HashSet::from([
 Now compare one tuple in the two sets:
 
 ```rust
-answer_a.contains(
+answer.contains(
     &("Logan", "Provo"),
 ) // true
 
-roads_today.contains(
+roads.contains(
     &("Logan", "Provo"),
 ) // false
 ```
 
 How can both answers be correct?
 :::answer
-`answer_a` and `roads_today` are different relations. The query placed the
-derived tuple in its result; it did not insert the tuple into its input.
+`answer` and `roads` are different relations. The query placed the derived
+tuple in its result; it did not insert the tuple into its input.
 :::
 
 :::law CQ evaluation does not update its input
@@ -937,33 +957,34 @@ exactly two `road` atoms.
 :::
 
 :::qa
-Let `q` denote the fixed `two_hop` rule. Compare its evaluation on two input
-instances:
+Let `A` and `B` be database instances that agree on every relation except
+`road`:
 
 ```text
-A(road) = {
-    ("Logan", "Salt Lake City"),
-    ("Salt Lake City", "Provo")
-}
-q(A) = {
-    ("Logan", "Provo")
-}
-
-B(road) = {
-    ("Logan", "Salt Lake City"),
-    ("Salt Lake City", "Provo"),
-    ("Provo", "Ogden")
-}
-q(B) = {
-    ("Logan", "Provo"),
-    ("Salt Lake City", "Ogden")
-}
+A(road) = roads
+B(road) = more_roads
 ```
 
-What changed between them, and what did not?
+Let `q` denote the fixed `two_hop` rule. The Rust values we computed represent
+these logical results:
+
+```text
+answer   represents q(A)
+answer_b represents q(B)
+```
+
+In Rust, the corresponding calls were:
+
+```rust
+two_hop(&roads)
+two_hop(&more_roads)
+```
+
+What stays fixed, and what changes?
 :::answer
-The query text `q` is fixed. The input instance varies, and the result varies
-with it.
+The written rule `q` stays fixed, as does the Rust function `two_hop`. The input
+instance changes from `A` to `B`, so the result changes from `q(A)` to `q(B)`.
+The returned Rust sets are `answer` and `answer_b`.
 :::
 
 :::definition Query mapping and denotation
@@ -974,37 +995,24 @@ database instance `I` to the result relation `q(I)`. That mapping—what result
 the query assigns to every permitted input—is the query's **denotation**.
 :::
 
-:::qa
-Why did our earlier shorthand not define the same kind of database-to-result
-mapping as `q`?
-
-```text
-is_road(candidate)
-```
-
-:::answer
-There, `roads` was fixed while the separately supplied candidate varied. That
-is not the input-to-result mapping we just gave `q`.
-
-If we instead fixed the candidate—for example, always asking whether
-`("Logan", "Provo")` is present—and varied the database instance, membership
-would return one Boolean for each database instance.
-:::
-
-A query whose result is `true` or `false` is called a **Boolean query**.
-
 :::alice
 Chapter 4, p. 37 - query syntax and query mappings; pp. 41-42 - rule-based
 conjunctive queries and their meaning.
 :::
 
 :::qa
-Suppose we swap the two loops: search for the second road first and the first
-road second, while keeping the same equality test and insertion. Should the
-result set change?
+Swap the two loops in `two_hop`, but keep the equality test and insertion. Which
+tuples should the new function return on `roads`?
 :::answer
-No. The search order changes, but the set of endpoint pairs satisfying the rule
-does not.
+The same set:
+
+```rust
+HashSet::from([
+    ("Logan", "Provo"),
+])
+```
+
+The search order changes, but the relation denoted by the computation does not.
 :::
 
 :::qa
@@ -1018,7 +1026,7 @@ No. Different machinery is allowed; a different denotation is not.
 :::law Same meaning, different machinery
 An executable implementation may change the search order, storage, and amount
 of work. It implements `q` correctly only if, for every permitted input
-instance `I`, it returns exactly `q(I)`.
+instance `I`, it computes exactly `q(I)`.
 :::
 
 :::alice
@@ -1027,26 +1035,27 @@ into executable programs.
 :::
 
 :::qa
-We now have permitted forms and an agreed meaning for each one.
+We now have forms that `rustc` does not recognize and a meaning that assigns a
+result to every permitted database instance. What have we built?
 :::answer
-Then this is already a language, even though `rustc` does not understand it.
+A language.
 
-And because its queries are interpreted over database instances and produce
-results without updating those instances, it is a database query language?
+Because its expressions denote queries over database instances, it is a
+database query language.
 :::
 
 :::definition Database query language
 A **database query language** provides syntactic forms for queries over
 database instances. Under its semantics, each query denotes a query mapping
 from permitted input instances to results. Our conjunctive query returns a
-relation; a Boolean query returns a truth value.
+relation.
 :::
 
-:::notation Forms earned so far
+:::notation Rule notation earned so far
 | Form | What it did in the example |
 |---|---|
-| `relation road(City, City);` | Declared the schema of input relation `road`, with two ordered `City` positions. |
-| `two_hop(from, to)` | Named the output relation and kept the values of `from` and `to`. |
+| `relation road(City, City);` | Declared the relation schema `road`, with two ordered `City` positions. |
+| `two_hop(from, to)` | As the head, named the result relation and selected the values of `from` and `to`, in that order. |
 | `:-` | Read as “if.” |
 | The comma | Required both body atoms: logical “and.” |
 | `.` | Ended the rule. |
@@ -1058,39 +1067,40 @@ tuples.
 
 :::qa
 If we delete the hand-written `two_hop` function and leave only the bare rule,
-what is still missing between our query language and executable Rust?
+will Rust execute anything?
 :::answer
-Something must read the rule and produce Rust with the same denotation.
-
-That missing piece is a compiler. How do we build the smallest one?
+No. Something must translate the rule into Rust while preserving its
+denotation. That translator is a compiler.
 :::
 
 :::recap The formal core
 Rust source text, Rust types, Rust values, and logical objects are distinct.
 `Road` names the required shape of one Rust row; a `HashSet<Road>` represents a
-finite set of such rows. A declaration `relation r(T1, ..., Tn);` specifies a relation
-schema: a logical name $r$, arity $n$, and an ordered list of tuple-position
+finite set of such rows. A declaration `relation r(T1, ..., Tn);` specifies a
+relation schema: a logical name $r$, arity $n$, and an ordered list of tuple-position
 types, but no current tuples. A relation instance for that schema is a finite
-relation $R\subseteq T_1\times\cdots\times T_n$. A database schema is a finite
+relation $R\subseteq T_1\times\cdots\times T_n$, writing each $T_i$ also for
+the set of values admitted by that type. A database schema is a finite
 collection of relation schemas with distinct names. A database instance $I$
 assigns each declared name $r$ one matching relation instance, written $I(r)$.
 Together, the schema and $I$ describe the database at this logical level; a
 DBMS is the software that manages such data.
 
-For a ground atom $r(a_1,\ldots,a_n)$,
+For a relational atom $r(t_1,\ldots,t_n)$ and a valuation $v$, satisfaction is
+tuple membership after applying the valuation:
 $$
-I\models r(a_1,\ldots,a_n)
+I\models r(t_1,\ldots,t_n)[v]
 \quad\text{exactly when}\quad
-(a_1,\ldots,a_n)\in I(r).
+v(t_1,\ldots,t_n)\in I(r).
 $$
-A valuation $v$ assigns each logical variable a value of the required type.
-Applying $v$ replaces each variable with its assigned value, producing a ground
-atom. An instance is a model of a ground atom exactly when it satisfies that
-atom. If a tuple is absent from
-$I(r)$, the corresponding ground atom is false in $I$. The closed-world
-assumption adds the application-level claim that $I$ records all relevant
-facts, permitting database absence to be read as falsity about the represented
-application; it does not establish falsity in the physical world.
+A valuation $v$ assigns each logical variable one value of the required type,
+consistently across all its occurrences; it leaves data literals unchanged.
+For a ground atom, no valuation needs to be written. If a tuple is absent from
+$I(r)$, the corresponding ground atom is false in the fixed instance $I$. When
+a positive theory $\Sigma$ describes a database,
+the closed-world assumption additionally permits failure to prove
+$r(\vec a)$ from $\Sigma$ to license inferring $\neg r(\vec a)$. It does not
+establish falsity in the physical world.
 
 A conjunctive query $q$ has a head `q(x1, ..., xk)` and a conjunctive body
 $A_1,\ldots,A_m$, written `head :- body.` Every head variable occurs in the
@@ -1108,10 +1118,10 @@ The head selects and orders the values in a result tuple. Assignments to
 body-only variables are witnesses: they establish membership in $q(I)$ but do
 not appear in the result tuple.
 
-The denotation of the written query $q$ is the mapping $I\mapsto q(I)$; a
-Boolean query instead maps each permitted $I$ to a truth value. Query evaluation
-produces a result without adding tuples to or removing tuples from its input.
-An executable implementation is correct exactly when it returns $q(I)$ for
+The denotation of the written query $q$ is the mapping $I\mapsto q(I)$. Query
+evaluation produces a result without adding tuples to or removing tuples from
+its input.
+An executable implementation is correct exactly when it computes $q(I)$ for
 every permitted input instance $I$, regardless of its search order, storage, or
 amount of work. A compiler for this language must construct such an executable
 program while preserving that denotation.
