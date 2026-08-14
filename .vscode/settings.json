@@ -1,0 +1,8 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./examples/rust-00-reading-rust/Cargo.toml",
+        "./examples/rust-01-stringify/Cargo.toml",
+        "./examples/rust-02-compile-time/Cargo.toml"
+    ],
+    "rust-analyzer.procMacro.enable": true
+}

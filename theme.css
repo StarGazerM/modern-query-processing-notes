@@ -167,6 +167,7 @@ main > ul,
 main > ol,
 main > blockquote,
 main > pre,
+main > .source-excerpt,
 main > table,
 main > .math-block {
   margin-right: clamp(28px, 6vw, 80px);
@@ -242,6 +243,92 @@ pre {
 pre code {
   padding: 0;
   background: none;
+}
+
+.source-excerpt {
+  margin-top: 1.15rem;
+  margin-bottom: 1.35rem;
+}
+
+.source-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  background: color-mix(in srgb, var(--accent-soft) 46%, var(--sheet));
+}
+
+.source-caption-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.source-caption-copy strong {
+  font: 720 0.77rem/1.25 var(--sans);
+  letter-spacing: 0.025em;
+}
+
+.source-kicker {
+  color: var(--accent);
+  font: 750 0.59rem/1.2 var(--sans);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.source-caption-copy code {
+  overflow: hidden;
+  padding: 0;
+  color: var(--muted);
+  background: none;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-link {
+  flex: 0 0 auto;
+  font: 720 0.69rem/1.3 var(--sans);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.source-link-pending {
+  max-width: 16rem;
+  color: var(--muted);
+  text-align: right;
+}
+
+.source-excerpt pre {
+  margin: 0;
+  padding: 13px 0;
+  border-radius: 0 0 8px 8px;
+}
+
+.source-line {
+  position: relative;
+  display: block;
+  min-height: 1.45em;
+  padding: 0 18px 0 4.5em;
+}
+
+.source-line::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3.1em;
+  padding-right: 0.8em;
+  border-right: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  color: var(--muted);
+  content: attr(data-line);
+  font: 0.78em/1.85 var(--mono);
+  text-align: right;
+  user-select: none;
 }
 
 table {
@@ -860,6 +947,27 @@ blockquote {
     gap: 8px 18px;
   }
 
+  main > .source-excerpt {
+    margin-right: 20px;
+    margin-left: 20px;
+  }
+
+  .source-caption {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .source-link-pending {
+    max-width: none;
+    text-align: left;
+  }
+
+  .source-line {
+    padding-right: 12px;
+    padding-left: 3.9em;
+  }
+
   main > table {
     display: block;
     width: calc(100% - 40px);
@@ -986,12 +1094,20 @@ blockquote {
     display: none;
   }
 
+  .source-external-arrow {
+    display: none;
+  }
+
   .qa-row,
   .compare-row,
   .callout,
   pre,
   table {
     break-inside: avoid;
+  }
+
+  .source-excerpt pre {
+    break-inside: auto;
   }
 
   .question,

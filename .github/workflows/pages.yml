@@ -17,6 +17,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      NOTES_GITHUB_REVISION: ${{ github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -31,6 +33,7 @@ jobs:
           node --check render.mjs
           node --check build-site.mjs
           node --check check-site.mjs
+          node --check check-examples.mjs
 
       - name: Build course site
         run: node build-site.mjs
@@ -43,6 +46,10 @@ jobs:
           test -s build/project.html
           test -s build/01-a-little-database-a-few-questions.html
           test -s build/aside-a-little-rust-side-by-side.html
+          test -s build/rust-00-the-tree-we-could-read-twice.html
+          test -s build/rust-01-the-code-that-became-a-value.html
+          test -s build/rust-02-the-arithmetic-that-ran-before-the-program.html
+          test -s build/rust-03-the-program-left-behind.html
 
       - name: Check internal links
         run: node check-site.mjs

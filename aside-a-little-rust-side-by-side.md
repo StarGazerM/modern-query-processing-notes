@@ -56,6 +56,34 @@ Rust bindings are immutable unless `mut` is written. `mut` permits a new value, 
 type.
 :::
 
+# Read a local value, a constant, and a block result
+
+:::compare Return a value from a small computation
+```python
+LIMIT = 40
+
+def answer():
+    compiled = 6
+    return compiled + 1
+
+value = answer()
+```
+:::rust
+```rust
+const LIMIT: i64 = 40;
+
+let value: i64 = {
+    let compiled = 6;
+    compiled + 1
+};
+```
+:::notice
+`let` names a local value. `const` declares a named constant, includes its type, and requires
+a value Rust can evaluate as a constant. A Rust block is also an expression: its final
+expression without `;` is the block's value. Writing `compiled + 1;` instead would discard
+that value and make the block produce `()`.
+:::
+
 :::compare Keep two values in order
 ```python
 road = ("Logan", "Salt Lake City")
@@ -162,6 +190,22 @@ let road_list: Vec<Road> = vec![
 element of the wrong type. Python type annotations describe the intended distinction but do
 not enforce it by themselves at runtime.
 :::
+
+# Read a Rust name or call
+
+| Spelling | Read it as |
+| --- | --- |
+| `fn f(x: T) -> U` | Define `f`: it receives an `x` of type `T` and returns a `U`. |
+| `f(x)` | Call the function `f`. |
+| `x.f()` | Call a method on `x`. |
+| `T::f()` | Call a function associated with type `T`. |
+| `module::T` | Follow a namespace path to `T`. |
+| `f::<T>(x)` | Call generic `f` while explicitly choosing type `T`. |
+| `use module::T;` | Bring `T` into the current scope so its shorter name can be used. |
+
+The same `::` path separator appears in names such as `std::collections::HashSet` and
+`syn::Expr`. The `::<T>` spelling is sometimes called the *turbofish*; the important fact is
+simply that it tells Rust which type this call should produce or use.
 
 # Test membership in a collection
 
@@ -583,6 +627,20 @@ let limited = QueryOptions {
 If field-by-field defaults are not the intended meaning, write an explicit `impl Default`
 instead of deriving one. If the domain has no honest conventional value, do not implement
 `Default`; require the caller to construct the value explicitly.
+
+# Recognize macro-related spellings
+
+| Spelling | Read it as |
+| --- | --- |
+| `name!(...)` | Invoke a function-like macro. `{...}` and `[...]` may also delimit its input. |
+| `#[derive(X)]` | Ask a derive macro to generate an implementation of trait `X` for the following type. |
+| `#[proc_macro]` | Register the following public function as a function-like procedural-macro entry point. |
+
+`#[derive(Default)]` above is an ordinary example of the second form. The `name!(...)`
+spelling alone does not reveal whether the macro is built into Rust, defined declaratively,
+or implemented as a procedural macro. It identifies the invocation shape, not the
+implementation mechanism. `#[proc_macro]` registers an implementation; it does not invoke
+that implementation.
 
 # Represent alternatives with an enum
 

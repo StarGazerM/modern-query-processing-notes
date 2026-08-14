@@ -17,6 +17,7 @@ Read the published course site at
 - `syllabus.md`, `schedule.md`, and `project.md` are the canonical course
   documents.
 - Numbered files are conversational notes.
+- `rust-*` files are the Rust conversation sequence.
 - `aside-*` files are quick-reference pages such as the Python-to-Rust
   phrasebook.
 
@@ -155,6 +156,71 @@ previous: [Conversation 1.1 · What's in a Name?](01-a-little-database-a-few-que
 next: [Conversation 1.2 · By Indirections Find Directions Out](02-the-relation-that-wasnt-stored.html)
 ```
 
+## Embed runnable source without copying it
+
+Keep teaching examples under `examples/` and include the real file in a note
+with a single-line source directive:
+
+```text
+:::source examples/rust-01-stringify/Cargo.toml | The workspace manifest
+```
+
+The directive has no closing marker, so it can appear between exchanges or
+inside either speaker's turn. The renderer reads the current file, displays its
+physical line numbers, and links the caption to those exact lines on GitHub.
+The complete-site build fails if the file disappears or the excerpt becomes
+invalid. A local build labels the excerpt as local rather than pretending its
+uncommitted line numbers already exist on GitHub; the published build links to
+the exact commit used by the site.
+
+For a longer file, mark a stable region with comments appropriate to that file:
+
+```rust
+// ANCHOR: entry
+#[proc_macro]
+pub fn code_string(input: TokenStream) -> TokenStream {
+    // ...
+}
+// ANCHOR_END: entry
+```
+
+Then request only that region:
+
+```text
+:::source examples/rust-01-stringify/stringify-macro/src/lib.rs#entry | The macro entry point
+```
+
+The marker comments remain part of the runnable file but are omitted from the
+rendered excerpt. Each marker name must appear exactly once, the end must follow
+the start, and an excerpt may contain at most 120 lines.
+
+The dependency-free [`reading-rust` example](examples/rust-00-reading-rust/)
+accompanies R.0.0 and establishes the ordinary Rust needed by the later macro
+examples.
+
+## Procedural-macro code style
+
+Keep the exported macro function as a thin `rustc` boundary. It accepts and
+returns `proc_macro::TokenStream`, converts once to
+`proc_macro2::TokenStream`, and converts once back on return. Inside that
+boundary, use Syn major version 2 for typed syntax and `syn::parse2` when tokens
+must become a typed value. Emit Rust with `quote! { ... }` so the generated
+language remains visible as Rust code.
+
+For a course-defined fixed syntax shape, derive `syn_derive::Parse` instead of
+writing `ParseStream` code by hand. Derive `syn_derive::ToTokens` when the syntax
+value also needs a structural mapping back to tokens. Struct fields state
+sequential product shapes; enum variants state alternative shapes. The
+compile-time examples move from Syn's existing `Expr` mapping to one derived
+course-language source shape and then to a typed Rust block.
+
+Do not hand-assemble `TokenTree` output in ordinary course examples. Reserve
+that lower-level style for a lesson whose subject is token mechanics. The
+runnable [`code_string!` example](examples/rust-01-stringify/) demonstrates the
+boundary. The next workspace moves through `syn::Expr`, a derived
+`PartialInteger`, and a residual `syn::Block` before the same method is applied
+to `RelationDecl`.
+
 ## Separate denotation from evaluation
 
 In a conceptual conversation, show bare query forms in a `text` fence. They are
@@ -190,6 +256,17 @@ Build the complete published site with:
 ```text
 node build-site.mjs
 ```
+
+This also formats, compiles, runs, and checks the expected output of every
+runnable teaching example. In VS Code, **Terminal → Run Build Task** runs the
+same complete build through the default **Notes: Build entire site** task.
+
+Open this notes directory—not only an individual Markdown or Rust file—as the
+folder in VS Code. The checked-in workspace settings link rust-analyzer to all
+Rust workspaces under `examples/`, and the extension recommendations identify
+the rust-analyzer extension needed for code analysis and macro expansion. Add
+each future independent Rust example workspace to
+`rust-analyzer.linkedProjects` in `.vscode/settings.json`.
 
 Validate every generated internal link and anchor with:
 

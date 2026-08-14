@@ -1,2 +1,3 @@
 # Generated lecture-note pages.
 /build/
+/examples/**/target/

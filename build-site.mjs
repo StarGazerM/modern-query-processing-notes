@@ -24,3 +24,12 @@ for (const source of sources) {
     break;
   }
 }
+
+if (!process.exitCode) {
+  const examples = spawnSync(
+    process.execPath,
+    [join(scriptDirectory, "check-examples.mjs")],
+    { stdio: "inherit" },
+  );
+  if (examples.status !== 0) process.exitCode = examples.status ?? 1;
+}

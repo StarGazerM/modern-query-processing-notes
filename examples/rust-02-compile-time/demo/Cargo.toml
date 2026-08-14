@@ -1,0 +1,16 @@
+[package]
+name = "compile-time-demo"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+publish = false
+
+[dependencies]
+compile-time-macros = { path = "../compile-time-macros" }
+
+[features]
+slow-example = []
+
+[[example]]
+name = "slow"
+required-features = ["slow-example"]

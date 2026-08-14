@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { mkdirSync, readFileSync, watch } from "node:fs";
+import { lstatSync, mkdirSync, readFileSync, realpathSync, watch } from "node:fs";
 import { writeFileSync } from "node:fs";
-import { basename, dirname, extname, join, resolve } from "node:path";
+import { basename, dirname, extname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -17,6 +17,9 @@ const outputPath = resolve(
 const themePath = join(scriptDirectory, "theme.css");
 const aliceBookUrl =
   "https://webdam.di.ens.fr/Alice/";
+const sourceRepositoryUrl =
+  "https://github.com/StarGazerM/modern-query-processing-notes";
+const sourceRepositoryRevision = process.env.NOTES_GITHUB_REVISION;
 
 function escapeHtml(value) {
   return value
@@ -86,6 +89,131 @@ function findMarker(lines, start, marker) {
   return -1;
 }
 
+function sourceLanguage(path) {
+  return {
+    ".md": "markdown",
+    ".rs": "rust",
+    ".toml": "toml",
+  }[extname(path)] ?? "text";
+}
+
+function sourceMarker(line, kind, anchor) {
+  const trimmed = line.trim();
+  return [
+    `// ${kind}: ${anchor}`,
+    `# ${kind}: ${anchor}`,
+    `<!-- ${kind}: ${anchor} -->`,
+  ].includes(trimmed);
+}
+
+function renderSourceExcerpt(reference, label, state) {
+  const separator = reference.lastIndexOf("#");
+  const requestedPath = separator >= 0 ? reference.slice(0, separator) : reference;
+  const anchor = separator >= 0 ? reference.slice(separator + 1) : "";
+  if (
+    !requestedPath ||
+    requestedPath.includes("\0") ||
+    (separator >= 0 && !/^[a-zA-Z0-9_-]+$/.test(anchor))
+  ) {
+    throw new Error(`Invalid source reference: ${reference}`);
+  }
+
+  const absolutePath = resolve(scriptDirectory, requestedPath);
+  const repositoryPath = relative(scriptDirectory, absolutePath);
+  if (
+    repositoryPath === ".." ||
+    repositoryPath.startsWith(`..${sep}`) ||
+    resolve(scriptDirectory, repositoryPath) !== absolutePath
+  ) {
+    throw new Error(`Source excerpt must stay inside this repository: ${reference}`);
+  }
+  if (!repositoryPath.startsWith(`examples${sep}`)) {
+    throw new Error(`Source excerpt must come from examples/: ${reference}`);
+  }
+  if (lstatSync(absolutePath).isSymbolicLink()) {
+    throw new Error(`Source excerpt cannot be a symbolic link: ${reference}`);
+  }
+  const realPath = realpathSync(absolutePath);
+  const realRepositoryPath = relative(realpathSync(scriptDirectory), realPath);
+  if (
+    realRepositoryPath === ".." ||
+    realRepositoryPath.startsWith(`..${sep}`)
+  ) {
+    throw new Error(`Source excerpt resolves outside this repository: ${reference}`);
+  }
+
+  const allLines = readFileSync(absolutePath, "utf8")
+    .replaceAll("\r\n", "\n")
+    .split("\n");
+  if (allLines.at(-1) === "") allLines.pop();
+  if (allLines.length === 0) {
+    throw new Error(`Source excerpt is empty: ${reference}`);
+  }
+
+  let firstIndex = 0;
+  let lastIndex = allLines.length - 1;
+  if (anchor) {
+    const starts = allLines
+      .map((line, index) => sourceMarker(line, "ANCHOR", anchor) ? index : -1)
+      .filter((index) => index >= 0);
+    const ends = allLines
+      .map((line, index) => sourceMarker(line, "ANCHOR_END", anchor) ? index : -1)
+      .filter((index) => index >= 0);
+    if (starts.length !== 1 || ends.length !== 1 || starts[0] >= ends[0]) {
+      throw new Error(
+        `Source anchor ${anchor} in ${requestedPath} needs one ordered ANCHOR and ANCHOR_END marker`,
+      );
+    }
+    firstIndex = starts[0] + 1;
+    lastIndex = ends[0] - 1;
+    if (firstIndex > lastIndex) {
+      throw new Error(`Source anchor ${anchor} in ${requestedPath} is empty`);
+    }
+  }
+
+  const firstLine = firstIndex + 1;
+  const lastLine = lastIndex + 1;
+  const visibleLines = allLines.slice(firstIndex, lastIndex + 1);
+  if (visibleLines.length > 120) {
+    throw new Error(
+      `Source excerpt ${reference} has ${visibleLines.length} lines; limit excerpts to 120`,
+    );
+  }
+  const renderedLines = visibleLines
+    .map(
+      (sourceLine, offset) =>
+        `<span class="source-line" data-line="${firstLine + offset}">${escapeHtml(sourceLine)}</span>`,
+    )
+    .join("");
+  const webPath = repositoryPath.split(sep).join("/");
+  const encodedPath = webPath.split("/").map(encodeURIComponent).join("/");
+  const lineFragment = firstLine === lastLine
+    ? `#L${firstLine}`
+    : `#L${firstLine}-L${lastLine}`;
+  const lineLabel = firstLine === lastLine
+    ? `line ${firstLine}`
+    : `lines ${firstLine}–${lastLine}`;
+  state.sourceDependencies.add(absolutePath);
+
+  state.sourceExcerptNumber += 1;
+  const titleId = `source-${state.sourceExcerptNumber}-title`;
+  const sourceAction = sourceRepositoryRevision
+    ? `<a class="source-link" href="${escapeHtml(`${sourceRepositoryUrl}/blob/${encodeURIComponent(sourceRepositoryRevision)}/${encodedPath}${lineFragment}`)}" aria-label="Open ${escapeHtml(webPath)}, ${lineLabel}, on GitHub">Open ${lineLabel}<span class="source-external-arrow" aria-hidden="true"> ↗</span></a>`
+    : `<span class="source-link source-link-pending">Local source · exact link after publish</span>`;
+
+  return `<figure class="source-excerpt" data-source-path="${escapeHtml(webPath)}" data-source-start="${firstLine}" data-source-end="${lastLine}">
+  <figcaption class="source-caption">
+    <span class="source-caption-copy">
+      <span class="source-kicker">Runnable source</span>
+      <strong id="${titleId}">${label ? renderInline(label) : basename(webPath)}</strong>
+      <code>${escapeHtml(webPath)}</code>
+    </span>
+    ${sourceAction}
+  </figcaption>
+  <pre tabindex="0" aria-labelledby="${titleId}"><code class="language-${sourceLanguage(webPath)}">${renderedLines}</code></pre>
+</figure>`;
+}
+
 function renderMarkdown(markdown, state) {
   const lines = markdown.replaceAll("\r\n", "\n").split("\n");
   const output = [];
@@ -96,6 +224,18 @@ function renderMarkdown(markdown, state) {
     const trimmed = line.trim();
 
     if (trimmed === "") {
+      index += 1;
+      continue;
+    }
+
+    if (trimmed.startsWith(":::source ")) {
+      const match = trimmed.match(/^:::source\s+([^|\s]+)(?:\s*\|\s*(.+))?$/);
+      if (!match) {
+        throw new Error(
+          `Source excerpt near line ${index + 1} must use :::source path[#anchor] | Label`,
+        );
+      }
+      output.push(renderSourceExcerpt(match[1], match[2] ?? "", state));
       index += 1;
       continue;
     }
@@ -522,12 +662,14 @@ function renderDocument(source, theme) {
     comparisonNumber: 0,
     reviewNumber: 0,
     recapNumber: 0,
+    sourceExcerptNumber: 0,
     review: null,
+    sourceDependencies: new Set(),
     leftSpeaker,
     rightSpeaker,
   };
 
-  return `<!doctype html>
+  const html = `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -584,14 +726,44 @@ function renderDocument(source, theme) {
   </script>
 </body>
 </html>`;
+  return { html, sourceDependencies: state.sourceDependencies };
+}
+
+let rebuildTimer;
+const watchedSourceDependencies = new Map();
+
+const scheduleBuild = () => {
+  clearTimeout(rebuildTimer);
+  rebuildTimer = setTimeout(() => {
+    try {
+      build();
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : error);
+    }
+  }, 80);
+};
+
+function syncSourceWatchers(sourceDependencies) {
+  for (const [path, watcher] of watchedSourceDependencies) {
+    if (!sourceDependencies.has(path)) {
+      watcher.close();
+      watchedSourceDependencies.delete(path);
+    }
+  }
+  for (const path of sourceDependencies) {
+    if (!watchedSourceDependencies.has(path)) {
+      watchedSourceDependencies.set(path, watch(path, scheduleBuild));
+    }
+  }
 }
 
 function build() {
   const source = readFileSync(sourcePath, "utf8");
   const theme = readFileSync(themePath, "utf8");
-  const rendered = renderDocument(source, theme);
+  const { html: rendered, sourceDependencies } = renderDocument(source, theme);
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, rendered);
+  if (watchMode) syncSourceWatchers(sourceDependencies);
   console.log(`Rendered ${sourcePath}\n      -> ${outputPath}`);
 }
 
@@ -603,18 +775,7 @@ try {
 }
 
 if (watchMode && process.exitCode !== 1) {
-  console.log("Watching the source and theme. Press Ctrl-C to stop.");
-  let rebuildTimer;
-  const scheduleBuild = () => {
-    clearTimeout(rebuildTimer);
-    rebuildTimer = setTimeout(() => {
-      try {
-        build();
-      } catch (error) {
-        console.error(error instanceof Error ? error.message : error);
-      }
-    }, 80);
-  };
+  console.log("Watching the note, theme, and included source. Press Ctrl-C to stop.");
   watch(sourcePath, scheduleBuild);
   watch(themePath, scheduleBuild);
 }
