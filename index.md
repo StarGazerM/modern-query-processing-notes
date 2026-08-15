@@ -19,6 +19,7 @@ right_speaker: Alice
 | Term | Fall 2026 · August 31–December 11 |
 | Level | Graduate; advanced undergraduates with permission |
 | Format | Lecture, paper discussion, guided practica, and one cumulative project |
+| Textbook | Abiteboul, Hull, and Vianu, [Foundations of Databases](https://webdam.di.ens.fr/Alice/) (“the Alice book”) |
 | Exams | None |
 | Language | Rust is introduced in the course; prior Rust experience is not required |
 | Through-line | CQ meaning → joins → bounds → execution → recursive Datalog |
