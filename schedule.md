@@ -42,7 +42,7 @@ presentations are the only graded activity, as permitted by the university's
 |---|---|---|
 | R1 | Binary physical plan and execution control | End of Week 5 |
 | R2 | Semijoin reduction and triejoin | End of Week 10 |
-| R3 | Semi-naive evaluation | End of Week 14 |
+| R3 | Semi-naive evaluation and one advanced extension | End of Week 14 |
 
 The [project page](project.html) defines what each stage must implement and how
 it is evaluated. This schedule is the authoritative public location for due

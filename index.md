@@ -64,5 +64,7 @@ types, bindings, and programs matter more than isolated terminology.
 
 The syllabus, schedule, project contract, and notes live in one
 [public repository](https://github.com/StarGazerM/modern-query-processing-notes).
+Released code and stable homework branches live in the separate
+[homework repository](https://github.com/StarGazerM/modern-query-processing-homework).
 The work-in-progress label is deliberate: students can read the course as it
 develops, while changes remain inspectable through version control.
