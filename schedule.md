@@ -22,9 +22,9 @@ release markers as planned rather than official.
 | 4 · Sep. 21–25 | Pull and push | Run the same fixed plan under both control models | Neumann, [Efficiently Compiling Efficient Query Plans for Modern Hardware](https://www.vldb.org/pvldb/vol4/p539-neumann.pdf), §§1, 3.1–3.2; **practicum 1** |
 | 5 · Sep. 28–Oct. 2 | AGM bounds | Compute a fractional cover; compare bounds with measured work | Atserias, Grohe, and Marx, [Size Bounds and Query Plans for Relational Joins](https://arxiv.org/abs/1711.03860), §§2–3.1; **practicum 2; R1 due** |
 | 6 · Oct. 5–9 | Yannakakis | Join trees, two semijoin passes, and enumeration | Yannakakis, [Algorithms for Acyclic Database Schemes](https://dblp.org/rec/conf/vldb/Yannakakis81), §§2, 4; **Fall Break adjustment** |
-| 7 · Oct. 12–16 | Practical join filtering | **Hangdong Zhao guest lecture:** predicate transfer and runtime filters | Yang et al., [Predicate Transfer](https://www.vldb.org/cidrdb/papers/2024/p22-yang.pdf) |
+| 7 · Oct. 12–16 | Positive Datalog | Model, fixed-point, and proof views of recursion | Foundations of Databases, §§12.1–12.4 |
 | 8 · Oct. 19–23 | Worst-case-optimal joins | Contrast binary and variable-at-a-time plans; trace Generic Join and Leapfrog Triejoin under a supplied variable order | Veldhuizen, [Leapfrog Triejoin](https://www.openproceedings.org/2014/conf/icdt/Veldhuizen14.pdf), §§1, 3.1–3.5; **practicum 3** |
-| 9 · Oct. 26–30 | Positive Datalog | Model, fixed-point, and proof views of recursion | Foundations of Databases, §§12.1–12.4 |
+| 9 · Oct. 26–30 | Practical join filtering | **Hangdong Zhao guest lecture:** predicate transfer and runtime filters | Yang et al., [Predicate Transfer](https://www.vldb.org/cidrdb/papers/2024/p22-yang.pdf) |
 | 10 · Nov. 2–6 | Semi-naive evaluation | Track full, delta, candidates, duplicates, and termination | Foundations of Databases, §13.1; **R2 due** |
 | 11 · Nov. 9–13 | Extending Datalog to ontology reasoning | Negation and disjunction | [Ontology-Based Data Access: A Study through Disjunctive Datalog, CSP, and MMSNP](https://dl.acm.org/doi/abs/10.1145/2661643) |
 | 12 · Nov. 16–20 | Probabilistic and neuro-symbolic Datalog | Compare exact, top-k, and differentiable proof evaluation | Huang et al., [Scallop](https://proceedings.neurips.cc/paper/2021/hash/d367eef13f90793bd8121e2f675f0dc2-Abstract.html), §§2–4.2 |
