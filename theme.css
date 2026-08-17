@@ -716,7 +716,7 @@ blockquote {
   text-transform: uppercase;
 }
 
-.alice-note {
+.reading-note {
   display: flex;
   justify-content: flex-end;
   gap: 0.38rem;
@@ -726,7 +726,7 @@ blockquote {
   text-align: right;
 }
 
-.alice-note a {
+.reading-note a {
   color: var(--muted);
   font-weight: 650;
   text-decoration-color: color-mix(in srgb, var(--muted) 45%, transparent);
@@ -1020,11 +1020,11 @@ blockquote {
     gap: 4px;
   }
 
-  .alice-note {
+  .reading-note {
     display: block;
   }
 
-  .alice-note > * + * {
+  .reading-note > * + * {
     margin-left: 0.28rem;
   }
 

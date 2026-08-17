@@ -11,21 +11,19 @@ previous: [Rust Conversation R.1 · The Code That Became a Value](rust-01-the-co
 next: [Rust Conversation R.3 · The Program Left Behind](rust-03-the-program-left-behind.html)
 ---
 
-:::qa
-Our first macro gives this code a written form:
+:::ada
+Our first macro preserves the written form:
 
 ```rust
 code_string!(2 + 3 * 4)
 ```
-
-What does it expand to?
-:::answer
-The string-literal expression `"2 + 3 * 4"`. It preserves the input, but gives
-it no arithmetic meaning.
+:::alice
+It expands to the string-literal expression `"2 + 3 * 4"`. We kept the
+spelling, not the arithmetic structure.
 :::
 
-:::qa
-Suppose our first attempt at a stronger macro simply returns its input:
+:::ada
+A first attempt at evaluation might simply return its input:
 
 ```rust
 #[proc_macro]
@@ -33,64 +31,48 @@ pub fn eval_integer(input: TokenStream) -> TokenStream {
     input
 }
 ```
-
-Would `eval_integer!(2 + 3 * 4)` appear to work?
-:::answer
-Yes: the resulting program would print `14`. But expanding the invocation would
-still reveal `2 + 3 * 4`. The macro moved the expression unchanged; runtime Rust
-did the arithmetic.
+:::alice
+Then `2 + 3 * 4` still evaluates to `14`, but ordinary Rust does that after
+expansion. The macro has not evaluated anything.
 :::
 
-:::qa
-Then what expansion proves that the macro performed the work?
-:::answer
-
-```text
-eval_integer!(2 + 3 * 4)  expands to  14i64
-```
-
-The checked-in implementation must leave one integer literal, not another
-arithmetic expression.
+:::ada
+What must the expansion contain to prove that the macro performed the work?
+:::alice
+One integer literal: `14`. If `+` or `*` remains, the later program can still
+be doing the arithmetic.
 :::
 
-:::source examples/rust-02-compile-time/demo/src/main.rs | The arithmetic invocation
+:::source examples/rust-02-compile-time/demo/src/main.rs | The caller we will make compile
 
-:::qa
-Run the default target from the notes repository root:
+:::ada
+The public `TokenStream -> TokenStream` boundary is unchanged from R.1. Inside
+the helper, add one new line:
 
-```console
-cargo run --manifest-path examples/rust-02-compile-time/Cargo.toml --package compile-time-demo
+```rust
+let expression: syn::Expr = syn::parse2(input)?;
 ```
-
-```text
-14
-```
-
-What should rust-analyzer show when we expand the invocation?
-:::answer
-`14i64`. No arithmetic operator remains, so the macro—not the later running
-program—performed the addition and multiplication.
+:::alice
+`parse2` and `Expr` are new. Does this turn the token stream into a Rust value
+that represents the expression's structure?
 :::
 
-:::source examples/rust-02-compile-time/compile-time-macros/src/integer.rs#expression_expansion | Parse, evaluate, and emit
+:::ada
+Yes. Rustc has already turned the source into tokens. Syn already knows the
+shape of a Rust expression. `parse2` maps those tokens into the requested type,
+`syn::Expr`; if they do not have that shape, it returns a `syn::Error`, which
+`?` propagates.
 
-:::qa
-Read this function as three operations. What does each one do?
-:::answer
-
-```text
-syn::parse2(input)   tokens -> syn::Expr
-evaluate(&expression) syn::Expr -> i64
-quote! { #value }     i64 -> Rust literal syntax
-```
-
-`parse2` establishes the grammatical shape. `evaluate` gives that shape its
-meaning. `quote!` makes the result code again.
+We use that library boundary and study the `Expr` value it produces. We do not
+implement the recognition process inside Syn.
+:::alice
+So unlike the `String` in R.1, `expression` has variants and fields we can
+inspect. Choosing `Expr` also determines which token shapes are accepted.
 :::
 
-:::qa
-What kind of Rust value did Syn construct for `2 + 3 * 4`?
-:::answer
+:::ada
+For `2 + 3 * 4`, Syn constructs a value with this simplified shape. I am
+supplying Syn's exact variant names; spans and punctuation fields are omitted:
 
 ```text
 Expr::Binary Add
@@ -99,36 +81,93 @@ Expr::Binary Add
     ├── left:  Expr::Lit 3
     └── right: Expr::Lit 4
 ```
-
-Precedence has become ordinary nested data.
+:::alice
+The multiplication node is inside the right field of the addition node.
+Precedence has become nesting in ordinary data; our evaluator does not need to
+rediscover it from the punctuation.
 :::
 
 :::definition Abstract syntax tree
-An abstract syntax tree represents grammatical structure as typed data. A fixed
-sequence of parts maps naturally to a struct; a choice among shapes maps to an
-enum; nested syntax becomes fields containing more syntax values.
+An abstract syntax tree is typed data representing the structure of code. A
+fixed sequence maps naturally to a struct, alternative shapes map to enum
+variants, and nested syntax becomes fields containing more syntax values.
 :::
 
-:::source examples/rust-02-compile-time/compile-time-macros/src/integer.rs#interpreter | The deliberately small interpreter
+:::ada
+Now give three of those shapes arithmetic meaning. Ignoring Syn's field-access
+plumbing, the recursive rules are:
 
-:::qa
-How much arithmetic language did we implement?
-:::answer
-Only integer literals, binary `+`, binary `*`, and the special call `fib(n)`.
-`evaluate` is an ordinary recursive `match` over the relevant
-`syn::Expr` variants. Syn supplied the Rust grammar; we supplied this tiny
-language's meaning.
-:::
-
-:::qa
-The slow target contains this initializer:
-
-```rust
-const FIB_40: i64 = eval_integer!(fib(40));
+```text
+Lit(n)                  -> n
+Binary(left, +, right)  -> evaluate(left) + evaluate(right)
+Binary(left, *, right)  -> evaluate(left) * evaluate(right)
 ```
 
-Before evaluation, what does `fib(40)` look like?
-:::answer
+The exact `ExprLit`, `ExprBinary`, `Lit::Int`, and `BinOp` spellings come from
+Syn; I will supply them while live-coding. Unsupported variants become compiler
+errors.
+:::alice
+A literal is the base case. A binary node contains two more `Expr` values, so
+we recursively evaluate both children and then apply this node's operator.
+
+For the tree above, the inner node produces `12`, and the root produces the
+ordinary `i64` value `14`.
+:::
+
+:::source examples/rust-02-compile-time/compile-time-macros/src/integer.rs#arithmetic_cases | The literal and binary match arms
+
+:::ada
+Finish the helper with the Quote operation from R.1:
+
+```rust
+let value = evaluate(&expression)?;
+Ok(quote! { #value })
+```
+:::alice
+The path is `tokens -> syn::Expr -> i64 -> literal code`. The new step is
+interpreting the typed expression as an `i64` by walking the tree.
+:::
+
+:::source examples/rust-02-compile-time/compile-time-macros/src/integer.rs#expression_expansion | Typed input, evaluation, and emission
+
+:::ada
+With the notes folder open in VS Code, expand `eval_integer!(2 + 3 * 4)` using
+**rust-analyzer: Expand macro recursively at caret**.
+:::alice
+The expansion is `14i64`. No arithmetic operator remains. Does the `i64` suffix
+come from the type of the value we interpolated?
+:::
+
+:::ada
+Yes. `evaluate` returned an `i64`, and Quote emitted a literal carrying that
+type. Now run the caller:
+
+```console
+cargo run --manifest-path examples/rust-02-compile-time/Cargo.toml --package compile-time-demo
+```
+
+```text
+14
+```
+:::alice
+The executable prints the value of the generated literal. The expansion itself
+is the evidence that the macro performed the arithmetic.
+:::
+
+:::ada
+Now extend the small language with one deliberately expensive form:
+
+```rust
+eval_integer!(fib(40))
+```
+:::alice
+It looks like an ordinary function call. I expect a call node with `fib` as its
+callee and `40` as its one argument, although I do not know Syn's exact names
+for those parts.
+:::
+
+:::ada
+Syn represents that shape as:
 
 ```text
 Expr::Call
@@ -136,16 +175,23 @@ Expr::Call
 └── args: Expr::Lit 40
 ```
 
-There is no runtime `fib` function in the demo. The macro recognizes this tree
-and runs its own deliberately inefficient helper during expansion.
+The demo defines no runtime `fib` function. Our `evaluate_call` helper gives
+this syntax meaning during expansion: it accepts exactly the path `fib` with
+one argument, recursively evaluates that argument, and passes the resulting
+integer to our Fibonacci helper. Other call shapes become compiler errors.
+:::alice
+So `evaluate_call` interprets call-shaped syntax during macro expansion. It
+does not invoke a `fib` function from the later executable.
 :::
+
+:::source examples/rust-02-compile-time/compile-time-macros/src/integer.rs#interpreter | The expression cases and their recursive evaluation
 
 :::source examples/rust-02-compile-time/compile-time-macros/src/integer.rs#slow_computation | The intentionally slow compile-time helper
 
 :::source examples/rust-02-compile-time/demo/examples/slow.rs | Runtime only prints the generated constant
 
-:::qa
-On macOS or Linux, compare rebuilding that target with rerunning its executable:
+:::ada
+On macOS or Linux, compare rebuilding that target with rerunning its executable.
 The `slow-example` flag keeps this intentional delay out of ordinary editor
 builds.
 
@@ -157,10 +203,10 @@ time ./examples/rust-02-compile-time/target/debug/examples/slow
 ```
 
 Where is the pause?
-:::answer
+:::alice
 The rebuild pauses before printing `102334155`; rerunning the executable prints
-the same value immediately. The Fibonacci work moved into macro expansion. The
-runtime executable only formats and prints the emitted constant.
+the same value immediately. The Fibonacci recursion happened during macro
+expansion. Runtime only formats and prints the emitted constant.
 :::
 
 :::definition Compile time and runtime
@@ -170,11 +216,15 @@ Moving work earlier can reduce repeated runtime work while increasing build and
 editor-analysis cost.
 :::
 
-:::qa
-Must an expansion always finish the job and return ordinary Rust?
-:::answer
-No. It can return another macro invocation carrying a computed value and code
-that still depends on runtime information. That next experiment will also be
-our first course-defined syntax shape, mapped to a struct with derived
-`Parse`—still without writing a token parser.
+:::ada
+Our evaluator still rejects this expression:
+
+```rust
+let x = 7;
+eval_integer!(fib(20) + x)
+```
+:::alice
+`fib(20)` is known during expansion, but `x` belongs to the later program. Can
+the macro compute the known part now and return code containing the part that
+must wait?
 :::

@@ -1,59 +1,68 @@
+// ANCHOR: block_value
+fn add_delay(scheduled: u32, delay: u32) -> u32 {
+    scheduled + delay
+}
+// ANCHOR_END: block_value
+
 // ANCHOR: data_shapes
-struct Folder {
-    id: u64,
-    entries: Vec<Entry>,
+enum Status {
+    OnTime,
+    Late(u32),
+    Cancelled,
 }
 
-enum Entry {
-    File(u64),
-    Subfolder(Folder),
-    Unreadable,
-}
-
-#[derive(Debug)]
-enum ReadError {
-    Unreadable,
+struct Train {
+    scheduled: u32,
+    status: Status,
 }
 // ANCHOR_END: data_shapes
 
-// ANCHOR: traversal
-fn total_bytes(folder: &Folder) -> Result<u64, ReadError> {
-    let mut total = 0;
-
-    for entry in &folder.entries {
-        total += match entry {
-            Entry::File(bytes) => *bytes,
-            Entry::Subfolder(child) => total_bytes(child)?,
-            Entry::Unreadable => return Err(ReadError::Unreadable),
-        };
-    }
-
-    Ok(total)
+// ANCHOR: fallible_read
+enum DepartureError {
+    Cancelled,
 }
-// ANCHOR_END: traversal
+
+fn delay(status: &Status) -> Result<u32, DepartureError> {
+    match status {
+        Status::OnTime => Ok(0),
+        Status::Late(minutes) => Ok(*minutes),
+        Status::Cancelled => Err(DepartureError::Cancelled),
+    }
+}
+
+fn departure(train: &Train) -> Result<u32, DepartureError> {
+    let minutes_late = delay(&train.status)?;
+    Ok(add_delay(train.scheduled, minutes_late))
+}
+// ANCHOR_END: fallible_read
 
 // ANCHOR: program
+fn show(result: Result<u32, DepartureError>) {
+    match result {
+        Ok(minutes) => println!("leaves at minute {minutes}"),
+        Err(DepartureError::Cancelled) => println!("cancelled"),
+    }
+}
+
 fn main() {
-    let folder = Folder {
-        id: 0,
-        entries: vec![
-            Entry::File(40),
-            Entry::Subfolder(Folder {
-                id: 1,
-                entries: vec![Entry::File(2)],
-            }),
-        ],
+    let late = Train {
+        scheduled: 60,
+        status: Status::Late(5),
     };
 
-    let first_read = total_bytes(&folder);
-    let second_read = total_bytes(&folder);
-    println!("folder {}, first read: {first_read:?}", folder.id);
-    println!("folder {}, second read: {second_read:?}", folder.id);
+    show(departure(&late));
+    show(departure(&late));
 
-    let blocked = Folder {
-        id: 2,
-        entries: vec![Entry::Unreadable],
+    let on_time = Train {
+        scheduled: 90,
+        status: Status::OnTime,
     };
-    println!("blocked: {:?}", total_bytes(&blocked));
+    show(departure(&on_time));
+
+    let cancelled = Train {
+        scheduled: 120,
+        status: Status::Cancelled,
+    };
+    show(departure(&cancelled));
 }
 // ANCHOR_END: program

@@ -15,7 +15,7 @@ const outputPath = resolve(
   positional[1] ?? join(scriptDirectory, "build", `${sourceStem}.html`),
 );
 const themePath = join(scriptDirectory, "theme.css");
-const aliceBookUrl =
+const ahvBookUrl =
   "https://webdam.di.ens.fr/Alice/";
 const sourceRepositoryUrl =
   "https://github.com/StarGazerM/modern-query-processing-notes";
@@ -370,13 +370,13 @@ function renderMarkdown(markdown, state) {
       continue;
     }
 
-    if (trimmed === ":::qa") {
+    if (trimmed === ":::ada") {
       const replyIndex = lines.findIndex(
         (candidate, candidateIndex) =>
-          candidateIndex > index && candidate.trim() === ":::answer",
+          candidateIndex > index && candidate.trim() === ":::alice",
       );
       if (replyIndex < 0) {
-        throw new Error(`Dialogue block near line ${index + 1} has no :::answer marker`);
+        throw new Error(`Ada turn near line ${index + 1} has no :::alice marker`);
       }
       const closeIndex = findClosingMarker(lines, replyIndex + 1);
       if (closeIndex < 0) {
@@ -411,10 +411,10 @@ function renderMarkdown(markdown, state) {
       continue;
     }
 
-    if (trimmed === ":::alice") {
+    if (trimmed === ":::reading") {
       const closeIndex = findClosingMarker(lines, index + 1);
       if (closeIndex < 0) {
-        throw new Error(`Alice note near line ${index + 1} has no closing ::: marker`);
+        throw new Error(`Reading note near line ${index + 1} has no closing ::: marker`);
       }
       const body = lines
         .slice(index + 1, closeIndex)
@@ -422,8 +422,8 @@ function renderMarkdown(markdown, state) {
         .filter(Boolean)
         .join(" ");
       output.push(`
-<aside class="alice-note">
-  <a href="${aliceBookUrl}">Foundations of Databases ("Alice")</a>
+<aside class="reading-note">
+  <a href="${ahvBookUrl}">Foundations of Databases (AHV)</a>
   <span aria-hidden="true">·</span>
   <span>${renderInline(body)}</span>
 </aside>`);

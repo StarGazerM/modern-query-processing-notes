@@ -7,77 +7,98 @@ status: Work in progress
 layout: dialogue
 left_speaker: Ada
 right_speaker: Alice
-previous: [Rust Conversation R.0.0 · The Tree We Could Read Twice](rust-00-the-tree-we-could-read-twice.html)
+previous: [Rust Guide R.0.0 · The Rust We Need](rust-00-the-tree-we-could-read-twice.html)
 next: [Rust Conversation R.2 · The Arithmetic That Ran Before the Program](rust-02-the-arithmetic-that-ran-before-the-program.html)
 ---
 
-:::qa
+:::ada
 ```rust
 stringify!(1);
 ```
-:::answer
+:::alice
 What is `stringify`?
 :::
 
-:::qa
+:::ada
 It takes a Rust expression as input and turns it into a string.
-:::answer
+:::alice
 "1"
 :::
 
-:::qa
+:::ada
 ```rust
 stringify!(1+1);
 ```
-:::answer
+:::alice
 "2"
 :::
 
-:::qa
+:::ada
 No, it actually gives you something like `"1 + 1"`.
-:::answer
+:::alice
 Ooooh—it turns the **expression itself** into a string.
 :::
 
-:::qa
+:::ada
 ```rust
 let x = 1 + 1;
 stringify!(x);
 ```
-:::answer
+:::alice
 "x"
 :::
 
-:::qa
-Sweet. Why is there a `!` after `stringify`?
-:::answer
-The Rust Book says this is because `stringify!` is not a function; it is a
-**macro**.
+:::ada
+I recognize `name!(...)` as macro-invocation spelling. But what does a macro
+actually receive and return?
+:::alice
+The Rust Book calls `stringify!` a **macro**, not a function. The spelling names
+the category; now we need its meaning.
 :::
 
-:::qa
+:::ada
 What is a **macro**?
-:::answer
+:::alice
 Hmm. It seems to be a function that takes an expression as input.
 :::
 
-:::qa
+:::ada
 Let us test that model. If a macro were a function, what would this function
 return?
-:::answer
+:::alice
 I don't know, but my guess is that it returns expressions.
 :::
 
-:::qa
+:::ada
 Exactly. `stringify!` takes the tokens spelling `1 + 1` as input and returns new
 tokens spelling another expression—`"1 + 1"`.
 
-What is a compiler?
-:::answer
+```rust
+stringify!(relation edge(i32, i32);)
+```
+:::alice
+"relation edge(i32, i32);"
+
+But `relation edge(i32, i32);` is our database language, not a Rust
+expression. Why did `stringify!` accept it?
+:::
+
+:::ada
+Because `stringify!` runs before Rust checks whether the tokens inside its
+invocation form a Rust expression. At first, Rust only needs to tokenize the
+contents and find balanced delimiters.
+:::alice
+So a macro invocation can contain syntax from another language. The macro—not
+the surrounding Rust grammar—decides what those input tokens mean.
+:::
+
+:::ada
+Right. What is a compiler?
+:::alice
 A compiler turns code into a binary.
 :::
 
-:::qa
+:::ada
 Roughly, but not quite. A compiler translates code written in one language into
 code in another language. The target might be another source language,
 assembly, or machine code.
@@ -87,24 +108,24 @@ So, conceptually, we can begin with:
 ```text
 Compiler : Code -> Code
 ```
-:::answer
+:::alice
 Wait. `stringify!` also takes code as input and returns code. But it is a macro,
 not a compiler.
 :::
 
-:::qa
+:::ada
 Who said that a macro cannot be a compiler?
-:::answer
+:::alice
 What? Then, what's the difference between a compiler and a macro?
 :::
 
-:::qa
+:::ada
 What kind of code does `stringify!` return?
-:::answer
+:::alice
 Rust code: a string-literal expression.
 :::
 
-:::qa
+:::ada
 `macro` and `compiler` answer different questions. Calling something a macro
 tells us its expansion mechanism. Calling it a compiler describes a semantic
 job: translating a program from one language or stage into another. A macro can
@@ -118,17 +139,17 @@ then continue from Rust to assembly and machine code.
 
 In this course, we will use this idea to build a compiler for a database query
 language. It will compile a database query into Rust code.
-:::answer
+:::alice
 Okay. That sounds strange. Why use macro to build the compiler?
 :::
 
-:::qa
+:::ada
 At the end of database Conversation 1.2, we had a query \(q\), a database
 instance \(I\), and the result relation \(q(I)\). Earlier, we represented each
 relation instance in Rust as a `HashSet`.
 
 What would a `HashSet` look like in assembly?
-:::answer
+:::alice
 Okay, I see. We do not need to implement the database instance's `HashSet`
 representation in assembly ourselves.
 
@@ -138,20 +159,19 @@ that Rust, and we can reuse Rust's types, standard library, and build system,
 Cargo.
 :::
 
-:::qa
+:::ada
 Before we learn how to write the whole database-query compiler, let us learn how
 a macro works.
 
 Try to implement `stringify!`.
-:::answer
+:::alice
 Wait—I do not know how to write a macro. What is the first step? Do I define a
 function named `stringify` and mark it as a macro?
 :::
 
-:::qa
+:::ada
 Almost. Rust already has a built-in macro named `stringify!`, so we will give
-ours the distinct name `code_string!`. If its import ever breaks, the compiler
-must report an error instead of silently using Rust's version.
+ours the distinct name `code_string!`.
 
 Before we write the function, look at the files Cargo uses in the runnable
 example:
@@ -168,11 +188,11 @@ examples/rust-01-stringify/
     └── src/
         └── main.rs
 ```
-:::answer
+:::alice
 Why are there three `Cargo.toml` files? I expected one program to have one.
 :::
 
-:::qa
+:::ada
 Rust requires the procedural macro and the code using it to be in different
 **crates**. The macro crate must already be compiled before rustc can run it
 while compiling the demo crate.
@@ -186,13 +206,166 @@ demo/Cargo.toml              the executable crate that uses it
 
 The top `Cargo.toml` merely groups them so one Cargo command can build both. It
 is not a third program.
-:::answer
+:::alice
 So the important fact is not “three manifests.” It is that the procedural macro
 must stay in its own crate.
 :::
 
-:::qa
-Exactly. Now run the project:
+:::ada
+Exactly. The manifests are the shell I prepare before the meeting. From here,
+we will read the caller and write the macro together. The checked-in example
+keeps the finished version so you can recover if your live copy falls behind.
+
+Begin with the program we want to make work.
+:::alice
+Then we can write the caller first and treat it as the target for the macro
+implementation.
+:::
+
+:::source examples/rust-01-stringify/demo/src/main.rs | The caller we will make compile
+
+:::ada
+Read `main.rs` as our target, not as a program that already works. What behavior
+is this caller asking `code_string!` to provide?
+:::alice
+The first three calls should eventually become the strings `"1 + 1"`, `"x"`,
+and `"relation road(City, City);"`. The macro should preserve the code that was
+written, so it must not look up the value of `x`.
+
+The last `println!` uses ordinary Rust and should print `2`. But we cannot run
+this caller yet because we have not implemented `code_string!`.
+:::
+
+:::ada
+Now open `stringify-macro/src/lib.rs`. Rust fixes the compiler-facing type, so
+write the boundary first and leave its body open:
+
+```rust
+use proc_macro::TokenStream;
+
+#[proc_macro]
+pub fn code_string(input: TokenStream) -> TokenStream {
+```
+:::alice
+The function accepts a `TokenStream` and promises to return a `TokenStream`.
+I recognize `#[proc_macro]` as the registration spelling, but I have not used it
+before. Why does this function also need `pub`?
+:::
+
+:::ada
+`#[proc_macro]` tells rustc to register this public function as a function-like
+macro. `pub` makes that registered entry point exportable to another crate, and
+Rust requires it to live at the root of the macro crate.
+
+The demo's path dependency makes this crate available.
+`use stringify_macro::code_string;` then brings the exported macro name into
+`main.rs`.
+:::alice
+So for `code_string!(x)`, `input` receives the token `x`, not the value `2`, and
+the returned Rust tokens replace the complete invocation.
+:::
+
+:::ada
+Working directly with `proc_macro` token trees is tedious. Procedural-macro code
+normally uses `proc_macro2` for tokens, Syn for typed syntax, and Quote for
+generated code. We will use this stack throughout the tutorials and keep
+`proc_macro::TokenStream` only at the rustc boundary.
+
+Start by converting the input:
+
+```rust
+use proc_macro2::TokenStream as TokenStream2;
+
+let input = TokenStream2::from(input);
+```
+:::alice
+Why do we now have two `TokenStream` types? Does this conversion change the
+code?
+:::
+
+:::ada
+No. `proc_macro::TokenStream` is rustc's boundary type;
+`proc_macro2::TokenStream` is the type used by the helper libraries. The
+conversion changes the representation, not the tokens.
+
+Next, render those tokens as text:
+
+```rust
+let written_input = input.to_string();
+```
+:::alice
+Does `to_string()` render the tokens without evaluating them?
+:::
+
+:::ada
+Yes. It produces `x` and something like `1 + 1` as text. Token streams do not
+preserve comments or exact whitespace, so their rendering may insert spaces
+needed to separate tokens.
+
+For `code_string!(x)`, we must return the Rust string-literal expression `"x"`,
+not the `String` stored in `written_input`. Add Syn's typed representation:
+
+```rust
+use proc_macro2::{Span, TokenStream as TokenStream2};
+use syn::LitStr;
+
+let output_literal = LitStr::new(&written_input, Span::call_site());
+```
+:::alice
+Why can we not return the `String` directly? What do `LitStr` and `Span` add?
+:::
+
+:::ada
+The macro must return Rust syntax, not a runtime string value. `LitStr` is a
+typed value representing valid Rust string-literal syntax and handles escaping.
+`Span::call_site()` attaches the invocation's source context for the compiler
+and its diagnostics.
+:::alice
+So `written_input` contains `x` as text, while `output_literal` describes the
+Rust expression `"x"`.
+:::
+
+:::ada
+Exactly. Quote emits that typed syntax as code:
+
+```rust
+use quote::quote;
+
+quote! { #output_literal }
+```
+:::alice
+What does `#output_literal` mean inside `quote!`?
+:::
+
+:::ada
+`quote!` treats its body as a Rust-code template. `#output_literal` inserts the
+syntax represented by that value. The result is a
+`proc_macro2::TokenStream` containing the string-literal expression `"x"`.
+
+The complete line also closes the compiler boundary:
+
+```rust
+quote! { #output_literal }.into()
+}
+```
+:::alice
+Quote already produced tokens. What does `.into()` do?
+:::
+
+:::ada
+It converts Quote's `proc_macro2::TokenStream` back to rustc's
+`proc_macro::TokenStream`. The representation changes; the returned code does
+not.
+:::alice
+Now the function returns the tokens spelling `"x"`, and rustc can replace the
+original invocation with that expression.
+:::
+
+:::source examples/rust-01-stringify/stringify-macro/src/lib.rs | The complete procedural macro
+
+:::ada
+Now the implementation exists. Run the project and compare the result with the
+target we wrote before it:
 
 ```console
 cargo run --manifest-path examples/rust-01-stringify/Cargo.toml --package stringify-demo
@@ -204,215 +377,34 @@ x
 relation road(City, City);
 2
 ```
-:::answer
-The first two lines are textual renderings of the code, not its value. Even
-`relation road(City, City);` survived as code although it is not a Rust
-expression. The last line is the value computed by the executable.
+:::alice
+It matches. But the terminal puts all four lines together; it does not show me
+which work happened while compiling and which happened while running.
 :::
 
-:::qa
-Did `code_string!` run at the same time as the four `println!` calls?
-:::answer
-No. `cargo run` bundled two phases into one command. During **compile time**,
-Cargo built the macro crate and rustc ran `code_string!` while compiling the
-demo. During **runtime**, the resulting executable ran `main` and printed the
-four lines.
+:::ada
+Then reconstruct the two moments. Did `code_string!` run at the same time as
+the four `println!` calls?
+:::alice
+No. Before the executable existed, rustc called `code_string!` and replaced its
+three invocations with string-literal expressions. Later, `main` ran all four
+`println!` calls; its last call read the ordinary program variable `x`.
 :::
 
-:::source examples/rust-01-stringify/demo/src/main.rs | The executable that invokes the macro
+:::ada
+Exactly. The first moment is **compile time**; the second is **runtime**.
 
-:::qa
-Match the four `println!` calls above to the four lines you observed. Which
-output did the macro not produce?
-:::answer
-The three `code_string!` invocations produced the first three strings. The last
-`println!` printed the value of `x`, which is `2`; the macro did not produce that
-line.
-
-The strange case is now visible in the source: the third invocation contains
-`relation road(City, City);`, which is not a Rust expression.
+We can inspect the boundary directly. Open the notes folder in VS Code, put the
+caret on `code_string!(1 + 1)` in
+`examples/rust-01-stringify/demo/src/main.rs`, and run
+**rust-analyzer: Expand macro recursively at caret**. What should the expansion
+window contain?
+:::alice
+The string-literal expression `"1 + 1"`: the replacement code produced during
+compilation, not a line printed while the program runs.
 :::
 
-:::qa
-You already ran this program once. Now the surprising third line has a sharper
-meaning: the macro received `relation road(City, City);` before Rust tried to
-interpret the surrounding invocation as an expression.
-:::answer
-So a macro's input is not necessarily an expression. It is syntax inside the
-invocation's delimiters.
-:::
-
-:::qa
-Now we are ready to build the function you first imagined. Rust supplies the
-compiler-facing crate `proc_macro`.
-
-Which imports match our four jobs: the compiler boundary, the internal token
-stream and source context, an emitter for Rust code, and a typed string-literal
-syntax value?
-:::answer
-```rust
-use proc_macro::TokenStream;
-use proc_macro2::{Span, TokenStream as TokenStream2};
-use quote::quote;
-use syn::LitStr;
-```
-
-`proc_macro::TokenStream` is the type `rustc` requires at the public boundary.
-We rename `proc_macro2::TokenStream` to `TokenStream2` so both representations
-remain visible. `Span` carries source-location context, `LitStr` is Syn's typed
-representation of Rust string-literal syntax, and `quote` is the macro that
-will emit our replacement Rust code.
-:::
-
-:::qa
-From the required boundary `TokenStream -> TokenStream`, write the function
-header. Remember that the demo must import it and that Rust needs to register it
-as a function-like macro.
-
-```rust
-#[proc_macro]
-pub fn code_string(input: TokenStream) -> TokenStream
-```
-
-:::answer
-I get the two lines above. `#[proc_macro]` registers a function-like macro named
-`code_string`; `pub` makes it exportable; and the signature expresses the
-tokens-in, tokens-out boundary.
-:::
-
-:::qa
-More exactly, why must the function be `pub`?
-:::answer
-The demo is a different crate. The attribute exports this name into the macro
-namespace, and `pub` makes that exported macro available for another crate to
-import. The function also lives in `src/lib.rs`, the root source file of this
-library crate, because a `#[proc_macro]` function must be defined at the crate
-root.
-:::
-
-:::qa
-The path dependency made the macro crate available to the demo. Did that alone
-make the unqualified call `code_string!(...)` visible in `main.rs`?
-:::answer
-No. The first line, `use stringify_macro::code_string;`, brings that exported
-macro name into the demo's scope. The dependency and the `use` statement do two
-different jobs.
-:::
-
-:::qa
-The exported function must accept the compiler's token stream, but our course
-style uses `proc_macro2` inside the implementation. What does this first line
-do?
-
-```rust
-let input = TokenStream2::from(input);
-```
-:::answer
-It changes the representation of the incoming tokens, not the tokens
-themselves. From this line until the final return, the implementation uses the
-token type shared by Syn and Quote.
-:::
-
-:::qa
-The macro now needs the written form of its input without evaluating it. Which
-method gives us that, and is the resulting line evaluating an input expression?
-
-```rust
-let written_input = input.to_string();
-```
-:::answer
-I would write the line above. No evaluation happens: `input` is code represented
-as a sequence of tokens. `to_string()` asks for a textual rendering of those
-tokens. That is why `x` stays `x` rather than becoming `2`.
-:::
-
-:::qa
-It is also why the result is only *like* the spelling we wrote. Token streams do
-not preserve comments or exact whitespace, and their textual rendering may
-insert spaces needed to separate tokens.
-
-We must return Rust syntax, not the runtime `String` stored in `written_input`.
-What typed syntax value should we construct for the output?
-:::answer
-A `syn::LitStr`: a Rust value representing one Rust string literal. If
-`written_input` contains `1 + 1`, this value represents the source expression
-`"1 + 1"`:
-
-```rust
-let output_literal = LitStr::new(&written_input, Span::call_site());
-```
-
-`LitStr::new` takes care of constructing valid string-literal syntax, including
-any escaping the contents need. `Span::call_site()` gives the generated literal
-the macro invocation's source context. That context matters to the compiler and
-its diagnostics; it is not a runtime value inside the string.
-:::
-
-:::qa
-Now finish the function:
-
-```rust
-quote! { #output_literal }.into()
-```
-
-What do the `#`, `quote!`, and `.into()` each do?
-:::answer
-Inside `quote!`, `#output_literal` interpolates the `LitStr` value into the Rust
-syntax template. `quote!` emits that template as a
-`proc_macro2::TokenStream`. The final `.into()` converts it back to the
-compiler-facing `proc_macro::TokenStream` required by our public signature.
-:::
-
-:::source examples/rust-01-stringify/stringify-macro/src/lib.rs | The complete procedural macro
-
-:::qa
-Compare the runnable file above with the function we just constructed. Is any
-line still unexplained?
-:::answer
-No. The attribute and public signature establish the compiler boundary. The
-body then moves through four visible representations:
-
-```text
-proc_macro::TokenStream
-    -> proc_macro2::TokenStream
-    -> String
-    -> syn::LitStr
-    -> proc_macro2::TokenStream
-    -> proc_macro::TokenStream
-```
-
-The important new fact is that `syn::LitStr` is ordinary Rust data whose meaning
-is a piece of Rust syntax. `quote!` turns that typed syntax value back into code.
-:::
-
-:::qa
-Could we instead assemble the returned `TokenTree`s by hand?
-:::answer
-Yes, but that is not our normal compiler style. In this course, use
-`proc_macro::TokenStream` only at the exported boundary, use `proc_macro2`
-inside, represent syntax with Syn 2 types, and emit Rust with
-`quote! { ... }`. We will construct token trees manually only when token
-mechanics themselves are the lesson.
-:::
-
-:::qa
-Open the notes repository root as the folder in VS Code. In our teaching
-checkout, that folder is `doc/notes`; in a standalone clone, it is simply the
-clone's top directory. Its workspace settings link rust-analyzer to both
-runnable Rust workspaces, so the editor loads their macro and demo crates even
-though the notes root has no `Cargo.toml`. If VS Code offers the recommended
-rust-analyzer extension, install it.
-
-Now open `examples/rust-01-stringify/demo/src/main.rs`, put the caret on
-`code_string!(1 + 1)`, open the Command Palette, and run **rust-analyzer: Expand
-macro recursively at caret**. What should the expansion window contain?
-:::answer
-The string-literal expression `"1 + 1"`. That window shows the replacement
-syntax produced during compilation; it is not output printed while the program
-runs.
-:::
-
-:::qa
+:::ada
 We can now account for the whole event:
 
 ```text
@@ -436,10 +428,9 @@ runtime
 ```
 
 Can the macro ever observe the value assigned to `x`?
-:::answer
-No. It only sees the token `x` during macro expansion. Computing a value for the
-demo's `x` belongs to the later compiled program, regardless of whether the
-compiler optimizes that particular arithmetic before the executable runs.
+:::alice
+No. It receives the token `x`; it never runs `main` or reads the value stored in
+that variable.
 :::
 
 :::definition Function-like procedural macro
@@ -451,25 +442,17 @@ with the tokens the function returns. The resulting Rust code is then compiled
 normally and may execute later at runtime.
 :::
 
-:::qa
-Why did `code_string!(relation road(City, City);)` work even though its input was
-not a Rust expression?
-:::answer
-The compiler only had to recognize a macro invocation and form token trees from
-the balanced contents inside its delimiters. Our macro then replaced those
-tokens with a valid Rust string literal before the surrounding position was
-checked as an expression.
-:::
-
-:::qa
+:::ada
 Does our macro yet understand that `road` is a relation name, that it has arity
 two, or that both positions have type `City`?
-:::answer
+:::alice
 No. It has a typed `syn::LitStr` for the **output** string literal, but it still
 treats the **input** relation declaration as an opaque token stream and then as
 text. It has no value with fields for the name `road` or its two `City`
 positions.
+:::
 
+:::ada
 That is the missing object: a typed syntax tree that turns the relation
 declaration itself into a Rust value we can inspect and transform.
 
@@ -478,4 +461,7 @@ training language. Syn already knows its grammar, so we can observe the mapping
 from written expression to enum-shaped AST, interpret that AST during
 compilation, and then use the same tools to define our own source shape without
 writing a parser by hand.
+:::alice
+So the next step is not more manipulation of opaque tokens. It is to map code
+into data with variants and fields that our Rust program can inspect.
 :::

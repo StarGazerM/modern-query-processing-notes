@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readdirSync } from "node:fs";
+import { cpSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -12,6 +12,7 @@ const noteSources = readdirSync(scriptDirectory)
   .sort();
 const courseSources = ["index.md", "syllabus.md", "schedule.md", "project.md"];
 const sources = [...courseSources, ...noteSources];
+const publishedAssetDirectories = ["slides"];
 
 for (const source of sources) {
   const result = spawnSync(
@@ -26,6 +27,12 @@ for (const source of sources) {
 }
 
 if (!process.exitCode) {
+  for (const directory of publishedAssetDirectories) {
+    cpSync(join(scriptDirectory, directory), join(scriptDirectory, "build", directory), {
+      recursive: true,
+    });
+  }
+
   const examples = spawnSync(
     process.execPath,
     [join(scriptDirectory, "check-examples.mjs")],

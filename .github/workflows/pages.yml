@@ -50,6 +50,7 @@ jobs:
           test -s build/rust-01-the-code-that-became-a-value.html
           test -s build/rust-02-the-arithmetic-that-ran-before-the-program.html
           test -s build/rust-03-the-program-left-behind.html
+          test -s build/slides/01-modern-query-processing-lecture-1.pptx
 
       - name: Check internal links
         run: node check-site.mjs

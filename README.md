@@ -51,9 +51,9 @@ cp template.md 01-cq-meaning.md
 Write each exchange as:
 
 ```text
-:::qa
+:::ada
 What does this query return?
-:::answer
+:::alice
 The set of tuples that satisfy every body atom under one valuation.
 :::
 ```
@@ -63,9 +63,9 @@ argument, wrap them in an optional review path:
 
 ```text
 ::::review Rust ownership and borrowing
-:::qa
+:::ada
 Can the caller use `roads` again after passing `&roads`?
-:::answer
+:::alice
 Yes. The caller lent a shared reference and kept ownership.
 :::
 ::::
@@ -89,9 +89,10 @@ left_speaker: Ada
 right_speaker: Alice
 ```
 
-The markers identify the left and right turns; either speaker may ask a
-question. Both bodies accept headings, paragraphs, lists, fenced code, tables,
-block quotes, inline `$...$` mathematics, and display `$$...$$` mathematics.
+`:::ada` opens Ada's turn; `:::alice` begins Alice's reply. Either speaker may
+ask a question. Both bodies accept headings, paragraphs, lists, fenced code,
+tables, block quotes, inline `$...$` mathematics, and display `$$...$$`
+mathematics.
 Use a law block only after the dialogue has earned the rule:
 
 ```text
@@ -108,12 +109,12 @@ A valuation assigns one database value to every variable in the query.
 :::
 ```
 
-Keep source guidance outside the speakers' turns. An Alice note renders as a
-small hint beneath the preceding exchange, with the book title linked
+Keep source guidance outside the speakers' turns. A reading note renders as a
+small hint beneath the preceding exchange, with the AHV textbook linked
 automatically:
 
 ```text
-:::alice
+:::reading
 Chapter 4, p. 37 - queries and query mappings.
 :::
 ```
@@ -195,8 +196,8 @@ rendered excerpt. Each marker name must appear exactly once, the end must follow
 the start, and an excerpt may contain at most 120 lines.
 
 The dependency-free [`reading-rust` example](examples/rust-00-reading-rust/)
-accompanies R.0.0 and establishes the ordinary Rust needed by the later macro
-examples.
+is the repaired endpoint of R.0.0's short readiness route through block values,
+structs, enums, shared access, `Result`, and `?`.
 
 ## Procedural-macro code style
 
@@ -310,7 +311,7 @@ Python-to-Rust example.
 
 ## Authoring discipline
 
-- One `:::qa` block should make one intellectual move.
+- One `:::ada` / `:::alice` exchange should make one intellectual move.
 - Keep each turn short enough that the next speaker carries part of the
   explanation.
 - Put exact tuples, bindings, probes, intermediates, or deltas on the page.

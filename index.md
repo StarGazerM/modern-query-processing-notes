@@ -19,10 +19,16 @@ right_speaker: Alice
 | Term | Fall 2026 · August 31–December 11 |
 | Level | Graduate; advanced undergraduates with permission |
 | Format | Lecture, paper discussion, guided practica, and one cumulative project |
-| Textbook | Abiteboul, Hull, and Vianu, [Foundations of Databases](https://webdam.di.ens.fr/Alice/) (“the Alice book”) |
+| Textbook | Abiteboul, Hull, and Vianu, [Foundations of Databases](https://webdam.di.ens.fr/Alice/) (AHV) |
 | Exams | None |
 | Language | Rust is introduced in the course; prior Rust experience is not required |
 | Through-line | CQ meaning → joins → bounds → execution → recursive Datalog |
+
+# Lecture slides
+
+:::cards
+[Lecture 1 · Why compile a query?](slides/01-modern-query-processing-lecture-1.pptx) | Course motivation, Mini-LINQ, semantic objects, optimization, Rust, and the project roadmap.
+:::
 
 # One intellectual path
 
@@ -55,7 +61,7 @@ types, bindings, and programs matter more than isolated terminology.
 [A Little Rust, Side by Side](aside-a-little-rust-side-by-side.html) | A Python-to-Rust cheat sheet for reading the project and the course text.
 [Conversation 1.1 · What's in a Name?](01-a-little-database-a-few-questions.html) | Establish data, relation schemas, database schemas, instances, and the DBMS before asking a query.
 [Conversation 1.2 · By Indirections Find Directions Out](02-the-relation-that-wasnt-stored.html) | Move from recorded facts through valuations and conjunction to a rule-based query and its separate image.
-[Rust Conversation R.0.0 · The Tree We Could Read Twice](rust-00-the-tree-we-could-read-twice.html) | Learn the ordinary Rust needed to read structs, enums, borrows, recursive matches, and fallible transformations.
+[Rust Guide R.0.0 · The Rust We Need](rust-00-the-tree-we-could-read-twice.html) | Follow a focused Rust route, then predict, compile, and repair five small ordinary programs.
 [Rust Conversation R.1 · The Code That Became a Value](rust-01-the-code-that-became-a-value.html) | Separate expansion from execution and make generated Rust syntax into a typed value.
 [Rust Conversation R.2 · The Arithmetic That Ran Before the Program](rust-02-the-arithmetic-that-ran-before-the-program.html) | Map expressions into Syn's AST and make compile-time evaluation observable.
 [Rust Conversation R.3 · The Program Left Behind](rust-03-the-program-left-behind.html) | Derive one course syntax shape, expand into a typed Rust block, and leave runtime holes.

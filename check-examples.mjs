@@ -66,9 +66,10 @@ checkRun(
   workspaces.ordinaryRust,
   [],
   [
-    "folder 0, first read: Ok(42)",
-    "folder 0, second read: Ok(42)",
-    "blocked: Err(Unreadable)",
+    "leaves at minute 65",
+    "leaves at minute 65",
+    "leaves at minute 90",
+    "cancelled",
   ],
   "rust-00-reading-rust",
 );

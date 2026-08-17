@@ -16,7 +16,7 @@ release markers as planned rather than official.
 
 | Week | Center | In class | Primary reading / due |
 |---|---|---|---|
-| 1 · Aug. 31–Sep. 4 | CQ meaning | Rules, valuations, and query hypergraphs | Abiteboul, Hull, and Vianu, [Foundations of Databases](https://webdam.di.ens.fr/Alice/), §§3.1–3.3, 4.1–4.2 |
+| 1 · Aug. 31–Sep. 4 | CQ meaning | [Lecture 1 slides](slides/01-modern-query-processing-lecture-1.pptx); rules, valuations, and query hypergraphs | Abiteboul, Hull, and Vianu, [Foundations of Databases](https://webdam.di.ens.fr/Alice/), §§3.1–3.3, 4.1–4.2 |
 | 2 · Sep. 7–11 | Binary joins | Nested-loop and hash join; build/probe state | Garcia-Molina, Ullman, and Widom, [Database System Implementation](https://i.stanford.edu/~ullman/dbsi.html), selected §§6.2–6.4; **Labor Day adjustment** |
 | 3 · Sep. 14–18 | Rust and staged query programs | Ownership and borrowing; enums and pattern matching; traits and iterators; trace a CQ through typed IRs to generated Rust | The Rust Programming Language: [Ch. 4](https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html), [Ch. 6](https://doc.rust-lang.org/book/ch06-00-enums.html), and [§20.5 overview](https://doc.rust-lang.org/book/ch20-05-macros.html) |
 | 4 · Sep. 21–25 | Pull and push | Run the same fixed plan under both control models | Neumann, [Efficiently Compiling Efficient Query Plans for Modern Hardware](https://www.vldb.org/pvldb/vol4/p539-neumann.pdf), §§1, 3.1–3.2; **practicum 1** |

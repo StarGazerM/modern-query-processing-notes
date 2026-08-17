@@ -12,28 +12,28 @@ previous: [Conversation 1.1 · What's in a Name?](01-a-little-database-a-few-que
 
 # By indirections find directions out
 
-:::qa
+:::ada
 In the instance `I` above, is this statement true?
 
 ```text
 road("Logan", "Salt Lake City")
 ```
-:::answer
+:::alice
 Yes. It is a membership check against `I(road)`.
 :::
 
 
-:::qa
+:::ada
 ```text
 road("Logan", "Provo")
 ```
-:::answer
+:::alice
 False. The statement asks for one tuple in `I(road)`. It does not ask whether
 Provo can be reached by following several stored roads. Under the closed-world
 assumption, the absent tuple gives us a negative answer.
 :::
 
-:::qa
+:::ada
 Consider another database instance `J`. It agrees with `I` on `road_length`;
 only its `road` relation changes:
 
@@ -48,24 +48,24 @@ J(road) = {
 ```
 
 Is `road("Logan", "Provo")` true in `J`?
-:::answer
+:::alice
 Yes. We kept the statement fixed and changed the instance in which we tested
 it.
 :::
 
-:::qa
+:::ada
 ```text
 road("Logan", to)
 ```
-:::answer
+:::alice
 What is `to`? This seems to do more than evaluate a membership predicate.
 :::
 
-:::qa
+:::ada
 It is a **relational atom**. Here, `to` is a **logical variable**: it represents
 a not-yet-identified value in our known closed world. The first argument is the
 known value `"Logan"`; we say that this argument is **ground**.
-:::answer
+:::alice
 Okay. This seems complicated, but useful. It looks like an intuitive way to
 represent “all cities `to` for which Logan has a road to `to`.”
 :::
@@ -96,22 +96,22 @@ If \(R(\vec a)\) cannot be proved from \(\Sigma\) using conventional
 first-order logic, infer \(\neg R(\vec a)\).
 :::
 
-:::alice
+:::reading
 Chapter 2, Section 2.3, p. 27 - the closed-world assumption as an inference
 rule.
 :::
 
-:::qa
+:::ada
 Then give me all values of `to` such that Logan has a road to `to` in instance
 `J`.
-:::answer
+:::alice
 ```text
 {"Salt Lake City", "Garden City", "Provo"}
 ```
 :::
 
 
-:::qa
+:::ada
 The Garden City answer produced this ground atom:
 
 ```text
@@ -124,7 +124,7 @@ $$
 J \models road(\text{"Logan"}, \text{"Garden City"}).
 $$
 
-:::answer
+:::alice
 So \(\models\) says that this ground atom is true in `J`.
 :::
 
@@ -141,20 +141,20 @@ We read this as “$I$ satisfies the atom.” Because a ground atom contains no
 variables, no valuation is needed.
 :::
 
-:::qa
+:::ada
 Now let `to` name Ogden, what changes?
-:::answer
+:::alice
 The assignment produces `road("Logan", "Ogden")`, which is false in `J` because its
 tuple is absent from `J(road)`. .
 :::
 
-:::qa
+:::ada
 We call this assignment a **valuation**, written:
 
 ```
 to -> "Ogden"
 ```
-:::answer
+:::alice
 Another term! Database researchers love strange terms.
 :::
 
@@ -181,13 +181,13 @@ tuple in $I(r)$. Satisfaction of a ground atom is the special case in which
 there are no variables for $v$ to replace.
 :::
 
-:::alice
+:::reading
 Chapter 2, Section 2.3, p. 24 - satisfaction under a variable assignment;
 Chapter 4, pp. 41 and 46 - valuations, tuple membership, and satisfaction of a
 relational atom in a database instance.
 :::
 
-:::qa
+:::ada
 ```text
 road("Logan", via),
 road(via, "Provo")
@@ -196,13 +196,13 @@ road(via, "Provo")
 These two atoms share the logical variable `via`. What does that mean?
 
 
-:::answer
+:::alice
 `I` does not contain a direct road from Logan to Provo. Yet its stored roads
 lead there through Salt Lake City. This expression is meant to find that
 indirect route.
 :::
 
-:::qa
+:::ada
 Try this valuation in `I`:
 
 ```text
@@ -210,7 +210,7 @@ via -> "Salt Lake City"
 ```
 
 Are both atoms true _at the same time_?
-:::answer
+:::alice
 Yes. They become
 
 ```text
@@ -221,7 +221,7 @@ road("Salt Lake City", "Provo")
 Both tuples belong to `I(road)` at the same time. So the comma appears to mean “and.”
 :::
 
-:::qa
+:::ada
 Now test the same two atoms in `J` with
 
 ```text
@@ -229,7 +229,7 @@ via -> "Garden City"
 ```
 
 Are both atoms true _at the same time_?
-:::answer
+:::alice
 No. `road("Logan", "Garden City")` is true in `J`, but
 `road("Garden City", "Provo")` is false there.
 :::
@@ -249,9 +249,9 @@ $$
 In our rule notation, a comma denotes this “and.”
 :::
 
-:::qa
+:::ada
 Have we written a query yet?
-:::answer
+:::alice
 Not yet. We know when this conjunction is true under one valuation, but we have
 not said which values should become an answer relation.
 :::
@@ -286,7 +286,7 @@ This tells us whether the conjunction succeeds. It does not yet say which
 values an answer should retain.
 :::
 
-:::qa
+:::ada
 We ended with this conjunction:
 
 ```text
@@ -296,7 +296,7 @@ road(via, "Provo")
 
 It fixes the two endpoints. How could the same two-road pattern range over
 every possible pair?
-:::answer
+:::alice
 I can replace the two fixed city names with logical variables:
 
 ```text
@@ -308,7 +308,7 @@ Now a valuation chooses all three cities. The conjunction succeeds when both
 atoms are true in the input instance under that one valuation.
 :::
 
-:::qa
+:::ada
 Use the relevant part of the same input instance:
 
 ```text
@@ -322,7 +322,7 @@ J(road) = {
 ```
 
 Which ordered pairs of cities are connected by two roads in `J`?
-:::answer
+:::alice
 ```text
 {
     ("Logan", "Provo"),                   // via Salt Lake City
@@ -334,9 +334,9 @@ Which ordered pairs of cities are connected by two roads in `J`?
 ```
 :::
 
-:::qa
+:::ada
 How do we store these routes in the database?
-:::answer
+:::alice
 
 ```text
 relation two_hop(City, City);
@@ -355,7 +355,7 @@ then `two_hop` no longer means “cities connected by two stored roads.” Its n
 has lost its meaning.
 :::
 
-:::qa
+:::ada
 The trick is that we do not supply `J(two_hop)` as part of database instance
 `J`. Instead, we let it be determined by `J(road)`. We write
 
@@ -364,11 +364,11 @@ two_hop(from, to) :-
     road(from, via),
     road(via, to).
 ```
-:::answer
+:::alice
 What does `:-` mean?
 :::
 
-:::qa
+:::ada
 Read `:-` as “if”:
 
 ```text
@@ -376,24 +376,24 @@ two_hop(from, to) if
     road(from, via) and
     road(via, to)
 ```
-:::answer
+:::alice
 I understand the condition after “if”: one road goes from `from` to `via`, and
 another goes from that same `via` to `to`.
 
 But what does `two_hop(from, to)` do before `:-`?
 :::
 
-:::qa
+:::ada
 Whenever one valuation makes both `road` atoms true, the values assigned to
 `from` and `to` form a tuple in the answer relation named `two_hop`.
 
 We call `two_hop(from, to)` the **head** of the rule and the conjunction after
 `:-` its **body**.
-:::answer
+:::alice
 So `via` helps the body succeed, but it does not appear in the answer tuple.
 :::
 
-:::qa
+:::ada
 Exactly. The body determines which valuations succeed; the head determines
 which values they contribute to the answer, and in what order.
 
@@ -403,21 +403,21 @@ Now try this head:
 two_hop(from, destination)
 ```
 
-:::answer
+:::alice
 That cannot work. The body never assigns a value to `destination`, so it cannot
 produce the requested answer tuple.
 
 Every variable in the head must also occur in the body.
 :::
 
-:::qa
+:::ada
 Exactly. The head asked for a value that the body could never supply. We can
 detect that mistake by reading the rule, before looking at any database
 instance.
 
 This is the rule's **safety guard**: every variable requested by the head must
 be supplied by the body.
-:::answer
+:::alice
 Then safety is a property of the written rule, not a property of `J`.
 :::
 
@@ -447,31 +447,31 @@ The body relation names belong to the input schema. The head identifies a
 separate output relation schema.
 :::
 
-:::qa
+:::ada
 Let \(q\) name the complete rule we have written. We call \(q\) a **query** on database instance \(J\)
-:::answer
+:::alice
 Is \(q\) another part of database for \(J\)?
 :::
 
-:::qa
+:::ada
 No, \(q\) is neither instance or schema.
 `J` supplies relation instances such as `J(road)`. The rule \(q\) is a
 written expression that we interpret over `J`.
-:::answer
+:::alice
 So, \(q\) is part of DBMS.
 :::
 
-:::qa
+:::ada
 Can \(q\) only query \(J\)?
-:::answer
+:::alice
 In common sense, \(q\) should be able to query a database....
 as long as its a schema has `road` rleation.
 :::
 
-:::qa
+:::ada
 Yes. We write \(q\) applied on \(J\) as \(q(J)\), call it the **image of `J` under \(q\)**.
 You can have \(q(J)\) as a valid statement too.
-:::answer
+:::alice
 So \(q\) is the query, `J` is its input, and \(q(J)\) is its result relation.
 :::
 
@@ -505,7 +505,7 @@ request, and the rule supplies its **intension**, or definition. It is therefore
 called an **intensional relation**.
 :::
 
-:::alice
+:::reading
 Definition 4.2.1, p. 41 - rule-based conjunctive-query syntax; p. 41 - its image;
 pp. 41-42 - extensional body relations and an intensional head relation.
 :::

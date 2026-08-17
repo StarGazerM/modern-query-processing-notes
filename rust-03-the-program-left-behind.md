@@ -10,22 +10,22 @@ right_speaker: Alice
 previous: [Rust Conversation R.2 · The Arithmetic That Ran Before the Program](rust-02-the-arithmetic-that-ran-before-the-program.html)
 ---
 
-:::qa
+:::ada
 Why does our interpreter reject this?
 
 ```rust
 let x = 7;
 eval_integer!(fib(20) + x)
 ```
-:::answer
+:::alice
 It can compute `fib(20)` during expansion, but it cannot know runtime `x`. Its
 current contract requires the whole expression to become one compile-time
 integer.
 :::
 
-:::qa
+:::ada
 Can we state which work is known and which code must remain?
-:::answer
+:::alice
 
 ```rust
 partial_integer! {
@@ -38,10 +38,10 @@ The first expression can become a value now. The second must remain code because
 it contains `x`.
 :::
 
-:::qa
+:::ada
 This is our first code shape that is not already a Rust expression. If one fixed
 sequence maps to a struct, which fields do we need?
-:::answer
+:::alice
 
 ```text
 known, Ident, =, Expr, ;, residual, Expr, ;
@@ -53,9 +53,9 @@ fields reuse Syn's Rust-expression grammar.
 
 :::source examples/rust-02-compile-time/compile-time-macros/src/integer.rs#partial_syntax | The written shape stated as a Rust struct
 
-:::qa
+:::ada
 Where is the token-by-token parser?
-:::answer
+:::alice
 There is none. The two derives generate structural mappings in opposite
 directions:
 
@@ -74,10 +74,10 @@ We use their result here, but deliberately do not study how to write those
 declarative macros.
 :::
 
-:::qa
+:::ada
 After evaluating `fib(20)`, the macro could emit final Rust immediately. Why
 leave another macro invocation instead?
-:::answer
+:::alice
 It makes the intermediate boundary visible and independently invocable:
 
 ```rust
@@ -92,9 +92,9 @@ The known call has become a value; the code containing `x` remains.
 
 :::source examples/rust-02-compile-time/compile-time-macros/src/integer.rs#staged_expansion | A typed source stage becomes a typed Rust block
 
-:::qa
+:::ada
 What are the two destination types in this pass?
-:::answer
+:::alice
 
 ```text
 input tokens   -> parse2::<PartialInteger>
@@ -106,9 +106,9 @@ typed Rust block. `quote!` places that block inside `residual_integer!`; the
 second macro parses the same `syn::Block` and releases it as ordinary Rust.
 :::
 
-:::qa
+:::ada
 How can we see the intermediate invocation before rustc expands it again?
-:::answer
+:::alice
 
 ```console
 cargo test --manifest-path examples/rust-02-compile-time/Cargo.toml --package compile-time-macros partial_expansion -- --nocapture
@@ -123,9 +123,9 @@ residual_integer ! ({ let compiled : i64 = 6765i64 ; x + compiled })
 
 :::source examples/rust-02-compile-time/compile-time-macros/src/lib.rs#staged_entrypoints | Two compiler-visible expansion boundaries
 
-:::qa
+:::ada
 Do those two Rust functions call each other?
-:::answer
+:::alice
 No. `#[proc_macro]` registers each Rust function as a compiler entry point; it
 does not call the function. Writing `partial_integer!(...)` invokes that
 function-like macro. The earlier `#[derive(...)]` invokes a different kind of
@@ -138,7 +138,7 @@ macro names, so the generated name is available at the call site.
 
 :::source examples/rust-02-compile-time/demo/examples/partial.rs | Begin at the source stage or the Rust-block stage
 
-:::qa
+:::ada
 Run the example:
 
 ```console
@@ -151,7 +151,7 @@ cargo run --manifest-path examples/rust-02-compile-time/Cargo.toml --package com
 ```
 
 Why are the results equal?
-:::answer
+:::alice
 The first invocation computes `fib(20)` and emits the nested block stage. The
 second begins directly with that block. Both finally leave:
 
@@ -177,9 +177,9 @@ stage can consume one typed program value and emit the next until only ordinary
 Rust remains.
 :::
 
-:::qa
+:::ada
 What is the next source shape we actually care about?
-:::answer
+:::alice
 
 ```rust
 relation road(City, City);

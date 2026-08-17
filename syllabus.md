@@ -17,7 +17,7 @@ layout: prose
 | Dates | August 31–December 11, 2026 |
 | Level | Graduate; advanced undergraduates with permission |
 | Format | Lecture, paper discussion, and a cumulative implementation project |
-| Textbook | Abiteboul, Hull, and Vianu, [Foundations of Databases](https://webdam.di.ens.fr/Alice/) (“the Alice book”) |
+| Textbook | Abiteboul, Hull, and Vianu, [Foundations of Databases](https://webdam.di.ens.fr/Alice/) (AHV) |
 | Exams | None |
 | Office hours | To be announced |
 | Meeting time and location | To be announced |

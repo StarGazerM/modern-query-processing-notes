@@ -55,6 +55,7 @@ pub(crate) fn expand_residual(input: TokenStream) -> syn::Result<TokenStream> {
 // ANCHOR: interpreter
 fn evaluate(expression: &Expr) -> syn::Result<i64> {
     match expression {
+        // ANCHOR: arithmetic_cases
         Expr::Lit(ExprLit {
             lit: Lit::Int(literal),
             ..
@@ -73,6 +74,7 @@ fn evaluate(expression: &Expr) -> syn::Result<i64> {
                 )),
             }
         }
+        // ANCHOR_END: arithmetic_cases
         Expr::Call(call) => evaluate_call(call),
         _ => Err(syn::Error::new_spanned(
             expression,
