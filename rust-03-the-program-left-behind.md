@@ -15,11 +15,11 @@ Why does our interpreter reject this?
 
 ```rust
 let x = 7;
-eval_integer!(fib(20) + x)
+eval_integer!(add(add(2, multiply(3, 4)), x))
 ```
 :::alice
-It can compute `fib(20)` during expansion, but it cannot know runtime `x`. Its
-current contract requires the whole expression to become one compile-time
+`add(2, multiply(3, 4))` has our `IntegerExpr` shape, but the runtime name `x`
+does not. The current macro accepts only code that can become one compile-time
 integer.
 :::
 
@@ -29,7 +29,7 @@ Can we state which work is known and which code must remain?
 
 ```rust
 partial_integer! {
-    known compiled = fib(20);
+    known compiled = add(2, multiply(3, 4));
     residual x + compiled;
 }
 ```
@@ -44,11 +44,12 @@ sequence maps to a struct, which fields do we need?
 :::alice
 
 ```text
-known, Ident, =, Expr, ;, residual, Expr, ;
+known, Ident, =, IntegerExpr, ;, residual, Expr, ;
 ```
 
-The keyword and punctuation fields retain the fixed outer shape. The two `Expr`
-fields reuse Syn's Rust-expression grammar.
+The keyword and punctuation fields retain the fixed outer shape. The first
+expression reuses our arithmetic syntax object; the second stores ordinary
+Rust expression syntax that must remain for runtime.
 :::
 
 :::source examples/rust-02-compile-time/compile-time-macros/src/integer.rs#partial_syntax | The written shape stated as a Rust struct
@@ -75,14 +76,14 @@ declarative macros.
 :::
 
 :::ada
-After evaluating `fib(20)`, the macro could emit final Rust immediately. Why
-leave another macro invocation instead?
+After evaluating the known expression, the macro could emit final Rust
+immediately. Why leave another macro invocation instead?
 :::alice
 It makes the intermediate boundary visible and independently invocable:
 
 ```rust
 residual_integer!({
-    let compiled: i64 = 6765i64;
+    let compiled: i64 = 14i64;
     x + compiled
 })
 ```
@@ -117,7 +118,7 @@ cargo test --manifest-path examples/rust-02-compile-time/Cargo.toml --package co
 The focused test prints:
 
 ```text
-residual_integer ! ({ let compiled : i64 = 6765i64 ; x + compiled })
+residual_integer ! ({ let compiled : i64 = 14i64 ; x + compiled })
 ```
 :::
 
@@ -146,18 +147,18 @@ cargo run --manifest-path examples/rust-02-compile-time/Cargo.toml --package com
 ```
 
 ```text
-6772
-6772
+21
+21
 ```
 
 Why are the results equal?
 :::alice
-The first invocation computes `fib(20)` and emits the nested block stage. The
-second begins directly with that block. Both finally leave:
+The first invocation computes the known arithmetic and emits the nested block
+stage. The second begins directly with that block. Both finally leave:
 
 ```rust
 {
-    let compiled = 6765i64;
+    let compiled = 14i64;
     x + compiled
 }
 ```
@@ -167,7 +168,7 @@ Runtime supplies `x = 7` and performs only the remaining addition.
 
 :::definition Partial evaluation and residual program
 Partial evaluation uses currently known information and leaves a residual
-program for work that still depends on unknown information. Here `6765i64` is
+program for work that still depends on unknown information. Here `14i64` is
 carried forward, while `x` is the runtime hole.
 :::
 

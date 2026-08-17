@@ -457,10 +457,10 @@ That is the missing object: a typed syntax tree that turns the relation
 declaration itself into a Rust value we can inspect and transform.
 
 Before defining `RelationDecl`, we will use integer arithmetic as a smaller
-training language. Syn already knows its grammar, so we can observe the mapping
-from written expression to enum-shaped AST, interpret that AST during
-compilation, and then use the same tools to define our own source shape without
-writing a parser by hand.
+training language. We will define its enum-shaped AST ourselves, derive the
+structural mapping with `syn_derive`, and interpret that value during
+compilation. The same method will then give `RelationDecl` its source shape
+without a hand-written parser.
 :::alice
 So the next step is not more manipulation of opaque tokens. It is to map code
 into data with variants and fields that our Rust program can inspect.

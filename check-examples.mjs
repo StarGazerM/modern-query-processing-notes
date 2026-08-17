@@ -105,7 +105,7 @@ checkRun(
 checkRun(
   workspaces.compileTime,
   ["--package", "compile-time-demo", "--example", "partial"],
-  ["6772", "6772"],
+  ["21", "21"],
   "rust-02-compile-time partial demo",
 );
 

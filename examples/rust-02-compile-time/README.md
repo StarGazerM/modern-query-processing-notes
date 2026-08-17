@@ -1,7 +1,7 @@
 # Compile-time arithmetic and residual Rust
 
-This workspace contains the runnable checkpoints for Rust Conversations R.2 and
-R.3.
+This workspace contains the runnable checkpoints for Rust Conversation R.2,
+optional Experiment R.2A, and Rust Conversation R.3.
 
 | Command | What expansion does | What runtime does |
 | --- | --- | --- |
@@ -24,36 +24,40 @@ of ordinary builds and editor analysis.
 
 ## The two transformations
 
-Arithmetic uses Rust's existing expression AST:
+Arithmetic begins with a course-defined syntax object:
 
 ```text
 tokens
-  -> syn::parse2::<syn::Expr>
-  -> evaluate literals, +, *, and fib(n)
+  -> syn::parse2::<IntegerExpr>
+  -> evaluate literals, add(...), multiply(...), and fib(...)
   -> i64
   -> quote! { #value }
   -> integer-literal Rust syntax
 ```
 
+`IntegerExpr` and `IntegerCall` derive `syn_derive::Parse` and
+`syn_derive::ToTokens`. Their variants, fields, and attributes state the syntax
+mapping; there is no hand-written token cursor or precedence parser.
+
 The staged example introduces one course-defined source shape:
 
 ```rust
 partial_integer! {
-    known compiled = fib(20);
+    known compiled = add(2, multiply(3, 4));
     residual x + compiled;
 }
 ```
 
-`PartialInteger` derives `syn_derive::Parse`; no token cursor or hand-written
-`Parse` implementation is present. The first pass evaluates the known
-expression, constructs a typed `syn::Block`, and emits:
+`PartialInteger` also derives `syn_derive::Parse`. Its known field contains our
+`IntegerExpr`; its residual field contains ordinary Rust `syn::Expr`. The first
+pass evaluates the known expression, constructs a typed `syn::Block`, and emits:
 
 ```rust
 residual_integer!({
-    let compiled: i64 = 6765i64;
+    let compiled: i64 = 14i64;
     x + compiled
 })
 ```
 
 The second macro parses that block and releases it as ordinary Rust. The value
-`6765i64` was carried forward; `x` remains a runtime hole.
+`14i64` was carried forward; `x` remains a runtime hole.
