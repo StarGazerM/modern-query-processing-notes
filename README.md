@@ -212,15 +212,15 @@ For a course-defined fixed syntax shape, derive `syn_derive::Parse` instead of
 writing `ParseStream` code by hand. Derive `syn_derive::ToTokens` when the syntax
 value also needs a structural mapping back to tokens. Struct fields state
 sequential product shapes; enum variants state alternative shapes. The
-compile-time examples begin with our derived `IntegerExpr`, extend that into a
-derived staged source shape, and then deliberately embed a typed Rust block as
-the residual language.
+compile-time examples begin with our derived `IntegerExpr`, extend that into the
+derived `EvalAndCompare` source shape, and then deliberately embed a typed Rust
+expression as the residual language.
 
 Do not hand-assemble `TokenTree` output in ordinary course examples. Reserve
 that lower-level style for a lesson whose subject is token mechanics. The
 runnable [`code_string!` example](examples/rust-01-stringify/) demonstrates the
 boundary. The next workspace moves through a derived `IntegerExpr`, a derived
-`PartialInteger`, and a residual `syn::Block` before the same method is applied
+`EvalAndCompare`, and a residual `syn::Expr` before the same method is applied
 to `RelationDecl`.
 
 ## Separate denotation from evaluation

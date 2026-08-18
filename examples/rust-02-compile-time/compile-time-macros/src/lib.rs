@@ -14,16 +14,8 @@ pub fn eval_integer(input: TokenStream) -> TokenStream {
 
 // ANCHOR: staged_entrypoints
 #[proc_macro]
-pub fn partial_integer(input: TokenStream) -> TokenStream {
-    match integer::expand_partial(input.into()) {
-        Ok(output) => output.into(),
-        Err(error) => error.into_compile_error().into(),
-    }
-}
-
-#[proc_macro]
-pub fn residual_integer(input: TokenStream) -> TokenStream {
-    match integer::expand_residual(input.into()) {
+pub fn eval_and_compare(input: TokenStream) -> TokenStream {
+    match integer::expand_compare(input.into()) {
         Ok(output) => output.into(),
         Err(error) => error.into_compile_error().into(),
     }

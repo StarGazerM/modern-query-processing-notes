@@ -64,7 +64,6 @@ types, bindings, and programs matter more than isolated terminology.
 [Rust Guide R.0.0 · The Rust We Need](rust-00-the-tree-we-could-read-twice.html) | Follow a focused Rust route, then predict, compile, and repair five small ordinary programs.
 [Rust Conversation R.1 · The Code That Became a Value](rust-01-the-code-that-became-a-value.html) | Separate expansion from execution and make generated Rust syntax into a typed value.
 [Rust Conversation R.2 · The Arithmetic That Ran Before the Program](rust-02-the-arithmetic-that-ran-before-the-program.html) | Map a small expression language into our derived AST and evaluate it during expansion.
-[Optional Experiment R.2A · The Build That Waited](rust-02-the-build-that-waited.html) | Move an intentionally slow computation into macro expansion, then compare build time with runtime.
 [Rust Conversation R.3 · The Program Left Behind](rust-03-the-program-left-behind.html) | Derive one course syntax shape, expand into a typed Rust block, and leave runtime holes.
 :::
 

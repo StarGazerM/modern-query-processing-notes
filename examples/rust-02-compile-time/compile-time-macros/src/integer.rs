@@ -26,24 +26,14 @@ struct IntegerCall {
 }
 // ANCHOR_END: integer_call
 
-// ANCHOR: partial_syntax
-mod kw {
-    syn::custom_keyword!(known);
-    syn::custom_keyword!(residual);
-}
-
+// ANCHOR: comparison_syntax
 #[derive(syn_derive::Parse, syn_derive::ToTokens)]
-struct PartialInteger {
-    known_token: kw::known,
-    binding: Ident,
-    eq_token: Token![=],
+struct EvalAndCompare {
     known_expression: IntegerExpr,
-    known_semi_token: Token![;],
-    residual_token: kw::residual,
-    residual_expression: Expr,
-    residual_semi_token: Token![;],
+    eq_eq_token: Token![==],
+    outside_expression: Expr,
 }
-// ANCHOR_END: partial_syntax
+// ANCHOR_END: comparison_syntax
 
 // ANCHOR: expression_expansion
 pub(crate) fn expand_expression(input: TokenStream) -> syn::Result<TokenStream> {
@@ -54,24 +44,16 @@ pub(crate) fn expand_expression(input: TokenStream) -> syn::Result<TokenStream> 
 // ANCHOR_END: expression_expansion
 
 // ANCHOR: staged_expansion
-pub(crate) fn expand_partial(input: TokenStream) -> syn::Result<TokenStream> {
-    let partial: PartialInteger = syn::parse2(input)?;
-    let binding = partial.binding;
-    let known_value = evaluate(&partial.known_expression)?;
-    let residual_expression = partial.residual_expression;
+pub(crate) fn expand_compare(input: TokenStream) -> syn::Result<TokenStream> {
+    let comparison: EvalAndCompare = syn::parse2(input)?;
+    let known_expression = comparison.known_expression;
+    let eq_eq_token = comparison.eq_eq_token;
+    let outside_expression = comparison.outside_expression;
 
-    let residual: syn::Block = syn::parse2(quote! {{
-        let #binding: i64 = #known_value;
-        #residual_expression
-    }})?;
+    let residual: Expr = syn::parse2(quote! {
+        eval_integer!(#known_expression) #eq_eq_token #outside_expression
+    })?;
 
-    Ok(quote! {
-        residual_integer!(#residual)
-    })
-}
-
-pub(crate) fn expand_residual(input: TokenStream) -> syn::Result<TokenStream> {
-    let residual: syn::Block = syn::parse2(input)?;
     Ok(quote! { #residual })
 }
 // ANCHOR_END: staged_expansion
@@ -92,35 +74,13 @@ fn evaluate_call(call: &IntegerCall) -> syn::Result<i64> {
         ("add", 2) => Ok(evaluate(&call.arguments[0])? + evaluate(&call.arguments[1])?),
         ("multiply", 2) => Ok(evaluate(&call.arguments[0])? * evaluate(&call.arguments[1])?),
         // ANCHOR_END: arithmetic_meaning
-        // ANCHOR: fibonacci_meaning
-        ("fib", 1) => {
-            let argument = evaluate(&call.arguments[0])?;
-            if !(0..=40).contains(&argument) {
-                return Err(syn::Error::new_spanned(
-                    &call.arguments[0],
-                    "fib(n) requires 0 <= n <= 40 in this teaching example",
-                ));
-            }
-            Ok(fibonacci(argument as u32))
-        }
-        // ANCHOR_END: fibonacci_meaning
         _ => Err(syn::Error::new_spanned(
             call,
-            "expected add(left, right), multiply(left, right), or fib(n)",
+            "expected add(left, right) or multiply(left, right)",
         )),
     }
 }
 // ANCHOR_END: interpreter
-
-// ANCHOR: slow_computation
-fn fibonacci(n: u32) -> i64 {
-    match n {
-        0 => 0,
-        1 => 1,
-        _ => fibonacci(n - 1) + fibonacci(n - 2),
-    }
-}
-// ANCHOR_END: slow_computation
 
 #[cfg(test)]
 mod tests {
@@ -141,23 +101,25 @@ mod tests {
     }
 
     #[test]
-    fn partial_expansion() {
-        let output = expand_partial(quote! {
-            known compiled = add(2, multiply(3, 4));
-            residual x + compiled;
+    fn comparison_expansion() {
+        let output = expand_compare(quote! {
+            add(2, multiply(3, 4)) == x
         })
         .unwrap();
 
         println!("{output}");
 
-        let invocation: syn::ExprMacro = syn::parse2(output).unwrap();
-        assert!(invocation.mac.path.is_ident("residual_integer"));
+        let residual: Expr = syn::parse2(output).unwrap();
+        let Expr::Binary(comparison) = residual else {
+            panic!("expected a residual comparison");
+        };
+        assert!(matches!(comparison.op, syn::BinOp::Eq(_)));
 
-        let residual: syn::Block = syn::parse2(invocation.mac.tokens).unwrap();
-        assert_eq!(residual.stmts.len(), 2);
-        assert_eq!(
-            residual.to_token_stream().to_string(),
-            "{ let compiled : i64 = 14i64 ; x + compiled }"
-        );
+        let Expr::Macro(known) = *comparison.left else {
+            panic!("expected the left side to remain an eval_integer! invocation");
+        };
+        assert!(known.mac.path.is_ident("eval_integer"));
+        assert_eq!(known.mac.tokens.to_string(), "add (2 , multiply (3 , 4))");
+        assert_eq!(comparison.right.to_token_stream().to_string(), "x");
     }
 }

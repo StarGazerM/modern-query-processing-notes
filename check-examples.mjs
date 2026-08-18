@@ -90,23 +90,9 @@ checkRun(
 
 checkRun(
   workspaces.compileTime,
-  [
-    "--package",
-    "compile-time-demo",
-    "--example",
-    "slow",
-    "--features",
-    "slow-example",
-  ],
-  ["102334155"],
-  "rust-02-compile-time slow demo",
-);
-
-checkRun(
-  workspaces.compileTime,
-  ["--package", "compile-time-demo", "--example", "partial"],
-  ["21", "21"],
-  "rust-02-compile-time partial demo",
+  ["--package", "compile-time-demo", "--example", "compare"],
+  ["true", "false"],
+  "rust-02-compile-time comparison demo",
 );
 
 console.log(

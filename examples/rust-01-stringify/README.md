@@ -63,8 +63,9 @@ The exported `#[proc_macro]` function is a thin compiler boundary:
 In this first macro, only the output is typed. The incoming code becomes a
 `String`; `syn::LitStr` then represents the output string literal; and `quote!`
 emits it. The next workspace replaces that lossy input step first with
-`syn::parse2::<IntegerExpr>(input)`, then with the derived `PartialInteger` source
-shape. The same pattern later reaches `syn::parse2::<RelationDecl>(input)`. We do not
+`syn::parse2::<IntegerExpr>(input)`, then with the derived `EvalAndCompare`
+source shape. The same pattern later reaches
+`syn::parse2::<RelationDecl>(input)`. We do not
 hand-assemble `TokenTree` output unless token mechanics are themselves the topic
 being taught.
 
