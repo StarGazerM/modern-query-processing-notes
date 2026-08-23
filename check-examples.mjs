@@ -77,7 +77,7 @@ checkRun(
 checkRun(
   workspaces.codeAsData,
   ["--package", "stringify-demo"],
-  ["1 + 1", "x", "relation road(City, City);", "2"],
+  ["1 + 1", "x", "relation road(src: City, dst: City);", "2"],
   "rust-01-stringify",
 );
 

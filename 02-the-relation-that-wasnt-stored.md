@@ -8,6 +8,7 @@ layout: dialogue
 left_speaker: Ada
 right_speaker: Alice
 previous: [Conversation 1.1 · What's in a Name?](01-a-little-database-a-few-questions.html)
+next: [Conversation 1.3 · The Plan That Meant the Same Thing](03-the-plan-that-meant-the-same-thing.html)
 ---
 
 # By indirections find directions out
@@ -77,8 +78,9 @@ $$
 r(t_1, \ldots, t_n)
 $$
 
-is a **relational atom**. Each $t_i$ is a term for the corresponding tuple
-position: either a data literal denoting a value, or a logical variable.
+is a **relational atom**. Each $t_i$ is a term for the corresponding declared
+attribute, read in declaration order: either a data literal denoting a value,
+or a logical variable.
 
 An atom containing no variables is **ground**.
 :::
@@ -339,7 +341,7 @@ How do we store these routes in the database?
 :::alice
 
 ```text
-relation two_hop(City, City);
+relation two_hop(from: City, to: City);
 ```
 
 But we cannot simply assign an arbitrary relation instance to it. If I write
@@ -444,7 +446,9 @@ The last condition is the safety guard. A rule that satisfies it is **range
 restricted**. The set of variables occurring in \(q\) is written \(var(q)\).
 
 The body relation names belong to the input schema. The head identifies a
-separate output relation schema.
+separate output relation schema. In the project fragment, its distinct head
+variables name the output attributes, and their written order determines the
+returned tuple layout.
 :::
 
 :::ada

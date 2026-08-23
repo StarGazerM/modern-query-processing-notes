@@ -354,20 +354,23 @@ an instance of `road`?
 No. There are two problems:
 
 1. `1` and `2` do not have type `City`.
-2. A `road` tuple has two positions, not three.
+2. A `road` row supplies values for two attributes, not three.
 :::
 
 :::ada
-Right. Before giving an instance, we must declare the relation's name and tuple
-shape. This is called its **relation schema**.
+Right. Before giving an instance, we must declare the relation's name and its
+attributes. This is called its **relation schema**.
 
 ```text
-relation road(City, City);
+relation road(src: City, dst: City);
 ```
 
-The number of positions in each tuple is called the relation's **arity**.
+`src` and `dst` name the two attributes and state that both contain cities. The
+number of attributes is the relation's **arity**. We write attributes in an
+order so that positional row notation and query atoms have an unambiguous
+interface; the named schema identifies them by name.
 :::alice
-I see. In Rust, that tuple shape appears in:
+I see. In Rust, we can represent rows in that declared order:
 
 ```rust
 let road: HashSet<(City, City)> = HashSet::new();
@@ -375,8 +378,13 @@ let road: HashSet<(City, City)> = HashSet::new();
 :::
 
 :::definition Relation
-Under the conventional perspective, a **relation** (or relation instance) is a
-(possibly empty) finite set of tuples.
+Under the named perspective, a tuple assigns one value to every attribute in a
+relation schema. A **relation** (or relation instance) is a possibly empty,
+finite set of such tuples.
+
+We may write a tuple as an ordered list of values when the declaration order is
+clear. Thus `("Logan", "Provo")` abbreviates
+`{src = "Logan", dst = "Provo"}` for `road`.
 :::
 
 :::ada
@@ -386,7 +394,7 @@ I want to record distances between cities in Utah. What relation schema and
 example relation instance should I use?
 :::alice
 ```text
-relation road_length(City, City, u32);
+relation road_length(src: City, dst: City, miles: u32);
 
 I(road_length) = {
     ("Logan", "Salt Lake City", 82)
@@ -415,8 +423,8 @@ Now put the relations we care about, and one instance of each, together:
 
 ```text
 {
-    relation road(City, City);
-    relation road_length(City, City, u32);
+    relation road(src: City, dst: City);
+    relation road_length(src: City, dst: City, miles: u32);
 }
 {
     I(road) = {
@@ -478,13 +486,23 @@ given it a language for asking questions.
 :::recap What the database is
 Rust source text, Rust types, Rust values, and logical objects are distinct.
 `Road` names the required shape of one Rust row; a `HashSet<Road>` represents a
-finite set of such rows. A declaration `relation r(T1, ..., Tn);` specifies a
-relation schema: a logical name $r$, arity $n$, and an ordered list of tuple-position
-types, but no current tuples. A relation instance for that schema is a finite
-relation $R\subseteq T_1\times\cdots\times T_n$, writing each $T_i$ also for
-the set of values admitted by that type. A database schema is a finite
-collection of relation schemas with distinct names. A database instance $I$
-assigns each declared name $r$ one matching relation instance, written $I(r)$.
-Together, the schema and $I$ describe the database at this logical level; a
-DBMS is the software that manages such data.
+finite set of such rows.
+
+A declaration
+
+```text
+relation r(A1: T1, ..., An: Tn);
+```
+
+specifies a relation name, distinct attribute names \(A_1,\ldots,A_n\), and the
+type of each attribute, but no current tuples. Its arity is \(n\). A tuple
+assigns each \(A_i\) a value from \(T_i\), and a relation instance is a finite
+set of such tuples. Positional row notation uses the declaration order as a
+shorthand; the logical attributes remain named.
+
+A database schema is a finite collection of relation schemas with distinct
+relation names. A database instance \(I\) assigns each declared name \(r\) one
+matching relation instance, written \(I(r)\). Together, the schema and \(I\)
+describe the database at this logical level; a DBMS is the software that
+manages such data.
 :::

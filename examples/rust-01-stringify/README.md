@@ -11,7 +11,7 @@ It prints:
 ```text
 1 + 1
 x
-relation road(City, City);
+relation road(src: City, dst: City);
 2
 ```
 

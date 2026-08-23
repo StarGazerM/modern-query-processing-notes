@@ -16,11 +16,12 @@ layout: prose
 |---|---|
 | Dates | August 31–December 11, 2026 |
 | Level | Graduate; advanced undergraduates with permission |
-| Format | Lecture, paper discussion, and a cumulative implementation project |
+| Format | Lecture, paper discussion, Rust/project tutorial, and a cumulative implementation project |
 | Textbook | Abiteboul, Hull, and Vianu, [Foundations of Databases](https://webdam.di.ens.fr/Alice/) (AHV) |
 | Exams | None |
 | Office hours | To be announced |
-| Meeting time and location | To be announced |
+| Meeting time | Monday and Wednesday, 3:00–4:15 p.m. |
+| Location | To be announced |
 
 # Course introduction
 
@@ -49,16 +50,18 @@ By the end of the course, students should be able to:
 
 Students should know undergraduate algorithms and data structures, be
 comfortable with mathematical notation, and be able to program in at least one
-language. Prior Rust experience is not required: Week 3 introduces the subset
+language. Prior Rust experience is not required: Week 2 introduces the subset
 of Rust and metaprogramming used in the project. Prior database coursework is
 helpful but not required.
 
 # Course format
 
-A typical meeting combines one lecture or board derivation, discussion of the
-week's primary reading, and a short shared trace, code inspection, or result
-comparison. There is no recurring full-class coding lab. A later meeting may
-begin by comparing results from the previous activity.
+The course meets twice each week. Monday normally advances the week's
+query-processing idea through lecture, board derivation, and the primary
+reading. Wednesday normally applies that idea through a Rust/project tutorial,
+shared trace, code inspection, paper discussion, or guided practicum. The
+Wednesday work is part of the course meeting, not a separate weekly programming
+assignment.
 
 Each content week has one primary reading and no reading response. Each student
 leads one paper discussion. Outside class, students complete three releases of
@@ -102,7 +105,7 @@ derivations, and result clinics.
 
 # Project tools and AI policy
 
-The project uses Rust with a procedural-macro CQ frontend. Week 3 teaches enough
+The project uses Rust with a procedural-macro CQ frontend. Week 2 teaches enough
 Rust and metaprogramming to read the pipeline from surface CQ through typed IRs
 to generated code. Staff supplies and documents the macro parser, initial IRs,
 expansion pipeline, and crate structure. Students inspect macro expansions and

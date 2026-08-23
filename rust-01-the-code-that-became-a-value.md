@@ -60,12 +60,12 @@ Exactly. `stringify!` takes the tokens spelling `1 + 1` as input and returns new
 tokens spelling another expression—`"1 + 1"`.
 
 ```rust
-stringify!(relation edge(i32, i32);)
+stringify!(relation edge(src: i32, dst: i32);)
 ```
 :::alice
-"relation edge(i32, i32);"
+"relation edge(src: i32, dst: i32);"
 
-But `relation edge(i32, i32);` is our database language, not a Rust
+But `relation edge(src: i32, dst: i32);` is our database language, not a Rust
 expression. Why did `stringify!` accept it?
 :::
 
@@ -224,14 +224,19 @@ Is `TokenStream` Rust's type for code? And what do `#[proc_macro]` and `pub` add
 :::
 
 :::ada
-`TokenStream` stores code as identifiers, literals, punctuation, and delimited
-groups—not as evaluated values. `#[proc_macro]` registers the function as a
-function-like macro; `pub` exports that entry point to the demo crate. Rust
-requires the function at the root of the macro crate.
+`TokenStream` stores code as an ordered sequence of identifiers, literals,
+punctuation, and delimited groups—not as evaluated values. It is called a
+**stream** because macro code reads that sequence from left to right, one item
+at a time. A delimited group contains another token stream.
+
+`#[proc_macro]` registers the function as a function-like macro; `pub` exports
+that entry point to the demo crate. Rust requires the function at the root of
+the macro crate.
 
 :::alice
 So for `code_string!(x)`, `input` receives the token `x`, not the value `2`, and
-the returned Rust tokens replace the complete invocation.
+the returned Rust tokens replace the complete invocation. Later, a reader can
+walk a larger input by inspecting and consuming its next item in order.
 :::
 
 :::ada
@@ -339,7 +344,7 @@ cargo run --manifest-path examples/rust-01-stringify/Cargo.toml --package string
 ```text
 1 + 1
 x
-relation road(City, City);
+relation road(src: City, dst: City);
 2
 ```
 :::alice

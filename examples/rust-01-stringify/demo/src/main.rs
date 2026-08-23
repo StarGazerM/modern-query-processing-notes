@@ -5,6 +5,6 @@ fn main() {
 
     println!("{}", code_string!(1 + 1));
     println!("{}", code_string!(x));
-    println!("{}", code_string!(relation road(City, City);));
+    println!("{}", code_string!(relation road(src: City, dst: City);));
     println!("{x}");
 }

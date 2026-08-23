@@ -124,8 +124,8 @@ summarizes. It is visually distinct from definitions and laws:
 
 ```text
 :::notation Forms earned so far
-`relation road(City, City);` declares relation `road` with two ordered `City`
-positions; it inserts no tuples.
+`relation road(src: City, dst: City);` declares relation `road` with two named
+`City` attributes; it inserts no tuples.
 :::
 ```
 
