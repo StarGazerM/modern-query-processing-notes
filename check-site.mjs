@@ -16,6 +16,10 @@ for (const file of htmlFiles) {
   const source = readFileSync(join(buildDirectory, file), "utf8");
   const ids = new Set([...source.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]));
 
+  if (source.includes(":::notice")) {
+    failures.push(`${file}: unrendered :::notice directive`);
+  }
+
   for (const match of source.matchAll(
     /<figure class="source-excerpt" data-source-path="([^"]+)" data-source-start="(\d+)" data-source-end="(\d+)">([\s\S]*?)<\/figure>/g,
   )) {
@@ -76,6 +80,14 @@ for (const file of htmlFiles) {
         ? new Set([...targetSource.matchAll(/\sid="([^"]+)"/g)].map((entry) => entry[1]))
         : ids;
       if (!targetIds.has(fragment)) failures.push(`${file}: missing anchor ${href}`);
+    }
+  }
+
+  for (const match of source.matchAll(/<img\b[^>]*\ssrc="([^"]+)"/g)) {
+    const image = match[1];
+    if (/^(?:https?:|data:)/.test(image)) continue;
+    if (!existsSync(join(buildDirectory, normalize(join(dirname(file), image))))) {
+      failures.push(`${file}: missing image ${image}`);
     }
   }
 }

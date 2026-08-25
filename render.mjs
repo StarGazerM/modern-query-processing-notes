@@ -64,6 +64,7 @@ function isBlockStart(lines, index) {
   return (
     line.trim() === "" ||
     /^#{1,3}\s+/.test(line) ||
+    /^!\[[^\]]*\]\(/.test(line) ||
     /^```/.test(line) ||
     /^:::/.test(line) ||
     /^\$\$/.test(line.trim()) ||
@@ -457,7 +458,8 @@ function renderMarkdown(markdown, state) {
     if (
       trimmed.startsWith(":::law") ||
       trimmed.startsWith(":::definition") ||
-      trimmed.startsWith(":::notation")
+      trimmed.startsWith(":::notation") ||
+      trimmed.startsWith(":::notice")
     ) {
       const closeIndex = findClosingMarker(lines, index + 1);
       if (closeIndex < 0) {
@@ -465,13 +467,28 @@ function renderMarkdown(markdown, state) {
       }
       const isDefinition = trimmed.startsWith(":::definition");
       const isNotation = trimmed.startsWith(":::notation");
+      const isNotice = trimmed.startsWith(":::notice");
       const marker = isDefinition
         ? ":::definition"
         : isNotation
           ? ":::notation"
-          : ":::law";
-      const kind = isDefinition ? "definition" : isNotation ? "notation" : "law";
-      const defaultTitle = isDefinition ? "Definition" : isNotation ? "Notation" : "Law";
+          : isNotice
+            ? ":::notice"
+            : ":::law";
+      const kind = isDefinition
+        ? "definition"
+        : isNotation
+          ? "notation"
+          : isNotice
+            ? "notice"
+            : "law";
+      const defaultTitle = isDefinition
+        ? "Definition"
+        : isNotation
+          ? "Notation"
+          : isNotice
+            ? "Notice"
+            : "Law";
       const title = trimmed.slice(marker.length).trim() || defaultTitle;
       const body = lines.slice(index + 1, closeIndex).join("\n");
       output.push(`
@@ -480,6 +497,19 @@ function renderMarkdown(markdown, state) {
   ${renderMarkdown(body, state)}
 </aside>`);
       index = closeIndex + 1;
+      continue;
+    }
+
+    const imageMatch = trimmed.match(
+      /^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]+)")?\)$/,
+    );
+    if (imageMatch) {
+      const [, alt, source, caption] = imageMatch;
+      output.push(`<figure class="note-figure">
+  <img src="${escapeHtml(source)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async">
+  ${caption ? `<figcaption>${renderInline(caption)}</figcaption>` : ""}
+</figure>`);
+      index += 1;
       continue;
     }
 

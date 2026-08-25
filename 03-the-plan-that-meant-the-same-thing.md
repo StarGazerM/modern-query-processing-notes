@@ -57,87 +57,57 @@ the logical semantics does not.
 
 
 :::ada
-We want an account that can express partial matches, combine them in a chosen
-binary structure, and still be checked against the order-free logical meaning.
-
-Before choosing a plan, start from one complete valuation that the logical
-semantics already accepts. Conversation 1.2 used the instance
+Let
 
 ```text
-road = {
-    {src = "Logan",          dst = "Salt Lake City"},
-    {src = "Logan",          dst = "Garden City"},
-    {src = "Garden City",    dst = "Logan"},
-    {src = "Salt Lake City", dst = "Provo"},
-    {src = "Logan",          dst = "Provo"}
-}.
+C1 = road(from, via)
+C2 = road(via, to)
 ```
 
-Consider
+and recall that the instance contains
+
+```text
+road("Logan", "Salt Lake City")
+road("Salt Lake City", "Provo")
+road("Logan", "Provo").
+```
+
+It contains no road whose source is `"Provo"`.
+
+The valuation
 
 ```text
 v = {
     from = "Logan",
     via  = "Salt Lake City",
     to   = "Provo"
-}.
+}
 ```
 
-Why is \(v\) a successful valuation of the real `two_hop` body?
+satisfies \(C_1\land C_2\). Its restrictions are
+
+$$
+v_1=v|_{\{\mathit{from},\mathit{via}\}}
+$$
+
+and
+
+$$
+v_2=v|_{\{\mathit{via},\mathit{to}\}}.
+$$
+
+They agree on `via`, and \(v_1\cup v_2=v\). How should we classify \(v_1\)
+relative to the local schema `{from, via}`, and relative to the full body schema
+`{from, via, to}`?
 :::alice
-Because the instance contains both required facts:
-
-```text
-road("Logan", "Salt Lake City")
-road("Salt Lake City", "Provo").
-```
-
-The logical semantics gives \(v\) as one complete function. It does not assign
-one variable first or check one body atom first.
+It is total on the schema of \(C_1\), so it is a complete local valuation for
+that atom. It is partial only relative to the full body schema
+`{from, via, to}`. The same distinction applies to \(v_2\).
 :::
 
 :::ada
-For this body, let
-
-```text
-C1 = road(from, via)
-C2 = road(via, to).
-```
-
-Its full body is \(B=C_1\land C_2\).
-
-Restrict \(v\) to the variables of each sub-body. What are the two functions?
-:::alice
-They are uniquely determined:
-
-```text
-v1 = v|{from, via}
-   = {from = "Logan", via = "Salt Lake City"}
-
-v2 = v|{via, to}
-   = {via = "Salt Lake City", to = "Provo"}.
-```
-
-Each restriction is total on its own sub-body schema. It is partial only
-relative to the larger schema `{from, via, to}` of \(B\).
-:::
-
-:::ada
-What happens on the variable shared by the two schemas, and what is their
-union?
-:::alice
-Both restrictions map `via` to `"Salt Lake City"`, so they agree on their
-overlap. Their union reconstructs the original complete valuation:
-
-```text
-v1 ∪ v2 = v.
-```
-:::
-
-:::ada
-Now widen from the restrictions of this one successful \(v\) to all local
-matches. A sub-body \(C\) is a conjunction of selected original body atoms,
-retaining their original variable names. Define
+One successful \(v\) gives only local matches that extend to that full
+valuation. To collect every local match, for any sub-body \(C\) let
 
 $$
 \operatorname{Val}_I(C)=
@@ -146,110 +116,71 @@ $$
   \mid I\models C[t]
 \right\}.
 $$
+
+For example,
+
+```text
+d = {from = "Logan", via = "Provo"}
+```
+
+belongs to \(\operatorname{Val}_I(C_1)\), but no tuple in
+\(\operatorname{Val}_I(C_2)\) assigns `"Provo"` to `via`. Must \(d\) extend to
+a valuation satisfying the full body?
 :::alice
-Every member has the same fixed schema \(\operatorname{vars}(C)\), so this set
-can be viewed as a named relation. It contains every locally satisfying
-valuation of \(C\), not only restrictions known to extend to a successful
-valuation of \(B\).
+No. It satisfies \(C_1\) locally, but it has no compatible \(C_2\) match. It
+is a dangling local match.
 :::
 
-:::definition Valuation relation (course term)
+:::definition Valuation relation (course term/adaptation)
 For this course, the **valuation relation** \(\operatorname{Val}_I(C)\) contains
 exactly the valuations satisfying sub-body \(C\), viewed as named tuples over
 the fixed schema \(\operatorname{vars}(C)\).
 :::
 
-:::ada
-For the current instance, what are the two atom-valuation relations?
-:::alice
-```text
-Val(C1) = {
-    {from = "Logan",          via = "Salt Lake City"},
-    {from = "Logan",          via = "Garden City"},
-    {from = "Garden City",    via = "Logan"},
-    {from = "Salt Lake City", via = "Provo"},
-    {from = "Logan",          via = "Provo"}
-}
-
-Val(C2) = {
-    {via = "Logan",          to = "Salt Lake City"},
-    {via = "Logan",          to = "Garden City"},
-    {via = "Garden City",    to = "Logan"},
-    {via = "Salt Lake City", to = "Provo"},
-    {via = "Logan",          to = "Provo"}
-}.
-```
+:::reading
+**Course term/adaptation; book basis.** Abiteboul, Hull, and Vianu,
+[*Foundations of Databases*, Chapter 4](http://webdam.inria.fr/Alice/pdfs/Chapter-4.pdf),
+Definition 4.2.1,
+pp. 41–42, defines valuations and \(q(I)\), but not **valuation relation**.
 :::
 
 :::ada
-Focus on the local match
+At tuple level, the restrictions of a complete valuation agree on shared
+variables and recombine by union. **Natural join** lifts that operation to
+sets: it keeps compatible tuple pairs and emits their unions.
 
-```text
-{from = "Logan", via = "Provo"}
-```
-
-in `Val(C1)`. Can it be the \(C_1\)-restriction of a successful valuation of
-\(B\)?
+Forward, every valuation satisfying \(C_1\land C_2\) restricts uniquely to
+compatible members of \(\operatorname{Val}_I(C_1)\) and
+\(\operatorname{Val}_I(C_2)\). Conversely, compatible members have one
+well-defined union, and that union satisfies both sub-bodies. Is join merely an
+analogy for conjunction here?
 :::alice
-No. Extending it would require a tuple in `Val(C2)` whose `via` value is
-`"Provo"`, which would require some fact `road("Provo", to)`. The instance has
-none.
-
-So this tuple satisfies \(C_1\) locally but is dangling relative to the full
-body.
-:::
-
-:::ada
-By contrast, \(v_1\) and \(v_2\) agree on their shared variable, and their union
-is \(v\). The operation that keeps exactly such compatible pairs and takes
-their union is **natural join**.
-:::alice
-So it keeps precisely the pairs that agree wherever their schemas overlap.
+No. The two directions show that compatible union produces exactly the
+valuations satisfying the conjunction.
 :::
 
 :::definition Natural join
-For relations \(R\) and \(S\), their **natural join** is
+Let \(I\) and \(J\) be relation instances of sorts \(V\) and \(W\). Their
+**natural join** is
 
 $$
-R\bowtie S=
+I\bowtie J=
 \left\{
-  r\cup s
-  \mid r\in R,\ s\in S,
-  \ r\text{ and }s\text{ agree on shared attributes}
+  t\text{ over }V\cup W
+  \mid
+  \text{for some }v\in I,\ w\in J,\ t[V]=v\text{ and }t[W]=w
 \right\}.
 $$
 
-Its schema is \(\operatorname{schema}(R)\cup\operatorname{schema}(S)\). If the
-schemas are disjoint, every pair is compatible, and the join is their Cartesian
-product.
+Its sort is \(V\cup W\).
 :::
 
-:::ada
-Now compare the complete valuations of a conjunction with the compatible
-unions of its local valuations. For all sub-bodies \(C_1,C_2\),
-
-$$
-\operatorname{Val}_I(C_1\land C_2)=
-\operatorname{Val}_I(C_1)\bowtie\operatorname{Val}_I(C_2).
-$$
-
-For the forward direction, take
-\(w\in\operatorname{Val}_I(C_1\land C_2)\). Its unique restrictions to
-\(\operatorname{vars}(C_1)\) and \(\operatorname{vars}(C_2)\) satisfy their
-respective sub-bodies. Because both come from \(w\), they agree on every shared
-variable, and their union is \(w\). Hence \(w\) belongs to the join.
-
-Conversely, take \(t_1\in\operatorname{Val}_I(C_1)\) and
-\(t_2\in\operatorname{Val}_I(C_2)\) that agree on their overlap. Their union is
-one well-defined valuation on
-\(\operatorname{vars}(C_1)\cup\operatorname{vars}(C_2)\). It satisfies both
-sub-bodies, so it belongs to \(\operatorname{Val}_I(C_1\land C_2)\).
-:::alice
-So natural join is not an analogy here. It is exactly compatible union, and it
-produces exactly the satisfying valuations of the conjunction.
+:::reading
+**Book definition.** Abiteboul, Hull, and Vianu, *Foundations of Databases*,
+Chapter 4, §4.4, pp. 57–58, defines natural join and its output sort.
 :::
 
-:::law Conjunction becomes natural join
+:::law Conjunction becomes natural join (derived here from the book)
 For all sub-bodies \(C_1,C_2\) and input instances \(I\),
 
 $$
@@ -260,41 +191,52 @@ $$
 Natural join is the relational form of conjunction over relational atoms.
 :::
 
-:::ada
-In a plan that chooses \(C_1\) first, the evaluator uses
-\(\operatorname{Val}_I(C_1)\) as the partial-match relation for that first
-chosen atom; \(\operatorname{Val}_I(B)\) is the complete body-valuation relation
-for both atoms. Choosing \(C_1\) first is an evaluation decision, not part of
-the logical semantics.
-:::alice
-So the equation gives either plan order the same meaning; the plan merely
-chooses which permitted intermediate to construct first.
+:::reading
+**Derived here from the book.** Abiteboul, Hull, and Vianu, *Foundations of
+Databases*, Chapter 4, Definition 4.2.1, pp. 41–42, supplies valuation semantics;
+§4.4, pp. 57–58, supplies natural join. The book does not state this
+valuation-relation identity as a named law.
 :::
 
 :::ada
-For a three-atom body \(A_1\land A_2\land A_3\), let
+Use the concrete query
+
+```text
+three_hop(from, to) :-
+    road(from, x),
+    road(x, y),
+    road(y, to).
+```
+
+Let
 
 $$
-E_i=\operatorname{Val}_I(A_i).
+E_1=\operatorname{Val}_I
+\bigl(\operatorname{road}(\mathit{from},x)\bigr),
 $$
 
-Each \(E_i\) is a leaf denotation supplied by one atom. Binary natural join is
-the constructor that composes two sub-body denotations. Applying the law
-repeatedly, we may abbreviate the complete body relation as
-
 $$
-E_1\bowtie E_2\bowtie E_3.
+E_2=\operatorname{Val}_I
+\bigl(\operatorname{road}(x,y)\bigr),
 $$
 
-But the primitive join operation accepts how many inputs?
+and
+
+$$
+E_3=\operatorname{Val}_I
+\bigl(\operatorname{road}(y,\mathit{to})\bigr).
+$$
+
+Because natural join is binary, give two fully parenthesized expressions that
+combine all three atom relations.
 :::alice
-Two. A concrete expression needs parentheses, for example
+Each expression needs two joins. Two possible groupings are
 
 $$
 (E_1\bowtie E_2)\bowtie E_3
 $$
 
-or
+and
 
 $$
 E_1\bowtie(E_2\bowtie E_3).
@@ -302,16 +244,25 @@ $$
 :::
 
 :::ada
-Different parentheses do not change the complete valuation relation.
-**Associativity** permits regrouping; a second law, **commutativity**, permits
-reordering the atom relations.
+Expand either expression using the natural-join definition. Both contain
+exactly the unions \(e_1\cup e_2\cup e_3\), where \(e_i\in E_i\) and the three
+tuples agree on every shared variable. Therefore
+
+$$
+(E_1\bowtie E_2)\bowtie E_3
+=
+E_1\bowtie(E_2\bowtie E_3).
+$$
+
+This is **associativity**. The compatible-pair condition is also symmetric in
+its two inputs, which gives **commutativity**. What changes between the two
+`three_hop` expressions?
 :::alice
-So both choices change the expression's structure without changing its final
-relation.
+Only their grouping changes. The complete valuation relation stays the same.
 :::
 
-:::law Join licenses administrative grouping
-For compatible named relations,
+:::law Join associativity and commutativity (book laws; course application)
+For all named relation instances \(R,S,T\),
 
 $$
 (R\bowtie S)\bowtie T=R\bowtie(S\bowtie T)
@@ -325,6 +276,13 @@ $$
 
 These laws make polyadic join notation possible. They also guarantee that a
 chosen binary grouping preserves the order-free conjunction semantics.
+:::
+
+:::reading
+**Book laws; course application.** Abiteboul, Hull, and Vianu, *Foundations of
+Databases*, Chapter 4, §4.4, pp. 57–58, states that natural join is associative
+and commutative. Their use here to compare binary expression structures is
+local to the course.
 :::
 
 
@@ -351,13 +309,26 @@ One stored relation can therefore provide two differently named atom relations.
 :::
 
 :::definition Renaming
-For a one-to-one attribute map \(f\), **renaming** relabels every named tuple:
+Let \(I\) have sort \(U\), and let \(f:U\to\mathcal U\) be one-to-one. For each
+tuple \(t\) over \(U\), let \(f(t)\) be the tuple over \(f(U)\) satisfying
 
 $$
-\delta_f(R)=\{f(r)\mid r\in R\}.
+f(t)(f(A))=t(A)
 $$
 
-It changes the schema from \(U\) to \(f(U)\) but does not change tuple values.
+for every \(A\in U\). The **renaming** of \(I\) is
+
+$$
+\delta_f(I)=\{f(t)\mid t\in I\}.
+$$
+
+Its sort is \(f(U)\); only attribute names change.
+:::
+
+:::reading
+**Book definition.** Abiteboul, Hull, and Vianu, *Foundations of Databases*,
+Chapter 4, §4.4, pp. 58–59, defines a one-to-one
+attribute map \(f\), its action on tuples, and \(\delta_f\).
 :::
 
 
@@ -381,14 +352,27 @@ Unlike join, it keeps the relation's existing schema.
 :::
 
 :::definition Selection
-A **selection** retains the tuples satisfying a condition:
+Let \(I\) have sort \(U\), let \(A,B\in U\), and let \(a\in dom\). The named
+selection primitives are
 
 $$
-\sigma_\theta(R)=\{r\in R\mid\theta(r)\}.
+\sigma_{A=a}(I)=\{t\in I\mid t(A)=a\}
 $$
 
-Here the relevant conditions are constant equality \(A=a\) and attribute
-equality \(A=B\). Selection leaves the schema unchanged.
+and
+
+$$
+\sigma_{A=B}(I)=\{t\in I\mid t(A)=t(B)\}.
+$$
+
+Both have the same sort \(U\) as \(I\).
+:::
+
+:::reading
+**Book definition.** Abiteboul, Hull, and Vianu, *Foundations of Databases*,
+Chapter 4, §4.4, pp. 57–58, defines only the named
+selection primitives \(\sigma_{A=a}\) and \(\sigma_{A=B}\), both with the input
+sort as output sort.
 :::
 
 
@@ -399,17 +383,22 @@ inside one atom cause selections.
 Now consider
 
 ```text
-triangle(a, b, c) :-
+edge_from_capital(a, b) :-
     edge(a, b),
-    edge(b, c),
-    edge(c, a).
+    capital_city(a).
 ```
 
-After joining the first two atom relations, the schema is `{a, b, c}`. What does
-the third atom add?
+Let
+
+$$
+E=\operatorname{Val}_I(\operatorname{edge}(a,b))
+\quad\text{and}\quad
+C=\operatorname{Val}_I(\operatorname{capital\_city}(a)).
+$$
+
+Their schemas are `{a, b}` and `{a}`. What does joining with \(C\) add?
 :::alice
-No attribute. It only tests whether each partial valuation has a compatible
-`edge(c, a)` tuple.
+No attribute. It only tests whether `a` is a capital city.
 :::
 
 :::ada
@@ -420,38 +409,38 @@ So its result keeps the left relation's schema.
 :::
 
 :::definition Semijoin
-For relations \(R\) and \(S\), the **semijoin**
+Let \(I\) and \(J\) have sorts \(R\) and \(S\). Their **semijoin** is
 
 $$
-R\ltimes S=
-\left\{
-  r\in R
-  \mid \text{some }s\in S\text{ is compatible with }r
-\right\}
+I\ltimes J=\pi_R(I\bowtie J).
 $$
 
-retains only tuples from \(R\) and therefore keeps its schema.
+It has sort \(R\). Equivalently, it contains exactly those tuples of \(I\) for
+which some tuple of \(J\) agrees on the shared attributes \(R\cap S\).
+:::
+
+:::reading
+**Book definition.** Abiteboul, Hull, and Vianu,
+[*Foundations of Databases*, Chapter 6](http://webdam.inria.fr/Alice/pdfs/Chapter-6.pdf),
+§6.4, p. 128,
+defines \(I\ltimes J=\pi_R(I\bowtie J)\) when \(I\) has sort \(R\). The
+existence-test sentence is an equivalent explanation.
 :::
 
 
 :::ada
-Because the third triangle relation has schema `{c, a}`, already contained in
-`{a, b, c}`,
+Because the schema `{a}` of \(C\) is already contained in the schema `{a, b}`
+of \(E\),
 
-```text
-(E1 ⋈ E2) ⋈ E3
-```
+$$
+E\bowtie C=E\ltimes C.
+$$
 
-and
-
-```text
-(E1 ⋈ E2) ⋉ E3
-```
-
-denote the same relation.
+Both expressions denote exactly the edges whose first endpoint is a capital
+city.
 :::alice
-The semijoin spelling records that the final atom filters partial valuations
-without extending them.
+The semijoin spelling records that \(C\) filters edges without extending their
+schema.
 :::
 
 :::ada
@@ -465,13 +454,21 @@ No. A relation is a set, so adding an existing tuple changes nothing.
 :::
 
 :::definition Set union
-For relations \(R\) and \(S\) with the same schema,
+Let \(I\) and \(J\) have the same sort \(R\). Their **union** is
 
 $$
-R\cup S=\{t\mid t\in R\text{ or }t\in S\}.
+I\cup J=\{t\mid t\in I\text{ or }t\in J\},
 $$
 
-Adding a tuple already present has no further effect.
+and it also has sort \(R\). Adding a tuple already present has no further
+effect.
+:::
+
+:::reading
+**Book definition.** Abiteboul, Hull, and Vianu, *Foundations of Databases*,
+Chapter 4, §4.5, pp. 62–63, defines union only for
+relation instances of the same sort and uses it in SPJRU and same-head rule
+unions.
 :::
 
 
@@ -494,22 +491,38 @@ Then projection can make the body result schema-compatible with the head.
 :::
 
 :::definition Projection
-For \(X\subseteq\operatorname{schema}(R)\), the **projection**
+Let \(I\) be a relation instance, and let \(A_1,\ldots,A_n\) be attributes in
+its sort, with no repetitions. The **projection**
 
 $$
-\pi_X(R)=\{r|_X\mid r\in R\}
+\pi_{A_1,\ldots,A_n}(I)=
+\{t[A_1,\ldots,A_n]\mid t\in I\}
 $$
 
-restricts every tuple to \(X\). Its schema is \(X\), and duplicate restrictions
-collapse under set semantics.
+has sort \(\{A_1,\ldots,A_n\}\). Equal restrictions collapse because relations
+have set semantics.
+:::
+
+:::reading
+**Book definition.** Abiteboul, Hull, and Vianu, *Foundations of Databases*,
+Chapter 4, §4.4, pp. 57–58, defines \(\pi_{A_1,\ldots,A_n}\) for an attribute list with no repetitions and gives
+output sort \(\{A_1,\ldots,A_n\}\).
 :::
 
 
-:::notice Output fragment used here
+:::notice Output fragment used here (course restriction/adaptation)
 For now, every head contains pairwise-distinct body variables, and the result
 relation uses those variable names as its attributes. Projection can therefore
 produce a union-compatible result. Other head forms require a later
 output-construction operation.
+:::
+
+:::reading
+**Course term/adaptation; book basis.** Abiteboul, Hull, and Vianu,
+*Foundations of Databases*, Chapter 4, Definition 4.2.1,
+pp. 41–42, supplies CQ heads and \(q(I)\); §4.4, pp. 57–58, and §4.5,
+pp. 62–63, supply projection and same-sort union. The restricted output
+fragment is local to this course.
 :::
 
 
@@ -534,6 +547,14 @@ remains separate from the input. The same union form will later accumulate rule
 consequences in Datalog.
 :::alice
 So the CQ derives a separate result without modifying its input instance.
+:::
+
+:::reading
+**Course term/adaptation; book basis.** The assignment
+\(H\leftarrow H\cup\cdots\) and separate-destination presentation are course
+notation. Abiteboul, Hull, and Vianu, *Foundations of Databases*, Chapter 4,
+§4.5, pp. 62–63, directly supplies union of
+same-head rule outputs.
 :::
 
 :::ada
@@ -563,13 +584,22 @@ So each source atom becomes a relation of precisely its satisfying valuations.
 :::
 
 :::definition Named relational algebra
-The named SPJR algebra builds relation-valued expressions from input relation
-names using selection, projection, natural join, and renaming. Every expression
-\(E\) has a set-theoretic denotation \([\![E]\!]_I\) on input
-instance \(I\).
+The named SPJR algebra builds relation-valued expressions from database
+relation names using \(\sigma_{A=a}\), \(\sigma_{A=B}\),
+\(\pi_{A_1,\ldots,A_n}\) with no repeated projected attributes, natural join,
+and one-to-one renaming. Every well-formed expression has a fixed output sort
+and a set-theoretic denotation \([\![E]\!]_I\).
 
-Semijoin is a derived filtering operation. Union additionally describes
-accumulation into a schema-compatible relation.
+Allowing union only between expressions of the same sort yields SPJRU; in the
+rule form, union combines queries having the same head. Semijoin is a derived
+operation.
+:::
+
+:::reading
+**Book definition.** Abiteboul, Hull, and Vianu, *Foundations of Databases*,
+Chapter 4, §4.4, pp. 57–60, gives named SPJR and
+its operators; §4.5, pp. 62–63, adds same-sort union for SPJRU. Chapter 6,
+§6.4, p. 128, gives semijoin as a derived projection of join.
 :::
 
 
@@ -590,8 +620,15 @@ input.
 :::
 
 :::definition Equivalent queries
-Two queries are **equivalent** when they return the same relation on every input
-instance over their common database schema.
+Two queries over the same input database schema are **equivalent** when they
+have the same output schema and return equal results on every input instance.
+:::
+
+:::reading
+**Book definition.** Abiteboul, Hull, and Vianu, *Foundations of Databases*,
+Chapter 4, p. 37, requires equal output schemas
+and equal results on every input. Theorem 4.4.8, p. 61, gives the relevant
+language equivalence.
 :::
 
 :::ada

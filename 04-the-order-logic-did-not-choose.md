@@ -33,14 +33,22 @@ whether two atom relations can share bindings?
 The variables occurring in each atom.
 :::
 
-:::definition Query hypergraph and atom graph
-The **query hypergraph** has variables as vertices and one hyperedge for each
-body atom, containing that atom's variables.
+:::definition Query hypergraph and atom graph (course terms/adaptations)
+For this course, the **query hypergraph** has variables as vertices and one
+labeled hyperedge for each body-atom occurrence, containing that occurrence's
+variables.
 
-For planning, the **atom graph** is undirected: it has one vertex for each
-relation atom and an edge exactly when two atoms share a variable. AHV's
-sip-graph terminology and planning strategies appear in the reading trail; this
-conversation uses *atom graph* for the undirected overlap graph.
+The course **atom graph** is undirected: it has one vertex for each body-atom
+occurrence and an edge exactly when two occurrences share a variable.
+:::
+
+:::reading
+**Course term/adaptation; book basis.** Abiteboul, Hull, and Vianu,
+[*Foundations of Databases*, Chapter 6](http://webdam.inria.fr/Alice/pdfs/Chapter-6.pdf),
+§6.4,
+pp. 130–131, defines schema hypergraphs, not this direct CQ hypergraph. Section
+6.1, pp. 112–114, defines sip graphs and strategies, not this undirected atom
+graph.
 :::
 
 
@@ -65,6 +73,94 @@ E1 -- E2 -- E3.
 :::
 
 :::ada
+That path is a warm-up: every atom is binary, and each adjacency has one
+obvious explanation. Now consider a query whose atoms overlap in several ways:
+
+```text
+trip(from, to) :-
+    leg(from, hub, carrier),
+    partner(carrier, partner),
+    leg(hub, to, partner),
+    open(from, day),
+    open(to, day).
+```
+
+Call the five body-atom occurrences `L1`, `P`, `L2`, `O1`, and `O2`. Using the
+definition above, what query hypergraph do you draw?
+:::
+
+:::alice
+Its vertices are the variables
+
+```text
+{from, hub, carrier, partner, to, day}.
+```
+
+Each body-atom occurrence contributes one labeled hyperedge:
+
+```text
+L1 = {from, hub, carrier}
+P  = {carrier, partner}
+L2 = {hub, to, partner}
+O1 = {from, day}
+O2 = {to, day}.
+```
+
+My drawing is:
+
+![The trip query hypergraph, with variables as vertices and body-atom occurrences as labeled hyperedges.](assets/04-trip-hypergraph.svg "The trip query hypergraph.")
+:::
+
+:::ada
+Using only those five hyperedges, what atom graph do you draw?
+:::
+
+:::alice
+The five occurrences become vertices. Six pairs share at least one variable:
+
+```text
+L1 -- P
+L1 -- L2
+L1 -- O1
+P  -- L2
+L2 -- O2
+O1 -- O2
+```
+
+So the graph is
+
+```text
+        P
+       / \
+     L1---L2
+     |     |
+     O1---O2
+```
+:::
+
+:::ada
+In the `L1`–`P`–`L2` triangle, which variable accounts for each side, and does
+one variable occur in all three atoms?
+:::
+
+:::alice
+`L1`–`P` shares `carrier`, `P`–`L2` shares `partner`, and `L1`–`L2` shares
+`hub`. No variable occurs in all three.
+:::
+
+:::ada
+If only the unlabeled atom graph remained, could you reconstruct the five
+hyperedges exactly?
+:::
+
+:::alice
+No. The atom graph records that two occurrences overlap, but not which variable
+caused each overlap. Its triangle cannot distinguish these three different
+shared variables from one variable common to all three atoms. The query
+hypergraph retains that atom-variable incidence information.
+:::
+
+:::ada
 The path suggests a simple source-tied algorithm:
 
 1. Start with the first body atom.
@@ -77,19 +173,51 @@ So the graph constrains which next atoms share bindings, while source order
 breaks ties.
 :::
 
-:::definition Join planning
-**Join planning** chooses an equivalent binary relational-algebra expression for
-the body atoms. A simple source-tied planner orders atoms by the connected graph
-traversal above and folds that order into a left-deep tree.
+:::definition Join planning (course umbrella term/adaptation)
+For this course, **join planning** chooses a binary natural-join expression
+whose denotation is the complete body-valuation relation. A simple source-tied
+planner orders atoms by the connected graph traversal above and folds that
+order into a left-deep tree.
 
 A cost-based planner may choose another start, another connected order, or a
-bushy binary tree. Correctness requires the chosen expression to remain
-equivalent to the CQ.
+bushy binary tree. Correctness requires the chosen body expression to retain
+that body denotation; after the unchanged output construction, the full
+expression must have the CQ's output schema and result.
 :::
 
+:::reading
+**Course term/adaptation; book basis.** Abiteboul, Hull, and Vianu,
+*Foundations of Databases*, Chapter 6, §6.1, pp. 112–114,
+discusses sip strategies, System R join orderings, and arbitrary binary join
+trees. **Join planning** and the source-tied traversal are course terminology
+and policy.
+:::
 
 :::ada
-Starting from `E1`, the path forces `E2` before `E3`. What expression results?
+Apply the source-tied rule to `trip`, starting at `L1`. Give the available
+adjacent choices at each tie and the resulting order.
+:::alice
+After `L1`, the choices are `P`, `L2`, and `O1`, so source order picks `P`.
+Then `L2` and `O1` are available, so it picks `L2`. Finally both `O1` and `O2`
+are adjacent to the chosen set, and it picks `O1` first. The order is
+
+```text
+L1, P, L2, O1, O2.
+```
+:::
+
+:::ada
+Suppose `O1` has ten rows while `P` has ten million. Does the atom graph show
+which next choice is likely to produce the smaller intermediate?
+:::alice
+No. It records overlap, not relation sizes or how selective a join will be. A
+cost-based planner needs statistics beyond this graph and may choose `O1`
+before `P` without changing the query's result.
+:::
+
+:::ada
+Return to `three_hop` so the first binary tree stays easy to inspect. Starting
+from `E1`, the path forces `E2` before `E3`. What expression results?
 :::alice
 $$
 (E_1\bowtie E_2)\bowtie E_3.
@@ -136,7 +264,8 @@ join condition.
 :::
 
 :::ada
-For any intermediate \(T_i\) after the first \(i\) atoms, retain
+For this course's chosen atom order, let \(T_i\) be the intermediate after the
+first \(i\) atoms. Retain
 
 $$
 \operatorname{schema}(T_i)\cap
@@ -162,9 +291,35 @@ So backward analysis computes the same requirement once per plan position
 instead of rediscovering it independently at each one.
 :::
 
+:::reading
+**Derived here from the book.** The required-schema formula and its single
+backward-pass implementation are course constructions derived from Abiteboul,
+Hull, and Vianu, *Foundations of Databases*, Chapter 6, §6.1, pp. 112–114,
+especially Examples 6.1.1–6.1.3, together with Exercise 6.4. The book does not
+state this formula or algorithm.
+:::
 
 :::ada
-For `on_triangle`, that analysis produces:
+Transfer the backward analysis to the chosen `trip` order
+`L1, P, L2, O1, O2`. Which schema is required after each atom, and which
+variable survives only because a later atom needs it?
+:::alice
+
+```text
+after L1: {from, hub, carrier}
+after P:  {from, hub, partner}    // carrier's last use was P
+after L2: {from, to}              // hub and partner are finished
+after O1: {from, to, day}
+after O2: {from, to}              // day is now finished
+```
+
+`day` is not in the head, but it must survive `O1` so that `O2` can require the
+same day at both endpoints. This is why projecting only to head variables at
+every step would be wrong.
+:::
+
+:::ada
+For the earlier `on_triangle`, the same analysis produces:
 
 ```text
 relational {
@@ -186,8 +341,8 @@ because `e3` adds no required attribute.
 :::
 
 :::ada
-Only after the logical plan exists do we choose a hash table, index, or another
-physical technique. A physical operator implements the set-theoretic contract
+In this course's staged account, only after the logical plan exists do we
+choose a hash table, index, or another physical technique. A physical operator implements the set-theoretic contract
 of a join, semijoin, projection, or another plan node.
 
 The CQ-to-RA proof establishes \([\![E_q]\!]_I=q(I)\). A separate
@@ -196,6 +351,14 @@ relation denoted by its algebraic node.
 :::alice
 So the data structure changes how a plan node runs, not what relation that node
 denotes.
+:::
+
+:::reading
+**Course term/adaptation; book basis.** This staged logical-plan/physical-
+operator boundary is course framing derived from Abiteboul, Hull, and Vianu,
+*Foundations of Databases*, Chapter 6, §6.1, pp. 112–114, especially its
+planning examples and alternative physical implementations, together with
+Exercise 6.4. The book does not present it as a named definition or theorem.
 :::
 
 :::ada
@@ -231,11 +394,15 @@ hides the parentheses; a logical plan makes them explicit. Relational algebra
 therefore does not prescribe an evaluation order: it mathematically licenses an
 administrative choice of order.
 
-Join planning makes that choice. The query hypergraph records variables and
-atoms; its undirected atom graph connects atoms sharing variables. A simple
-planner traverses connected atoms and folds the resulting order into a left-deep
-binary expression. A cost-based planner may select another order or a bushy
-tree.
+Join planning makes that choice. The query hypergraph preserves each
+atom-variable incidence; its undirected atom graph keeps only whether two atoms
+overlap. The latter is useful but lossy: even a triangle can arise from three
+different shared variables. Neither graph contains the statistics needed to
+rank intermediate sizes.
+
+A simple planner traverses connected atoms and folds the resulting order into a
+left-deep binary expression. A cost-based planner may select another order or a
+bushy tree.
 
 If \(T_i\) denotes the intermediate after the first \(i\) atoms, it need retain
 only

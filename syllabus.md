@@ -50,23 +50,24 @@ By the end of the course, students should be able to:
 
 Students should know undergraduate algorithms and data structures, be
 comfortable with mathematical notation, and be able to program in at least one
-language. Prior Rust experience is not required: Week 2 introduces the subset
+language. Prior Rust experience is not required: Week 1 introduces the subset
 of Rust and metaprogramming used in the project. Prior database coursework is
 helpful but not required.
 
 # Course format
 
-The course meets twice each week. Monday normally advances the week's
-query-processing idea through lecture, board derivation, and the primary
-reading. Wednesday normally applies that idea through a Rust/project tutorial,
-shared trace, code inspection, paper discussion, or guided practicum. The
-Wednesday work is part of the course meeting, not a separate weekly programming
-assignment.
+The course meets twice each week, and the schedule gives each meeting its own
+purpose. Lecture and board-derivation meetings introduce semantic and
+algorithmic ideas. Rust/project studios inspect or change the supplied
+pipeline; paper forums are led by assigned students; practica are guided
+in-class assessments. A studio is a full course meeting, not an additional
+weekly programming assignment.
 
 Each content week has one primary reading and no reading response. Each student
-leads one paper discussion. Outside class, students complete three releases of
-one cumulative code project. There are no weekly problem sets, quizzes,
-midterm, or final exam.
+leads one of the paper forums marked on the schedule; a forum may have more
+than one leader. Outside class, students complete three releases of one
+cumulative code project. There are no weekly problem sets, quizzes, midterm,
+or final exam.
 
 See the [week-by-week schedule](schedule.html) for readings, practica, release
 dates, and university-calendar adjustments.
@@ -105,12 +106,14 @@ derivations, and result clinics.
 
 # Project tools and AI policy
 
-The project uses Rust with a procedural-macro CQ frontend. Week 2 teaches enough
-Rust and metaprogramming to read the pipeline from surface CQ through typed IRs
-to generated code. Staff supplies and documents the macro parser, initial IRs,
-expansion pipeline, and crate structure. Students inspect macro expansions and
-implement ordinary Rust transformations inside the supplied interfaces; they
-do not build a token parser or procedural-macro infrastructure from scratch.
+The project uses Rust with a procedural-macro CQ frontend. Week 1 teaches enough
+ordinary Rust and metaprogramming to begin reading the pipeline; later
+Rust/project studios revisit the language while moving from surface CQ through
+typed IRs to generated code. Staff supplies and documents the macro parser,
+initial IRs, expansion pipeline, and crate structure. Students inspect macro
+expansions and implement ordinary Rust transformations inside the supplied
+interfaces; they do not build a token parser or procedural-macro infrastructure
+from scratch.
 When a stage emits Rust code, students use the `quote!` macro from the `quote`
 crate with provided examples.
 

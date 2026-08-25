@@ -12,7 +12,7 @@ const noteSources = readdirSync(scriptDirectory)
   .sort();
 const courseSources = ["index.md", "syllabus.md", "schedule.md", "project.md"];
 const sources = [...courseSources, ...noteSources];
-const publishedAssetDirectories = ["slides"];
+const publishedAssetDirectories = ["slides", "assets"];
 
 for (const source of sources) {
   const result = spawnSync(
