@@ -160,7 +160,8 @@ valuations satisfying the conjunction.
 :::
 
 :::definition Natural join
-Let \(I\) and \(J\) be relation instances of sorts \(V\) and \(W\). Their
+Natural join is a binary operator on relation instances, not necessarily a
+relation of arity two. Let \(I\) and \(J\) have sorts \(V\) and \(W\). Their
 **natural join** is
 
 $$
@@ -197,6 +198,45 @@ Databases*, Chapter 4, Definition 4.2.1, pp. 41–42, supplies valuation semanti
 §4.4, pp. 57–58, supplies natural join. The book does not state this
 valuation-relation identity as a named law.
 :::
+
+
+:::ada
+What if \(C_1\) and \(C_2\) share no variables?
+:::alice
+Then their valuation-relation schemas are disjoint. Every left tuple is
+compatible with every right tuple, so the join contains every pairwise union.
+:::
+
+:::definition Cartesian product
+Let \(I\) and \(J\) be relation instances of disjoint sorts \(V\) and \(W\).
+Their **Cartesian product** is
+
+$$
+I\times J=
+\{v\cup w\mid v\in I,\ w\in J\}.
+$$
+
+It has sort \(V\cup W\). Because agreement on \(V\cap W=\varnothing\) is
+vacuous,
+
+$$
+I\bowtie J=I\times J.
+$$
+
+For finite set relations, each pair determines one distinct union, so
+
+$$
+|I\times J|=|I|\,|J|.
+$$
+:::
+
+:::reading
+**Book definition and immediate consequence.** Abiteboul, Hull, and Vianu,
+*Foundations of Databases*, Chapter 4, §4.4, pp. 57–58, defines natural join and
+identifies its disjoint-sort case as Cartesian product. The cardinality equation
+follows directly from the definition for finite set relations.
+:::
+
 
 :::ada
 Use the concrete query
@@ -584,11 +624,20 @@ So each source atom becomes a relation of precisely its satisfying valuations.
 :::
 
 :::definition Named relational algebra
-The named SPJR algebra builds relation-valued expressions from database
-relation names using \(\sigma_{A=a}\), \(\sigma_{A=B}\),
-\(\pi_{A_1,\ldots,A_n}\) with no repeated projected attributes, natural join,
-and one-to-one renaming. Every well-formed expression has a fixed output sort
-and a set-theoretic denotation \([\![E]\!]_I\).
+The named SPJR algebra builds relation-valued expressions recursively from
+database relation names. Its unary constructors are \(\sigma_{A=a}(E)\),
+\(\sigma_{A=B}(E)\), \(\pi_{A_1,\ldots,A_n}(E)\) with no repeated projected
+attributes, and one-to-one renaming. Its natural-join constructor is
+
+$$
+E_L\bowtie E_R,
+$$
+
+with exactly two relation-valued operands. Every well-formed expression has a
+fixed output sort and a set-theoretic denotation \([\![E]\!]_I\).
+
+Cartesian product needs no additional constructor: it is the disjoint-sort case
+of natural join.
 
 Allowing union only between expressions of the same sort yields SPJRU; in the
 rule form, union combines queries having the same head. Semijoin is a derived
@@ -597,26 +646,76 @@ operation.
 
 :::reading
 **Book definition.** Abiteboul, Hull, and Vianu, *Foundations of Databases*,
-Chapter 4, §4.4, pp. 57–60, gives named SPJR and
-its operators; §4.5, pp. 62–63, adds same-sort union for SPJRU. Chapter 6,
-§6.4, p. 128, gives semijoin as a derived projection of join.
+Chapter 4, §4.4, pp. 57–60, gives named SPJR, including binary natural-join
+expressions, and its other operators; §4.5, pp. 62–63, adds same-sort union for
+SPJRU. Chapter 6, §6.4, p. 128, gives semijoin as a derived projection of join.
 :::
 
 
 :::ada
-Because each atom expression matches one atom's valuation relation, the join
-law extends that correspondence inductively through the whole body. Projection
-then keeps the head variables. Therefore the translated expression \(E_q\)
-satisfies
+For `three_hop`, let \(E_1,E_2,E_3\) be the three atom expressions. The CQ body
+is one conjunction, but the algebra has no three-input join constructor. What
+must its syntax record?
+:::alice
+A binary tree. For example,
 
 $$
-[\![E_q]\!]_I=q(I)
+(E_1\bowtie E_2)\bowtie E_3
+\qquad\text{or}\qquad
+E_1\bowtie(E_2\bowtie E_3).
+$$
+
+Each join occurrence has exactly two operands.
+:::
+
+:::definition Logical join plan (course term/adaptation)
+Let the body of \(q(\bar x)\) have atom occurrences \(A_1,\ldots,A_n\), with
+local translations \(E_1,\ldots,E_n\). Label the leaves of a full binary tree \(T\)
+with those occurrences, each exactly once, and define its body expression
+recursively by
+
+$$
+J_{A_i}=E_i,
+\qquad
+J_{(T_L,T_R)}=J_{T_L}\bowtie J_{T_R}.
+$$
+
+For the restricted output fragment used here, the resulting relational-algebra
+expression is
+
+$$
+E_{q,T}=\pi_{\bar x}(J_T).
+$$
+
+The course calls \(E_{q,T}\), or equivalently its expression tree, a **logical
+join plan**. The tree makes every binary join operand explicit; it does not yet
+choose a physical join algorithm.
+:::
+
+:::reading
+**Course term/adaptation; book basis.** Abiteboul, Hull, and Vianu,
+*Foundations of Databases*, Chapter 4, §4.4, pp. 57–60, supplies the
+relation-valued algebra expressions and binary natural join. Chapter 6, §6.1,
+pp. 112–114, discusses left-to-right join processing and arbitrary binary trees.
+The recursive
+construction \(J_T\) and the term **logical join plan** are course notation.
+:::
+
+
+:::ada
+Because each \(E_i\) denotes \(\operatorname{Val}_I(A_i)\), the conjunction-as-
+join law proves by induction on \(T\) that every \(J_T\) denotes the complete
+body-valuation relation. Projection then keeps the head variables. Thus every
+permitted tree \(T\) satisfies
+
+$$
+[\![E_{q,T}]\!]_I=q(I)
 $$
 
 for every permitted input instance \(I\).
 :::alice
-That is the equivalence we need: different notation, the same result on every
-input.
+So the CQ fixes the result, while \(T\) makes one equivalent binary
+relational-algebra expression explicit.
 :::
 
 :::definition Equivalent queries
@@ -627,15 +726,15 @@ have the same output schema and return equal results on every input instance.
 :::reading
 **Book definition.** Abiteboul, Hull, and Vianu, *Foundations of Databases*,
 Chapter 4, p. 37, requires equal output schemas
-and equal results on every input. Theorem 4.4.8, p. 61, gives the relevant
+and equal results on every input. Theorem 4.4.8, p. 60, gives the relevant
 language equivalence.
 :::
 
 :::ada
 What has the equivalence proof deliberately left open?
 :::alice
-It does not choose among the equivalent binary expressions. That administrative
-choice is the next conversation.
+It does not choose the tree \(T\) from among the equivalent logical join plans.
+That administrative choice is the next conversation.
 :::
 
 :::reading
@@ -646,7 +745,7 @@ choice is the next conversation.
   equivalence.
 - Chapter 4, §4.4, pp. 57–60: named selection, projection, natural join,
   renaming, join associativity and commutativity, and SPJR; Theorem 4.4.8,
-  p. 61: equivalence of the conjunctive-query formalisms.
+  p. 60: equivalence of the conjunctive-query formalisms.
 - Chapter 4, §4.5, pp. 62–63: union, equal-sort operands, SPJRU, and union of
   same-head rule outputs.
 - [Chapter 6](http://webdam.inria.fr/Alice/pdfs/Chapter-6.pdf), §6.4, p. 128:
@@ -700,6 +799,15 @@ and therefore
 $$
 \operatorname{Val}_I(C_1\land C_2)=
 \operatorname{Val}_I(C_1)\bowtie\operatorname{Val}_I(C_2).
+$$
+
+When the two schemas are disjoint, compatibility is vacuous and natural join is
+Cartesian product:
+
+$$
+R\bowtie S=R\times S,
+\qquad
+|R\times S|=|R|\,|S|.
 $$
 
 Shared variables across atom relations are enforced by join. Constants and
