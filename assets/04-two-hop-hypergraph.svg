@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 360" role="img" aria-labelledby="title description">
+  <title id="title">The two_hop variable graph</title>
+  <desc id="description">Three variable vertices named from, via, and to. The first road atom connects from and via; the second connects via and to. From and to are marked as head variables.</desc>
+  <defs>
+    <style>
+      .heading { font: 700 26px ui-sans-serif, system-ui, sans-serif; fill: #22211f; }
+      .note { font: 500 14px ui-sans-serif, system-ui, sans-serif; fill: #666159; }
+      .edge { stroke-width: 3; }
+      .variable { fill: #fffdf8; stroke: #22211f; stroke-width: 2.5; }
+      .head { fill: none; stroke: #22211f; stroke-width: 2; }
+      .variable-text { font: 650 15px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #22211f; text-anchor: middle; dominant-baseline: middle; }
+      .edge-label { font: 750 16px ui-monospace, SFMono-Regular, Menlo, monospace; paint-order: stroke; stroke: #f8f6ef; stroke-width: 5px; stroke-linejoin: round; }
+    </style>
+  </defs>
+  <rect width="680" height="360" rx="18" fill="#f8f6ef"/>
+  <text x="40" y="48" class="heading">The two_hop variable graph</text>
+  <text x="40" y="78" class="note">Vertices are variables; each colored region is one atom occurrence.</text>
+  <rect x="110" y="145" width="255" height="92" rx="46" fill="#8b5cf6" fill-opacity="0.09" stroke="#7c3aed" class="edge"/>
+  <rect x="315" y="145" width="255" height="92" rx="46" fill="#3b82f6" fill-opacity="0.08" stroke="#2563eb" class="edge"/>
+  <text x="190" y="142" class="edge-label" fill="#7c3aed">R1</text>
+  <text x="482" y="142" class="edge-label" fill="#2563eb">R2</text>
+  <circle cx="155" cy="191" r="37" class="head"/><circle cx="155" cy="191" r="30" class="variable"/><text x="155" y="191" class="variable-text">from</text>
+  <circle cx="340" cy="191" r="30" class="variable"/><text x="340" y="191" class="variable-text">via</text>
+  <circle cx="525" cy="191" r="37" class="head"/><circle cx="525" cy="191" r="30" class="variable"/><text x="525" y="191" class="variable-text">to</text>
+  <text x="40" y="302" class="note">R1 = road(from, via) · R2 = road(via, to)</text>
+  <text x="40" y="326" class="note">Double rings mark head variables: from and to.</text>
+</svg>

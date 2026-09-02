@@ -3,12 +3,11 @@ title: The Plan That Meant the Same Thing
 subtitle: Conversation 1.3 — From Conjunctive Queries to Named Relational Algebra
 author: Modern Query Processing
 date: Fall 2026
-status: Work in progress
 layout: dialogue
 left_speaker: Ada
 right_speaker: Alice
 previous: [Conversation 1.2 · By Indirections Find Directions Out](02-the-relation-that-wasnt-stored.html)
-next: [Conversation 2.1 · The Order Logic Did Not Choose](04-the-order-logic-did-not-choose.html)
+next: [Conversation 2.1a · The Order Logic Did Not Choose](04-the-order-logic-did-not-choose.html)
 ---
 
 # The plan that meant the same thing

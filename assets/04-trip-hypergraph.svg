@@ -6,6 +6,7 @@
       .heading { font: 700 26px ui-sans-serif, system-ui, sans-serif; fill: #22211f; }
       .note { font: 500 14px ui-sans-serif, system-ui, sans-serif; fill: #666159; }
       .variable { fill: #fffdf8; stroke: #22211f; stroke-width: 2.5; }
+      .head { fill: none; stroke: #22211f; stroke-width: 2; }
       .variable-text { font: 650 15px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #22211f; text-anchor: middle; dominant-baseline: middle; }
       .edge-label { font: 750 16px ui-monospace, SFMono-Regular, Menlo, monospace; paint-order: stroke; stroke: #f8f6ef; stroke-width: 5px; stroke-linejoin: round; }
     </style>
@@ -29,15 +30,15 @@
   <text x="588" y="438" class="edge-label" fill="#b91c1c">O2</text>
 
   <g>
-    <circle cx="130" cy="190" r="30" class="variable"/><text x="130" y="190" class="variable-text">from</text>
+    <circle cx="130" cy="190" r="37" class="head"/><circle cx="130" cy="190" r="30" class="variable"/><text x="130" y="190" class="variable-text">from</text>
     <circle cx="330" cy="190" r="30" class="variable"/><text x="330" y="190" class="variable-text">hub</text>
     <circle cx="230" cy="350" r="39" class="variable"/><text x="230" y="350" class="variable-text">carrier</text>
     <circle cx="470" cy="350" r="39" class="variable"/><text x="470" y="350" class="variable-text">partner</text>
-    <circle cx="570" cy="190" r="30" class="variable"/><text x="570" y="190" class="variable-text">to</text>
+    <circle cx="570" cy="190" r="37" class="head"/><circle cx="570" cy="190" r="30" class="variable"/><text x="570" y="190" class="variable-text">to</text>
     <circle cx="350" cy="530" r="30" class="variable"/><text x="350" y="530" class="variable-text">day</text>
   </g>
 
   <text x="40" y="612" class="note">L1 = leg(from, hub, carrier) · P = partner(carrier, partner)</text>
   <text x="40" y="636" class="note">L2 = leg(hub, to, partner) · O1 = open(from, day)</text>
-  <text x="40" y="660" class="note">O2 = open(to, day)</text>
+  <text x="40" y="660" class="note">O2 = open(to, day) · Double rings mark from and to.</text>
 </svg>

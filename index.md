@@ -58,7 +58,9 @@ types, bindings, and programs matter more than isolated terminology.
 [Conversation 1.1 · What's in a Name?](01-a-little-database-a-few-questions.html) | Establish data, relation schemas, database schemas, instances, and the DBMS before asking a query.
 [Conversation 1.2 · By Indirections Find Directions Out](02-the-relation-that-wasnt-stored.html) | Move from recorded facts through valuations and conjunction to a rule-based query and its separate image.
 [Conversation 1.3 · The Plan That Meant the Same Thing](03-the-plan-that-meant-the-same-thing.html) | Translate CQ valuations into named SPJR and prove that the expression returns the same image on every input.
-[Conversation 2.1 · The Order Logic Did Not Choose](04-the-order-logic-did-not-choose.html) | Choose an equivalent binary join tree, trim intermediate schemas, and separate logical planning from physical operators.
+[Conversation 2.1a · The Order Logic Did Not Choose](04-the-order-logic-did-not-choose.html) | Compare equivalent binary join trees by their intermediate relations and logical tuple delivery.
+[Conversation 2.1b · The Picture That Did Not Choose](04-the-picture-that-did-not-choose.html) | Move from an ordinary variable graph to a query hypergraph, bound variables, and shared-variable frontiers.
+[Conversation 2.2 · The Variables the Plan Still Needed](05-the-variables-the-plan-still-needed.html) | Choose one source-tied left-deep order, then retain each variable until its final logical use.
 [Rust Guide R.0.0 · The Rust We Need](rust-00-the-tree-we-could-read-twice.html) | Follow a focused Rust route, then predict, compile, and repair five small ordinary programs.
 [Rust Conversation R.1 · The Code That Became a Value](rust-01-the-code-that-became-a-value.html) | Separate expansion from execution and make generated Rust syntax into a typed value.
 [Rust Conversation R.2 · The Arithmetic That Ran Before the Program](rust-02-the-arithmetic-that-ran-before-the-program.html) | Map a small expression language into our derived AST and evaluate it during expansion.

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 520" role="img" aria-labelledby="title description">
+  <title id="title">The delivery-service facts</title>
+  <desc id="description">Lin and Moe report to north; Nia and Omar report to south. North stocks bolt and south stocks nut. Jobs one and two need bolt; jobs three and four need nut.</desc>
+  <defs>
+    <style>
+      .heading { font: 700 28px ui-sans-serif, system-ui, sans-serif; fill: #22211f; }
+      .instruction { font: 550 16px ui-sans-serif, system-ui, sans-serif; fill: #4f4a43; }
+      .column { font: 700 17px ui-sans-serif, system-ui, sans-serif; fill: #4f4a43; text-anchor: middle; }
+      .box { fill: #fffdf8; stroke-width: 2.5; }
+      .north { stroke: #2563eb; }
+      .south { stroke: #059669; }
+      .label { font: 650 17px ui-sans-serif, system-ui, sans-serif; fill: #22211f; text-anchor: middle; dominant-baseline: middle; }
+      .relation { font: 600 14px ui-sans-serif, system-ui, sans-serif; fill: #6b655d; text-anchor: middle; }
+      .north-line { stroke: #2563eb; stroke-width: 3; fill: none; marker-end: url(#north-arrow); }
+      .south-line { stroke: #059669; stroke-width: 3; fill: none; marker-end: url(#south-arrow); }
+    </style>
+    <marker id="north-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="south-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#059669"/>
+    </marker>
+  </defs>
+
+  <rect width="1040" height="520" rx="18" fill="#f8f6ef"/>
+  <text x="40" y="48" class="heading">The delivery-service facts</text>
+  <text x="40" y="78" class="instruction">Each arrow is one recorded fact.</text>
+
+  <text x="120" y="125" class="column">Drivers</text>
+  <text x="380" y="125" class="column">Depots</text>
+  <text x="650" y="125" class="column">Stocked items</text>
+  <text x="920" y="125" class="column">Jobs</text>
+
+  <text x="250" y="112" class="relation">report to</text>
+  <text x="515" y="112" class="relation">stock</text>
+  <text x="785" y="112" class="relation">need</text>
+
+  <path d="M180 175 C250 175 285 205 320 205" class="north-line"/>
+  <path d="M180 235 C250 235 285 205 320 205" class="north-line"/>
+  <path d="M440 205 L590 205" class="north-line"/>
+  <path d="M850 175 C790 175 760 205 710 205" class="north-line"/>
+  <path d="M850 235 C790 235 760 205 710 205" class="north-line"/>
+
+  <path d="M180 335 C250 335 285 365 320 365" class="south-line"/>
+  <path d="M180 395 C250 395 285 365 320 365" class="south-line"/>
+  <path d="M440 365 L590 365" class="south-line"/>
+  <path d="M850 335 C790 335 760 365 710 365" class="south-line"/>
+  <path d="M850 395 C790 395 760 365 710 365" class="south-line"/>
+
+  <rect x="60" y="150" width="120" height="50" rx="14" class="box north"/><text x="120" y="175" class="label">Lin</text>
+  <rect x="60" y="210" width="120" height="50" rx="14" class="box north"/><text x="120" y="235" class="label">Moe</text>
+  <rect x="60" y="310" width="120" height="50" rx="14" class="box south"/><text x="120" y="335" class="label">Nia</text>
+  <rect x="60" y="370" width="120" height="50" rx="14" class="box south"/><text x="120" y="395" class="label">Omar</text>
+
+  <rect x="320" y="175" width="120" height="60" rx="16" class="box north"/><text x="380" y="205" class="label">north</text>
+  <rect x="320" y="335" width="120" height="60" rx="16" class="box south"/><text x="380" y="365" class="label">south</text>
+
+  <rect x="590" y="175" width="120" height="60" rx="16" class="box north"/><text x="650" y="205" class="label">bolt</text>
+  <rect x="590" y="335" width="120" height="60" rx="16" class="box south"/><text x="650" y="365" class="label">nut</text>
+
+  <rect x="850" y="150" width="140" height="50" rx="14" class="box north"/><text x="920" y="175" class="label">job1</text>
+  <rect x="850" y="210" width="140" height="50" rx="14" class="box north"/><text x="920" y="235" class="label">job2</text>
+  <rect x="850" y="310" width="140" height="50" rx="14" class="box south"/><text x="920" y="335" class="label">job3</text>
+  <rect x="850" y="370" width="140" height="50" rx="14" class="box south"/><text x="920" y="395" class="label">job4</text>
+</svg>

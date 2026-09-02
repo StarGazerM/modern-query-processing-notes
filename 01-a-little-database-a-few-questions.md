@@ -3,7 +3,6 @@ title: What's in a Name?
 subtitle: Conversation 1.1 — The Database Before the Query
 author: Modern Query Processing
 date: Fall 2026
-status: Work in progress
 layout: dialogue
 left_speaker: Ada
 right_speaker: Alice

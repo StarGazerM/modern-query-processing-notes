@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 520" role="img" aria-labelledby="title description">
+  <title id="title">The on_triangle variable graph</title>
+  <desc id="description">Three variable vertices a, b, and c. Three labeled edge occurrences connect a to b, b to c, and c to a. Variable a is marked as the head variable.</desc>
+  <defs>
+    <style>
+      .heading { font: 700 26px ui-sans-serif, system-ui, sans-serif; fill: #22211f; }
+      .note { font: 500 14px ui-sans-serif, system-ui, sans-serif; fill: #666159; }
+      .variable { fill: #fffdf8; stroke: #22211f; stroke-width: 2.5; }
+      .head { fill: none; stroke: #22211f; stroke-width: 2; }
+      .variable-text { font: 650 16px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #22211f; text-anchor: middle; dominant-baseline: middle; }
+      .edge-label { font: 750 16px ui-monospace, SFMono-Regular, Menlo, monospace; paint-order: stroke; stroke: #f8f6ef; stroke-width: 5px; stroke-linejoin: round; }
+    </style>
+  </defs>
+  <rect width="680" height="520" rx="18" fill="#f8f6ef"/>
+  <text x="40" y="48" class="heading">Adding the closing atom</text>
+  <text x="40" y="78" class="note">The third edge adds no variable; it connects two already-bound vertices.</text>
+  <rect x="155" y="165" width="370" height="84" rx="42" fill="#8b5cf6" fill-opacity="0.09" stroke="#7c3aed" stroke-width="3"/>
+  <rect x="250" y="245" width="300" height="84" rx="42" fill="#3b82f6" fill-opacity="0.08" stroke="#2563eb" stroke-width="3" transform="rotate(58 400 287)"/>
+  <rect x="130" y="245" width="300" height="84" rx="42" fill="#ef4444" fill-opacity="0.08" stroke="#dc2626" stroke-width="3" transform="rotate(-58 280 287)"/>
+  <text x="330" y="158" class="edge-label" fill="#7c3aed">E1</text>
+  <text x="520" y="335" class="edge-label" fill="#2563eb">E2</text>
+  <text x="145" y="335" class="edge-label" fill="#b91c1c">E3</text>
+  <circle cx="195" cy="207" r="37" class="head"/><circle cx="195" cy="207" r="30" class="variable"/><text x="195" y="207" class="variable-text">a</text>
+  <circle cx="485" cy="207" r="30" class="variable"/><text x="485" y="207" class="variable-text">b</text>
+  <circle cx="340" cy="405" r="30" class="variable"/><text x="340" y="405" class="variable-text">c</text>
+  <text x="40" y="470" class="note">E1 = edge(a, b) · E2 = edge(b, c) · E3 = edge(c, a)</text>
+  <text x="40" y="494" class="note">Double ring: head variable a.</text>
+</svg>
