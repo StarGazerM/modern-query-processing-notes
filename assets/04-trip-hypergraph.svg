@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 700" role="img" aria-labelledby="title description">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 700" role="img" aria-labelledby="title description">
   <title id="title">The trip query hypergraph</title>
-  <desc id="description">Six variable vertices named from, hub, carrier, partner, to, and day. Five labeled hyperedges represent the two leg atoms, the partner atom, and the two open atoms.</desc>
+  <desc id="description">Variables are from, hub, carrier, partner, to, and day. Hyperedge L1 contains from, hub, and carrier. Binary edge P connects carrier and partner. Hyperedge L2 contains hub, to, and partner. Curved binary edge O1 connects from and day without touching carrier. Curved binary edge O2 connects to and day without touching partner. From and to are marked as head variables.</desc>
   <defs>
     <style>
       .heading { font: 700 26px ui-sans-serif, system-ui, sans-serif; fill: #22211f; }
@@ -8,37 +8,35 @@
       .variable { fill: #fffdf8; stroke: #22211f; stroke-width: 2.5; }
       .head { fill: none; stroke: #22211f; stroke-width: 2; }
       .variable-text { font: 650 15px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #22211f; text-anchor: middle; dominant-baseline: middle; }
-      .edge-label { font: 750 16px ui-monospace, SFMono-Regular, Menlo, monospace; paint-order: stroke; stroke: #f8f6ef; stroke-width: 5px; stroke-linejoin: round; }
+      .edge-label { font: 750 16px ui-monospace, SFMono-Regular, Menlo, monospace; paint-order: stroke; stroke: #f8f6ef; stroke-width: 5px; stroke-linejoin: round; text-anchor: middle; }
+      .binary-edge { fill: none; stroke-width: 7; stroke-linecap: round; }
     </style>
   </defs>
-
-  <rect width="680" height="700" rx="18" fill="#f8f6ef"/>
+  <rect width="700" height="700" rx="18" fill="#f8f6ef"/>
   <text x="40" y="48" class="heading">The trip query hypergraph</text>
-  <text x="40" y="82" class="note">Vertices are variables; each colored region is one atom occurrence.</text>
+  <text x="40" y="80" class="note">Regions show ternary leg occurrences; labeled lines show binary occurrences.</text>
 
-  <!-- Hyperedges are drawn behind their variable vertices. -->
-  <rect x="37.5" y="320" width="405" height="80" rx="40" fill="#f59e0b" fill-opacity="0.10" stroke="#d97706" stroke-width="3" transform="rotate(57 240 360)"/>
-  <rect x="257.5" y="320" width="405" height="80" rx="40" fill="#ef4444" fill-opacity="0.08" stroke="#dc2626" stroke-width="3" transform="rotate(-57 460 360)"/>
-  <path d="M75 155 Q215 130 385 155 Q410 265 250 410 Q90 335 75 155Z" fill="#8b5cf6" fill-opacity="0.09" stroke="#7c3aed" stroke-width="3"/>
-  <path d="M275 155 Q445 130 625 155 Q650 335 490 410 Q330 265 275 155Z" fill="#3b82f6" fill-opacity="0.08" stroke="#2563eb" stroke-width="3"/>
-  <rect x="180" y="305" width="340" height="90" rx="45" fill="#10b981" fill-opacity="0.10" stroke="#059669" stroke-width="3"/>
+  <path d="M75,155 Q230,125 380,155 Q420,300 250,410 Q90,330 75,155 Z" fill="#8b5cf6" fill-opacity="0.09" stroke="#7c3aed" stroke-width="3"/>
+  <path d="M275,155 Q450,125 625,155 Q650,330 490,410 Q380,300 275,155 Z" fill="#3b82f6" fill-opacity="0.08" stroke="#2563eb" stroke-width="3"/>
 
-  <text x="102" y="154" class="edge-label" fill="#7c3aed">L1</text>
-  <text x="585" y="154" class="edge-label" fill="#2563eb">L2</text>
-  <text x="340" y="330" class="edge-label" fill="#047857">P</text>
-  <text x="92" y="438" class="edge-label" fill="#b45309">O1</text>
-  <text x="588" y="438" class="edge-label" fill="#b91c1c">O2</text>
+  <path d="M130,190 Q20,420 350,530" class="binary-edge" stroke="#d97706"/>
+  <line x1="230" y1="350" x2="470" y2="350" class="binary-edge" stroke="#059669"/>
+  <path d="M570,190 Q680,420 350,530" class="binary-edge" stroke="#dc2626"/>
 
-  <g>
-    <circle cx="130" cy="190" r="37" class="head"/><circle cx="130" cy="190" r="30" class="variable"/><text x="130" y="190" class="variable-text">from</text>
-    <circle cx="330" cy="190" r="30" class="variable"/><text x="330" y="190" class="variable-text">hub</text>
-    <circle cx="230" cy="350" r="39" class="variable"/><text x="230" y="350" class="variable-text">carrier</text>
-    <circle cx="470" cy="350" r="39" class="variable"/><text x="470" y="350" class="variable-text">partner</text>
-    <circle cx="570" cy="190" r="37" class="head"/><circle cx="570" cy="190" r="30" class="variable"/><text x="570" y="190" class="variable-text">to</text>
-    <circle cx="350" cy="530" r="30" class="variable"/><text x="350" y="530" class="variable-text">day</text>
-  </g>
+  <text x="110" y="150" class="edge-label" fill="#7c3aed">L1</text>
+  <text x="590" y="150" class="edge-label" fill="#2563eb">L2</text>
+  <text x="350" y="330" class="edge-label" fill="#047857">P</text>
+  <text x="72" y="425" class="edge-label" fill="#b45309">O1</text>
+  <text x="628" y="425" class="edge-label" fill="#b91c1c">O2</text>
 
-  <text x="40" y="612" class="note">L1 = leg(from, hub, carrier) · P = partner(carrier, partner)</text>
-  <text x="40" y="636" class="note">L2 = leg(hub, to, partner) · O1 = open(from, day)</text>
-  <text x="40" y="660" class="note">O2 = open(to, day) · Double rings mark from and to.</text>
+  <circle cx="130" cy="190" r="37" class="head"/><circle cx="130" cy="190" r="30" class="variable"/><text x="130" y="190" class="variable-text">from</text>
+  <circle cx="330" cy="190" r="30" class="variable"/><text x="330" y="190" class="variable-text">hub</text>
+  <circle cx="230" cy="350" r="39" class="variable"/><text x="230" y="350" class="variable-text">carrier</text>
+  <circle cx="470" cy="350" r="39" class="variable"/><text x="470" y="350" class="variable-text">partner</text>
+  <circle cx="570" cy="190" r="37" class="head"/><circle cx="570" cy="190" r="30" class="variable"/><text x="570" y="190" class="variable-text">to</text>
+  <circle cx="350" cy="530" r="30" class="variable"/><text x="350" y="530" class="variable-text">day</text>
+
+  <text x="40" y="610" class="note">L1 = leg(from, hub, carrier) · P = partner(carrier, partner)</text>
+  <text x="40" y="634" class="note">L2 = leg(hub, to, partner) · O1 = open(from, day)</text>
+  <text x="40" y="658" class="note">O2 = open(to, day) · Double rings mark from and to.</text>
 </svg>

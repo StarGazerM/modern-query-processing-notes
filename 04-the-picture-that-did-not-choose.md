@@ -1,13 +1,14 @@
 ---
 title: The Picture That Did Not Choose
-subtitle: Conversation 2.1b — From Ordinary Graphs to Query Hypergraphs
+subtitle: Conversation 2.2 — From Binary Connections to Query Hypergraphs
 author: Modern Query Processing
 date: Fall 2026
+status: Draft
 layout: dialogue
 left_speaker: Ada
 right_speaker: Alice
-previous: [Conversation 2.1a · The Order Logic Did Not Choose](04-the-order-logic-did-not-choose.html)
-next: [Conversation 2.2 · The Variables the Plan Still Needed](05-the-variables-the-plan-still-needed.html)
+previous: [Conversation 2.1 · The Order Logic Did Not Choose](04-the-order-logic-did-not-choose.html)
+next: [Conversation 2.3 · The Variables the Plan Still Needed](05-the-variables-the-plan-still-needed.html)
 ---
 
 # The picture that did not choose
@@ -22,71 +23,119 @@ eligible(driver, job) :-
     needs(job, item).
 ```
 
-Call the three body-atom occurrences `D`, `S`, and `N`. Before looking at any
-rows, which pairs share a variable?
+Call the three body-atom occurrences \(D,S,N\). Before looking at any rows,
+which pairs share a variable?
 :::alice
-`D` and `S` share `depot`; `S` and `N` share `item`; `D` and `N` share no
-variable.
+\(D\) and \(S\) share `depot`; \(S\) and \(N\) share `item`; \(D\) and \(N\)
+share no variable.
 :::
 
 :::ada
-Those overlaps belong to the query; the tuple counts came from one input. We
-need a variable-side picture of the query. Return to the binary query
+Those overlaps belong to the query; the row counts from Conversation 2.1
+belonged to particular inputs. Draw a variable-side picture using one vertex
+per variable and one labeled edge per binary atom occurrence.
+:::alice
+The three edges form a path:
+
+$$
+driver\mathrel{\mathop{-}^{D}}depot
+\mathrel{\mathop{-}^{S}}item
+\mathrel{\mathop{-}^{N}}job.
+$$
+
+![The eligible binary variable graph.](assets/04-eligible-hypergraph.svg "The eligible binary variable graph.")
+
+The \(D\) and \(N\) edges do not meet. The \(S\) edge connects them.
+:::
+
+:::definition Binary variable graph (course convention)
+For a CQ whose indexed body occurrences \(B_1,\ldots,B_n\) each contain exactly
+two distinct variables, its **binary variable graph** has
+
+$$
+V=\bigcup_{i=1}^{n}\operatorname{vars}(B_i)
+$$
+
+as vertices and one predicate-labeled edge
+\(e_i=\operatorname{vars}(B_i)\) for each occurrence. Occurrence indexes keep
+repeated uses of the same predicate separate. Head variables may be marked on
+the vertices without changing the graph.
+:::
+
+:::reading
+**Course convention; book contrast.** Abiteboul, Hull, and Vianu,
+*Foundations of Databases*, Chapter 6, §6.1, pp. 112–113, defines a sideways
+information passing graph whose vertices are relational atoms and whose edges
+record shared variables. The binary variable graph above reverses that viewpoint
+for this course: variables are vertices and binary atom occurrences are labeled
+edges.
+:::
+
+:::ada
+What can this path tell us about the possible first joins, and what remains
+invisible without data?
+:::alice
+It shows that \(D\bowtie S\) and \(S\bowtie N\) check a shared variable, while
+\(D\bowtie N\) is Cartesian. It also determines their raw output arities: three,
+three, and four columns.
+
+It cannot recover the row counts `4, 4, 16` from the first instance or `5, 3`
+from the second. Those depended on stored values.
+:::
+
+:::ada
+A path is only one possible shape. Draw the binary variable graph of
 
 ```text
-two_hop(from, to) :-
-    road(from, via),
-    road(via, to).
+hub_snapshot(from, to, day, worker) :-
+    road(from, hub),
+    rail(hub, to),
+    open(hub, day),
+    staffed(hub, worker).
+```
+:::alice
+Every edge contains `hub`, so the graph is a star.
+
+![A branching binary variable graph with no closed loop.](assets/04-hub-star-graph.svg "The hub_snapshot variable graph; double rings mark all four head variables.")
+:::
+
+:::ada
+Suppose `road(from,hub)` and `rail(hub,to)` have already joined. Which of their
+three variables still has work to do?
+:::alice
+All three. `from` and `to` occur in the head. `hub` occurs in the two unchosen
+spokes. None can disappear yet.
+:::
+
+:::ada
+Now compare the path
+
+```text
+path_answer(a, d) :-
+    r(a, b),
+    s(b, c),
+    t(c, d).
 ```
 
-Use one vertex per variable and one edge per body-atom occurrence. Which vertex
-must the two edges share?
+After the first two atoms join, which variable has finished its work?
 :::alice
-They must share `via` because both atom occurrences use it.
+`b`. It was needed to connect `r` and `s`, but it occurs neither in the head nor
+in the remaining atom. The raw intermediate has `{a,b,c}`, although only `a`
+and `c` still lead outside it.
 :::
 
 :::ada
-The head retains `from` and `to`, so mark those vertices with double rings.
-
-![The two_hop variable graph: two road edges share via, and from and to are marked as output.](assets/04-two-hop-hypergraph.svg "The two_hop variable graph.")
-
-Every atom here has two variables, so this is still an ordinary graph. Apply the
-same construction to `eligible`. Which edges meet?
-:::alice
-`D` and `S` meet at `depot`; `S` and `N` meet at `item`; `D` and `N` do not
-meet.
-
-![The eligible variable graph: three binary atom edges form a path from driver to job.](assets/04-eligible-hypergraph.svg "The eligible variable graph.")
-:::
-
-:::ada
-What can this picture tell us about the three possible first pairs, and what
-remains invisible without data?
-:::alice
-It recovers which first pairs share a variable and which pair is Cartesian. It
-does not recover the join-output sizes `4, 8` or `16, 8`; those depended on the
-input rows and their repeated values.
-:::
-
-:::ada
-Now change one feature of a path. Begin with
+A cycle changes the role of the last edge. Begin with
 
 ```text
 edge(a, b),
 edge(b, c).
 ```
 
-Compare two possible third occurrences:
-
-```text
-edge(c, d)
-edge(c, a)
-```
-
-Which one adds a fresh vertex?
+Compare adding `edge(c,d)` with adding `edge(c,a)`. Which one adds a fresh
+vertex?
 :::alice
-`edge(c, d)` adds `d`. In `edge(c, a)`, both variables already occur in the
-path.
+`edge(c,d)` adds `d`. In `edge(c,a)`, both variables already occur in the path.
 :::
 
 :::ada
@@ -99,18 +148,97 @@ on_triangle(a) :-
     edge(c, a).
 ```
 
-what can the third occurrence do after the first two have bound `a`, `b`, and
-`c`?
+what can the third occurrence do after the first two have introduced `a`, `b`,
+and `c`?
 :::alice
-It introduces no variable. It can only check whether the already-bound values
-for `c` and `a` satisfy `edge(c,a)`.
+It introduces no variable. It only checks whether the existing values of `c`
+and `a` satisfy `edge(c,a)`.
 
-![The on_triangle variable graph after adding edge(c,a).](assets/04-triangle-hypergraph.svg "The on_triangle variable graph.")
+![The cyclic on_triangle variable graph.](assets/04-triangle-hypergraph.svg "The cyclic on_triangle variable graph.")
+
+A ternary atom could also be drawn as a triangle of pairwise lines, but I am not
+sure that picture would mean the same thing.
 :::
 
 :::ada
-The next query contains an occurrence that an ordinary two-endpoint edge cannot
-represent:
+Test it on this four-row ternary relation:
+
+```text
+leg(from, hub, carrier)
+(A, X, p)
+(A, Y, q)
+(B, X, q)
+(B, Y, p)
+```
+
+Project `leg` onto each pair of columns.
+:::alice
+Each projection contains every possible pair for its two columns:
+
+```text
+from_hub       hub_carrier     from_carrier
+(A, X)         (X, p)          (A, p)
+(A, Y)         (X, q)          (A, q)
+(B, X)         (Y, p)          (B, p)
+(B, Y)         (Y, q)          (B, q)
+```
+:::
+
+:::ada
+Would the triple `(A,X,q)` pass all three pairwise checks?
+:::alice
+Yes. `(A,X)`, `(X,q)`, and `(A,q)` all occur in the pairwise projections. But
+`(A,X,q)` does not occur in `leg`.
+:::
+
+:::ada
+How many triples does the join of the three pairwise projections produce?
+:::alice
+All \(2\cdot2\cdot2=8\) possible triples. The original ternary relation had
+four. Splitting one ternary constraint into three binary constraints introduced
+four spurious tuples.
+
+![One ternary hyperedge preserves a different constraint from three pairwise edges.](assets/04-one-edge-vs-three.svg "One ternary atom compared with three binary atoms.")
+:::
+
+:::ada
+Then what must one connection in the query picture preserve?
+:::alice
+One body-atom occurrence, including all variables constrained together by one
+tuple. A ternary atom needs one three-vertex connection, not three independent
+binary edges.
+:::
+
+:::definition Query hypergraph (book construction adapted to one CQ)
+For the constant-free body occurrences \(B_1,\ldots,B_n\) used here, a
+**query hypergraph** has
+
+$$
+V=\bigcup_{i=1}^{n}\operatorname{vars}(B_i)
+$$
+
+as vertices and the indexed, predicate-labeled family
+
+$$
+e_i=\operatorname{vars}(B_i)
+$$
+
+as hyperedges. Each hyperedge preserves the variables jointly constrained by
+one atom occurrence. When every hyperedge has two vertices, the query
+hypergraph is the binary variable graph. Ground atoms and repeated positions
+require additional annotations and are deferred.
+:::
+
+:::reading
+**Book construction adapted to one CQ.** Abiteboul, Hull, and Vianu,
+*Foundations of Databases*, Chapter 6, §6.4, pp. 130–131, defines a schema
+hypergraph with attributes as vertices and relation schemas as hyperedges.
+Replacing schema attributes by CQ variables and relation schemas by indexed atom
+occurrences is the course adaptation above.
+:::
+
+:::ada
+Build the hypergraph of
 
 ```text
 trip(from, to) :-
@@ -121,160 +249,234 @@ trip(from, to) :-
     open(to, day).
 ```
 
-Call the occurrences `L1`, `P`, `L2`, `O1`, and `O2`. Why can `L1` not be one
-ordinary edge without losing or splitting information?
+Call the occurrences \(L_1,P,L_2,O_1,O_2\). Begin with \(L_1\). Which vertices
+does its hyperedge contain?
 :::alice
-`L1` contains three variables: `from`, `hub`, and `carrier`. An ordinary edge
-has only two endpoints. Splitting it would also lose the fact that one atom
-occurrence contains all three variables together.
+$$
+L_1=\{from,hub,carrier\}.
+$$
+
+One hyperedge contains all three vertices.
 :::
 
-:::definition Query hypergraph (course adaptation)
-An ordinary edge generalizes to a **hyperedge**, one region that may contain any
-number of variable vertices. For a conjunctive query with body atoms \(B_1,\ldots,B_n\), its query
-hypergraph has the body variables as vertices and one labeled hyperedge
-
+:::ada
+Add \(P\). Where does it meet \(L_1\), and which vertex is new?
+:::alice
 $$
-e_i=\operatorname{vars}(B_i)
+P=\{carrier,partner\}.
 $$
 
-for each body-atom occurrence. Labels keep two occurrences distinct even when
-they use the same relation name or contain the same variables. Head variables
-are marked as the output interface.
+It meets \(L_1\) at `carrier` and adds `partner`.
+:::
+
+:::ada
+We need names for those two roles. For a chosen set \(C\), collect every
+variable already introduced. For an unchosen candidate \(B\), separate the
+variables it shares with \(C\) from the variables it adds.
+:::alice
+For \(C=\{L_1\}\) and \(B=P\), the already-introduced variables are
+`{from,hub,carrier}`. The shared part is `{carrier}`, and the fresh part is
+`{partner}`.
+:::
+
+:::definition Introduced set, frontier, and fresh variables (course terms)
+For a chosen set \(C\) of atom occurrences, its **introduced set** is
+
+$$
+V_C=\bigcup_{A\in C}\operatorname{vars}(A).
+$$
+
+For an unchosen candidate \(B\), its **frontier** with \(C\) and its **fresh
+variables** are
+
+$$
+\operatorname{frontier}(B,C)=
+\operatorname{vars}(B)\cap V_C,
+$$
+
+$$
+\operatorname{fresh}(B,C)=
+\operatorname{vars}(B)\setminus V_C.
+$$
+
+Without intermediate projections, \(V_C\) is the schema of the join of the
+chosen atom relations. Adding \(B\) increases raw logical arity by
+\(|\operatorname{fresh}(B,C)|\).
 :::
 
 :::reading
-**Book definition and course adaptation.** Abiteboul, Hull, and Vianu,
-[*Foundations of Databases*, Chapter 6](http://webdam.inria.fr/Alice/pdfs/Chapter-6.pdf),
-§6.4, pp. 130–131, defines a schema hypergraph with attributes as vertices and
-relation schemas as hyperedges. Applying that construction to each labeled CQ
-atom's variable schema gives the query hypergraph used here. Occurrence labels
-and head markings are course additions. Section 6.1, pp. 112–114, gives the
-related sip graph based on atom overlap.
-:::
-
-:::definition Drawing a query hypergraph (course procedure)
-1. Label every body-atom occurrence.
-2. Create one vertex for every body variable.
-3. For each occurrence, draw one labeled hyperedge around exactly its variables.
-4. Mark the variables that occur in the query head.
-5. Check both directions: every atom variable lies in its edge, and every edge
-   corresponds to exactly one atom occurrence.
-
-A constant may annotate an occurrence, but it is not a variable vertex.
+**Course terminology; book basis.** Abiteboul, Hull, and Vianu,
+*Foundations of Databases*, Chapter 6, §6.1, pp. 112–114, defines atom-as-vertex
+sip graphs and sip strategies based on shared variables. **Introduced set**,
+**frontier**, and **fresh variables** are the course's variable-side rendering
+of that incidence information. The raw-schema equation follows from the natural
+join output-sort definition in Chapter 4, §4.4, pp. 57–58.
 :::
 
 :::ada
-Build `trip` one occurrence at a time. Begin with `L1`. Which vertices does its
-hyperedge contain?
+Add \(L_2=\{hub,to,partner\}\). What are its frontier and fresh variables?
 :::alice
-
-```text
-L1 = {from, hub, carrier}.
-```
+Its frontier is `{hub,partner}`. Its only fresh variable is `to`, so the raw
+schema grows from four columns to five.
 :::
 
 :::ada
-Add `P`. Where does it meet `L1`, and which vertex is new?
+Add \(O_1=\{from,day\}\). What changes?
 :::alice
-
-```text
-P = {carrier, partner}.
-```
-
-It meets `L1` at `carrier` and adds `partner`.
+Its frontier is `{from}` and `day` is fresh. The raw schema grows from five
+columns to six.
 :::
 
 :::ada
-Add `L2`. Which variables are already present, and which is new?
+Finally add \(O_2=\{to,day\}\). What changes now?
 :::alice
+Both variables are already introduced, so the frontier is `{to,day}` and the
+fresh set is empty. \(O_2\) checks existing values without increasing raw
+arity.
 
-```text
-L2 = {hub, to, partner}.
-```
+The unprojected prefix widths for \(L_1,P,L_2,O_1,O_2\) are therefore
+`3, 4, 5, 6, 6`.
 
-It reuses `hub` from `L1` and `partner` from `P`; only `to` is new.
+![The trip query hypergraph with one edge per body occurrence.](assets/04-trip-hypergraph.svg "The trip query hypergraph.")
 :::
 
 :::ada
-Add `O1`. Which vertex is already present, and which is new?
+The introduced set only grows. Return to the path prefix `r(a,b), s(b,c)`. Does
+“introduced” mean that every variable must still be carried?
 :::alice
-
-```text
-O1 = {from, day}.
-```
-
-`from` is already present; `day` is new.
+No. Its introduced set is `{a,b,c}`, but `b` has no remaining use. The picture
+needs a second set for the variables that still touch the head or an unchosen
+atom.
 :::
 
 :::ada
-Add `O2`. How does it attach to both the earlier query and `O1`?
+Let \(H\) be the head variables. For chosen atoms \(C\), let
+\(V_{\overline C}\) contain the variables in all unchosen atoms. Which variables
+must the chosen part still expose?
 :::alice
-
-```text
-O2 = {to, day}.
-```
-
-It attaches to the earlier query through `to` and to `O1` through `day`.
-
-![The trip query hypergraph, built from five labeled atom occurrences.](assets/04-trip-hypergraph.svg "The trip query hypergraph.")
-:::
-
-:::ada
-Begin with only `L1` chosen. Which variables are now bound?
-:::alice
-The bound variables are `{from, hub, carrier}`.
-:::
-
-:::ada
-Which unchosen occurrences share at least one of those variables?
-:::alice
-`P` shares `carrier`, `L2` shares `hub`, and `O1` shares `from`. `O2` shares no
-bound variable yet.
-:::
-
-:::definition Bound variables and frontier (course definitions)
-Planning will update the chosen variables and available neighboring occurrences
-repeatedly. For chosen hyperedges \(C\), define
+The variables already introduced that also occur in \(H\) or
+\(V_{\overline C}\). For the path prefix,
 
 $$
-\operatorname{bound}(C)=\bigcup_{e\in C}e,
-\qquad
-\operatorname{frontier}(C)=
-\{e\notin C\mid e\cap\operatorname{bound}(C)\neq\varnothing\}.
+V_C=\{a,b,c\},\qquad H\cup V_{\overline C}=\{a,c,d\},
 $$
 
-The frontier contains the unchosen atom occurrences sharing a variable with the
-chosen part of the query. **Bound** and **frontier** are course terms attached
-to the query-hypergraph adaptation above.
+so it must expose `{a,c}`. The variable `b` is internal.
+:::
+
+:::definition Required boundary of a chosen atom set (course construction)
+For chosen occurrences \(C\), let
+
+$$
+V_{\overline C}=
+\bigcup_{A\notin C}\operatorname{vars}(A)
+$$
+
+contain the variables of the outside atoms, and let \(H\) be the head-variable
+set. The **required boundary** is
+
+$$
+K_C=V_C\cap(H\cup V_{\overline C}).
+$$
+
+Variables in \(K_C\) are already available and still touch the query head or an
+atom outside \(C\). Variables in \(V_C\setminus K_C\) are internal to the
+chosen part. This definition identifies a structural boundary; it does not yet
+assert an algebraic projection rule.
 :::
 
 :::reading
-**Course definitions; book basis.** Abiteboul, Hull, and Vianu,
-[*Foundations of Databases*, Chapter 6](http://webdam.inria.fr/Alice/pdfs/Chapter-6.pdf),
-§6.1, pp. 112–114, supplies the related atom-overlap sip graph. The chosen-set
-union and the name **frontier** are course constructions used for the planning
-sequence here.
+**Course construction; book basis.** Abiteboul, Hull, and Vianu,
+*Foundations of Databases*, Chapter 6, §6.1, Example 6.1.3, p. 114, observes
+that variables absent from the answer and subsequent joins can be forgotten.
+The proof of Corollary 6.4.6 on p. 134 retains output attributes from a subtree
+and the attributes connecting it to its parent. The required-boundary formula is
+the course's general structural formulation, not a named definition in the
+book.
 :::
 
 :::ada
-If `P` is added to `L1`, what remains on the frontier?
+Apply the boundary formula after choosing \(D\) and \(S\) in `eligible`.
 :::alice
-The bound set gains `partner`. `L2` remains on the frontier through `hub` and
-`partner`, and `O1` remains through `from`. `O2` still shares no bound variable,
-so the frontier is `{L2, O1}`.
+The introduced set is `{driver,depot,item}`. The head needs `driver`, and the
+outside atom \(N\) needs `item`. Thus
+
+$$
+K_{\{D,S\}}=\{driver,item\}.
+$$
+
+`depot` is internal.
 :::
 
 :::ada
-Has the hypergraph chosen between `L2` and `O1`?
+Now apply it after choosing `road(from,hub)` and `rail(hub,to)` in the star.
 :::alice
-No. It only exposes both shared-variable extensions and the variable supporting
-each one.
+The introduced set is `{from,hub,to}`. The head needs `from` and `to`, while
+the unchosen `open` and `staffed` atoms need `hub`. The required boundary is the
+whole introduced set; nothing is internal yet.
 :::
 
 :::ada
-Can it predict which choice will carry fewer tuples?
+How are a fresh variable and an internal variable different?
+:::alice
+Freshness is measured before adding a candidate: a fresh variable is new to the
+chosen part. Internality is measured after choosing a part: an internal variable
+has no remaining connection to the head or outside atoms.
+
+A variable can be fresh when introduced and become internal later.
+:::
+
+:::ada
+Has the hypergraph chosen a binary expression tree?
+:::alice
+No. It exposes shared-variable extensions and structural boundaries. A planning
+policy must still choose among them.
+:::
+
+:::ada
+Can it predict which choice will produce fewer rows?
 :::alice
 No. It contains no input rows, value frequencies, cardinality estimates, or
-planning policy.
+cost model.
+:::
+
+:::notice Three different structures
+A **binary join-expression tree** has algebra operators as internal nodes. A
+**query hypergraph** has variables as vertices and atom occurrences as
+hyperedges. The book's later **join tree of a schema** has relation schemas as
+nodes and satisfies a running-intersection path condition. These are different
+objects; this course reserves *join tree* for the book's schema construction.
+:::
+
+:::reading
+**Book distinction.** Abiteboul, Hull, and Vianu, *Foundations of Databases*,
+Chapter 6, §6.4, p. 129, defines a **join tree of a schema** as an undirected
+tree whose nodes are relation schemas, whose edges are labeled by endpoint-
+schema intersections, and whose paths preserve every attribute shared by their
+endpoint schemas. It is not the binary algebra tree or course-adapted query
+hypergraph used above.
+:::
+
+:::recap The picture and its boundary
+A binary variable graph records one vertex per variable and one edge per binary
+atom occurrence. It exposes shared-variable joins, Cartesian choices, and raw
+schema growth, but it contains no data from which to derive row cardinalities.
+
+A higher-arity atom is one joint constraint. The four-row `leg` relation and its
+three pairwise projections show why: their join contains eight triples, four of
+which never occurred in `leg`. A query hypergraph therefore preserves one
+indexed hyperedge per atom occurrence.
+
+For chosen atoms \(C\), \(V_C\) is the raw unprojected schema. A candidate
+atom's frontier is already present; its fresh variables increase raw logical
+arity. The required boundary
+
+$$
+K_C=V_C\cap(H\cup V_{\overline C})
+$$
+
+contains the introduced variables still needed by the head or outside atoms.
+In a path, an old connector can become internal after the plan passes it. In a
+star, the centre remains on the boundary while an unchosen spoke still uses it.
+Conversation 2.3 proves when an internal variable may be projected away.
 :::
