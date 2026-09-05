@@ -317,6 +317,12 @@ Python-to-Rust example.
   explanation.
 - Put exact tuples, bindings, probes, intermediates, or deltas on the page.
 - Ask for a prediction before naming the abstraction.
+- Vary one feature between nearby examples so that each changed answer exposes
+  a specific distinction. Let the learner trace a failed prediction before
+  asking for a more general rule.
+- Before formalizing a construction, have the learner construct and justify
+  several cases, including cases where a plausible shortcut fails. Then test
+  transfer on a new combination of the established cases.
 - Use `:::definition` for stipulated vocabulary and semantics.
 - Introduce a `:::law` only after examples and a counterexample support it.
 - Use one terminal `:::recap` to compress what the dialogue earned; introduce no

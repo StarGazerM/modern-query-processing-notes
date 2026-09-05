@@ -1,6 +1,6 @@
 ---
 title: The Order Logic Did Not Choose
-subtitle: Conversation 2.1 — From a Flat Multiway Join to Binary Trees
+subtitle: Conversation 2.1 — From Equivalent Plans to Intermediate Work
 author: Modern Query Processing
 date: Fall 2026
 layout: dialogue
@@ -44,7 +44,7 @@ finally the jobs needing that item. Lin and Moe reach `job1` and `job2` through
 :::ada
 How would you organize the reasoning starting from the jobs?
 :::alice
-For each job, find its required item, then the depot stocking that item,
+Yes. For each job, find its required item, then the depot stocking that item,
 and finally the drivers based at that depot. The reasoning runs in the opposite
 direction but produces the same eight driver–job pairs.
 :::
@@ -70,7 +70,7 @@ eligible(driver, job) :-
 :::
 
 :::ada
-Let \(D,S,N\) be the local atom relations for `based_at`, `stocks`, and
+Let \(D,S,N\) be the local atom expressions for `based_at`, `stocks`, and
 `needs`. Their schemas are
 
 ```text
@@ -79,122 +79,52 @@ S = {depot, item}
 N = {job, item}.
 ```
 
-Before choosing either direction, write the complete body meaning and the query
-result.
+Throughout this conversation, each displayed body-join tree is followed by the
+query's common head projection. We compare the body-join trees because that
+projection is identical for both orders.
+
+Translate the driver-first reasoning into relational algebra. How many tuples
+does each join produce on this instance?
 :::alice
-The body meaning is the flat join
-
-$$
-D\bowtie S\bowtie N.
-$$
-
-The query result is
-
-$$
-\pi_{driver,job}(D\bowtie S\bowtie N).
-$$
-
-The flat join says that all three atom relations must agree. It does not say
-which pair is joined first.
-:::
-
-:::definition Flat project-join query and binary interpretation
-A **flat project-join query** has the form
-
-$$
-\pi_H(E_1\bowtie\cdots\bowtie E_n),
-$$
-
-where \(H\) is the output schema and each \(E_i\) is an atom relation. The
-polyadic join denotes one relation without choosing a binary evaluation order.
-A **binary join-expression tree** is one parenthesized interpretation of that
-join. Associativity and commutativity license multiple equivalent trees.
-:::
-
-:::reading
-**Book form and course application.** Abiteboul, Hull, and Vianu,
-*Foundations of Databases*, Chapter 4, §4.4, p. 58, states that natural join is
-associative and commutative and may be viewed as a polyadic operator. Chapter
-6, §6.4, p. 126, studies flat project-join queries of the form
-\(\pi_X(R_1\bowtie\cdots\bowtie R_n)\). Applying that form to renamed CQ atom
-relations is the course application above.
-:::
-
-:::ada
-Now translate the driver-first reasoning. Begin with \(D\bowtie S\). What rows
-and columns does that first join produce?
-:::alice
-It produces four rows:
-
-```text
-driver  depot  item
-Lin     north  bolt
-Moe     north  bolt
-Nia     south  nut
-Omar    south  nut
-```
-
-The two input schemas share `depot`, so the result has the three-column schema
-`{driver,depot,item}` rather than four columns. The complete body tree is
+The expression is
 
 $$
 (D\bowtie S)\bowtie N.
 $$
 
-The second join shares `item`, adds `job`, and produces eight rows over four
-columns. The join-output row counts are `4, 8`.
-:::
-
-:::law Schema and logical arity of natural join
-If relation instances over schemas \(R\) and \(S\) are naturally joined, the
-result has schema \(R\cup S\). Therefore its number of columns is
-
-$$
-|R\cup S|=|R|+|S|-|R\cap S|.
-$$
-
-In this course, \(|R|\) is the relation's **logical arity**: its number of named
-columns. It is not the tuple's byte width in a physical representation.
-:::
-
-:::reading
-**Book law; course terminology.** Abiteboul, Hull, and Vianu, *Foundations of
-Databases*, Chapter 4, §4.4, pp. 57–58, defines natural join with output sort
-\(R\cup S\) and identifies Cartesian product as the disjoint-sort case.
-**Logical arity** is the course name used here for the number of attributes in
-that sort.
+The first join produces four `(driver, depot, item)` tuples: one stocked item
+for each driver. Joining `needs` produces eight complete valuations. Its
+join-output sizes are `4, 8`.
 :::
 
 :::ada
-Now follow the job-first reasoning. What does \(S\bowtie N\) produce before it
-meets \(D\)?
+And the job-first reasoning?
 :::alice
-It produces four `(depot, item, job)` rows. The schemas share `item`, so it also
-has three columns. The complete tree is
+It is
 
 $$
 D\bowtie(S\bowtie N).
 $$
 
-The second join shares `depot`, adds `driver`, and produces eight rows over four
-columns. Its join-output row counts are again `4, 8`.
+The first join produces four `(depot, item, job)` tuples: one supplying depot
+for each job. Joining `based_at` produces the same eight complete valuations.
+Its join-output sizes are also `4, 8`.
 :::
 
 :::ada
 Before translating the third method, which shared variable could the natural
-join of \(D\) and \(N\) require agreement on?
+join of `D` and `N` require agreement on?
 :::alice
-None. \(D\) contains `{driver,depot}`, while \(N\) contains `{job,item}`. The
-`stocks` atom \(S\) is the only atom connecting `depot` to `item`.
+None. `D` contains `{driver, depot}`, while `N` contains `{job, item}`. The
+`stocks` atom `S` is the only atom connecting `depot` to `item`.
 :::
 
 :::ada
-With no shared variable, what does \(D\bowtie N\) produce? Include both rows
-and columns.
+With no shared variable, what does the natural join of `D` and `N` produce on
+this instance?
 :::alice
-It is the Cartesian product \(D\times N\). Every one of the four \(D\) rows
-combines with every one of the four \(N\) rows, so it has sixteen rows. The two
-schemas are disjoint, so their union has four columns.
+It produces their Cartesian product: every one of the four `D` tuples combines
+with every one of the four `N` tuples, giving sixteen tuples.
 :::
 
 :::ada
@@ -207,12 +137,11 @@ $$
 $$
 
 The final join removes the unsupported pairs and leaves the same eight complete
-valuations. Since both columns of \(S\) are already present, the result remains
-four columns wide. Its join-output row counts are `16, 8`.
+valuations. Its join-output sizes are `16, 8`.
 :::
 
 :::ada
-What information did those extra product rows lack?
+What information did those extra product tuples lack?
 :::alice
 They had a driver, that driver's depot, a job, and that job's item, but no fact
 yet established that the depot stocked the item. The product carried all
@@ -222,86 +151,20 @@ sixteen possibilities until `stocks` could reject eight of them.
 :::ada
 The output of a nonfinal expression is called an **intermediate relation**.
 After the common head projection, all three body-join trees return the same
-eight answers. Why should we care that one tree first produced sixteen rows?
+eight answers. Why should we care that this one first produced sixteen tuples?
 :::alice
 Because the final join must receive and check all sixteen candidates against
 `stocks`. Eight were constructed and carried forward only to be rejected.
 
 In \((D\bowtie S)\bowtie N\), `stocks` is checked earlier. Only four supported
-`(driver,depot,item)` rows reach the final join, which extends them into eight
-complete valuations.
-:::
-
-:::definition Intermediate relation
-The relation denoted by a nonfinal expression-tree node is an **intermediate
-relation**. Its existence in the logical expression does not require a physical
-implementation to materialize it.
+`(driver, depot, item)` tuples reach the final join, which extends them into
+eight complete valuations.
 :::
 
 :::reading
 **Book terminology.** Abiteboul, Hull, and Vianu, *Foundations of Databases*,
 Chapter 6, §6.1, pp. 109–110, treats the outputs of internal expression-tree
 nodes as intermediate results or intermediate relations.
-:::
-
-:::ada
-Three atoms let us change the first pair. Four atoms also let us change the
-shape of the binary tree. For
-
-```text
-hub_visit(from, to) :-
-    road(from, hub),
-    open(hub, day),
-    rail(hub, to),
-    staffed(hub, worker).
-```
-
-write \(R,O,T,F\) for the atom relations. Compare
-
-$$
-(((R\bowtie O)\bowtie T)\bowtie F)
-$$
-
-with
-
-$$
-(R\bowtie O)\bowtie(T\bowtie F).
-$$
-
-How are the two tree shapes different?
-:::alice
-The first repeatedly joins one accumulated result with one untouched atom. It
-is left-deep. The second builds \(R\bowtie O\) and \(T\bowtie F\) separately,
-then joins those two intermediate relations. It is bushy.
-
-Those names describe shape only. They do not tell us which tree is cheaper.
-:::
-
-:::definition Left-deep and bushy binary join expressions
-A binary join-expression tree is **left-deep** when every right child of a join
-node is an atom-expression leaf. It is **bushy** when some join node has two
-non-leaf children. These terms describe operator-tree shape; they do not state
-which tree is cheaper.
-:::
-
-:::reading
-**Course terminology; book basis.** Abiteboul, Hull, and Vianu,
-*Foundations of Databases*, Chapter 6, §6.1, pp. 112–114, discusses System R's
-left-to-right join orderings. Exercise 6.5, p. 137, asks for evaluation by an
-arbitrary binary tree. **Left-deep** and **bushy** are the course terms used to
-contrast those shapes.
-:::
-
-:::ada
-Tree shape alone does not rank plans, but our `eligible` example exposed one
-measurable difference: the rows produced at internal combine nodes. How could we
-turn that observation into a deliberately limited comparison?
-:::alice
-Sum the row cardinalities emitted by the natural-join and Cartesian-product
-nodes. Do not include relation leaves or the final head projection.
-
-That would compare visible logical row volume without pretending to estimate
-physical runtime.
 :::
 
 :::definition Logical row-volume proxy (course approximation)
@@ -315,16 +178,16 @@ W_0(P,I)=
 |[\![M]\!]_I|.
 $$
 
-This proxy counts rows produced by binary combine nodes. It excludes relation
-leaves, projections, logical arity, byte width, access paths, and physical
-operator costs.
+This proxy counts tuples produced by the binary combine nodes. It does not count
+relation leaves or the common head projection.
 :::
 
 :::reading
 **Course approximation; book basis.** Abiteboul, Hull, and Vianu,
-*Foundations of Databases*, Chapter 6, §6.1, pp. 109–111, compares plans using
-intermediate sizes and other physical factors. The formula \(W_0\) is a course
-proxy derived from that motivation; it is not a formula stated in the book.
+*Foundations of Databases*, Chapter 6, §6.1, pp. 112–114, uses expected
+intermediate sizes to motivate join-order heuristics. The formula \(W_0\) is a
+course proxy derived from that motivation; it is not a formula stated in the
+book.
 :::
 
 :::ada
@@ -341,47 +204,15 @@ while the Cartesian-first plan gives
 $$
 W_0=16+8=24.
 $$
-
-The proxy sees the extra rows. It does not see that the first connected
-intermediate has three columns while the Cartesian one has four.
 :::
 
 :::ada
-Abiteboul, Hull, and Vianu also compare intermediate tuples by byte width,
-tuples per page, and pages occupied. Explain what additional information is
-needed to move from a count of three or four logical columns to those physical
-quantities.
+Return to `eligible`, but change only its input instance. Suppose `D`, `S`, and
+`N` each contain three tuples. Both possible first joins share a variable and
+add an attribute. Must their first outputs therefore have the same cardinality?
 :::alice
-Logical arity counts named columns. Physical tuple width also depends on types,
-encodings, and layout. Page use depends on that width, row cardinality, and the
-operator's representation.
-
-Thus row cardinality, logical arity, and physical width are three different
-measurements. \(W_0\) records only the first.
-:::
-
-:::notice Logical arity is not physical tuple width
-Logical arity counts named columns. Physical width depends on types, encodings,
-and layout. Page traffic also depends on how operators are implemented. Row
-count and logical arity expose useful structure, but neither is a runtime cost
-model.
-:::
-
-:::reading
-**Book cost dimensions.** Abiteboul, Hull, and Vianu, *Foundations of
-Databases*, Chapter 6, §6.1, pp. 109–110, compares equivalent query trees using
-tuple counts, tuple width, tuples per page, and pages occupied by intermediate
-relations.
-:::
-
-:::ada
-Return to `eligible`, but change only its input instance. Suppose \(D\), \(S\),
-and \(N\) each contain three rows. Both possible first joins share a variable
-and add one column. Must their first outputs therefore have the same row
-cardinality?
-:::alice
-Not from that information alone. Equal input cardinalities and equal output
-arities do not say how often the shared values match. I need to see the rows.
+I would expect so. With three tuples on each side, perhaps each first join also
+produces three tuples.
 :::
 
 :::ada
@@ -435,55 +266,99 @@ at each shared value, not only on the input relation sizes.
 :::
 
 :::ada
-Compare the two `eligible` instances. What could we determine from the query
-schemas alone, and what required the relation rows?
-:::alice
-The schemas determine which joins share variables, whether a first join is
-Cartesian, and the raw columns produced by each join. The relation rows
-determine how many compatible pairs exist.
+The ordinary first joins above both added attributes. Now change the query;
+`approved` uses only a variable already present in `handles`:
 
-That is why the same two first-join schemas produced cardinalities `4, 4` on one
-instance and `5, 3` on the other.
+```text
+approved_task(person, task) :-
+    member(person, team),
+    handles(team, task),
+    approved(task).
+```
+
+Its instance is
+
+```text
+member                 handles              approved
+(Ana, red)              (red, build)         (build)
+(Ben, red)              (red, test)          (ship)
+(Cy, blue)              (blue, ship)
+```
+
+Which `handles` tuple has no matching `approved` fact?
+:::alice
+`(red, test)`. The `approved` relation contains `build` and `ship`, but not
+`test`.
 :::
 
 :::ada
-The next planning tool should preserve exactly that structural information. It
-should show which variables occur together in each atom, but it should not claim
-to know cardinalities or choose a binary tree. Sketch `eligible` using only
-that information.
+If `member` joins `handles` before that tuple is removed, how many tuples reach
+the final `approved` join?
 :::alice
-I would place `driver`, `depot`, `item`, and `job` as points, then draw one
-connection for each atom occurrence. The three binary atoms form a path:
-`driver`—`depot`—`item`—`job`.
+Five:
 
-That works for `eligible`. I do not yet know whether an ordinary two-ended edge
-can preserve one atom that constrains three variables at once.
+```text
+(Ana, red, build)
+(Ana, red, test)
+(Ben, red, build)
+(Ben, red, test)
+(Cy, blue, ship)
+```
+
+The unapproved `test` tuple has combined with both red-team members.
 :::
 
-:::recap The flat join and its binary shapes
-The flat expression
+:::ada
+Instead join `handles` with `approved` first. What reaches the `member` join?
+:::alice
+Only the two supported tuples:
+
+```text
+(red, build)
+(blue, ship)
+```
+:::
+
+:::ada
+After the common head projection, both body-join trees return `(Ana, build)`,
+`(Ben, build)`, and `(Cy, ship)`. Compare their logical row volumes.
+:::alice
+Joining `member` with `handles` first gives sizes `5, 3`, so \(W_0=8\).
+Joining `handles` with `approved` first gives sizes `2, 3`, so \(W_0=5\).
+The second plan removes `(red, test)` before it can expand into two tuples.
+:::
+
+:::definition Semijoin prefilter
+For a relation \(I\) over schema \(R\) and a relation \(J\), the semijoin
 
 $$
-\pi_{driver,job}(D\bowtie S\bowtie N)
+I\ltimes J=\pi_R(I\bowtie J)
 $$
 
-states the query meaning without choosing an order. A binary join-expression
-tree supplies one parenthesized interpretation. With four or more atoms, such a
-tree may be left-deep or bushy.
+keeps the schema of \(I\) and removes its tuples that have no match in \(J\).
+Because `approved(task)` adds no variable to `handles(team, task)`, the natural
+join `handles` \(\bowtie\) `approved` already has the schema of `handles` and has
+this semijoin filtering effect. Here it acts as a prefilter before `handles`
+meets `member`.
+:::
 
-Natural join produces the union of its input schemas. Two two-column inputs
-therefore produce three columns when they share one name and four when they are
-disjoint. This logical arity is separate from row cardinality and from physical
-tuple width.
+:::reading
+**Book definition and course application.** Abiteboul, Hull, and Vianu,
+[*Foundations of Databases*, Chapter 6](http://webdam.inria.fr/Alice/pdfs/Chapter-6.pdf),
+§6.4, p. 128, defines semijoin as projection of a join back to the left relation's
+schema and motivates it by removing tuples that cannot contribute to the full
+join. **Prefilter** describes its role in this example.
+:::
 
-On the first `eligible` instance, the two connected plans have join-output row
-counts `4, 8`, while the Cartesian-first plan has `16, 8`. Their logical row
-volumes are \(12\), \(12\), and \(24\). On the second instance, equal-size
-inputs and equal three-column outputs still produce first-join cardinalities
-five and three because shared values occur with different frequencies.
 
-The query text exposes schema overlap and raw arity. Data determines join
-cardinality. \(W_0\) counts only rows emitted by combine nodes; it is not a
-physical cost model. Conversation 2.2 develops the structural picture suggested
-by those limits.
+:::recap Three join-order effects
+After the common head projection, each pair of body-join trees below returns the
+same final relation. The order changes which complete valuations are produced
+before that projection.
+
+| First-step situation | Comparison on the observed instance | Effect of the order |
+|---|---|---|
+| No shared variable | `D` joined with `S`: `4, 8`, \(W_0=12\); `D` times `N`: `16, 8`, \(W_0=24\) | With no agreement to check, the first step creates a Cartesian intermediate. |
+| Shared variables and both joins add attributes | `D` joined with `S`: `5, 5`, \(W_0=10\); `S` joined with `N`: `3, 5`, \(W_0=8\) | Equal input sizes can still produce different join cardinalities because shared values occur with different frequencies. |
+| Shared variable and the right side adds no attribute | `member` joined with `handles`: `5, 3`, \(W_0=8\); `handles` filtered by `approved`: `2, 3`, \(W_0=5\) | The semijoin prefilter removes `(red, test)` before it expands across two members. |
 :::

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 215" role="img" aria-labelledby="title desc">
+  <title id="title">Query hypergraph for self_loop</title>
+  <desc id="desc">One variable vertex x belongs to one singleton hyperedge labeled road(x,x). The repeated argument remains in the atom label.</desc>
+  <rect width="470" height="215" fill="#faf8f2"/>
+  <text x="235" y="37" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="18" font-weight="550" fill="#8054b6">road(x,x)</text>
+  <ellipse cx="235" cy="120" rx="90" ry="64" fill="#8054b6" fill-opacity="0.05" stroke="#8054b6" stroke-width="3"/>
+  <circle cx="235" cy="120" r="32" fill="#faf8f2" stroke="#292722" stroke-width="2.5"/>
+  <text x="235" y="126" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="18" font-weight="550" fill="#292722">x</text>
+</svg>

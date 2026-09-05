@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 330" role="img" aria-labelledby="title desc">
+  <title id="title">The other two candidate join trees for round_trip</title>
+  <desc id="desc">Putting E1 in the middle disconnects c. Putting E3 in the middle disconnects b. Neither candidate is a join tree.</desc>
+  <rect width="470" height="330" fill="#faf8f2"/>
+  <g font-family="ui-sans-serif,system-ui,sans-serif" text-anchor="middle" fill="#292722">
+    <text x="235" y="28" font-size="20" font-weight="600">Try E₁ in the middle</text>
+    <path d="M 82 80 H 388" stroke="#68635b" stroke-width="3" fill="none"/>
+    <rect x="17" y="48" width="130" height="64" rx="12" fill="#faf8f2" stroke="#27806c" stroke-width="2.5"/>
+    <rect x="170" y="48" width="130" height="64" rx="12" fill="#faf8f2" stroke="#8054b6" stroke-width="2.5"/>
+    <rect x="323" y="48" width="130" height="64" rx="12" fill="#faf8f2" stroke="#2765b0" stroke-width="2.5"/>
+    <g font-size="22" font-weight="700">
+      <text x="82" y="75" fill="#27806c">E₂</text>
+      <text x="235" y="75" fill="#8054b6">E₁</text>
+      <text x="388" y="75" fill="#2765b0">E₃</text>
+    </g>
+    <g font-size="20" font-weight="550">
+      <text x="82" y="101">b, <tspan fill="#ad4c3b" font-weight="750">c</tspan></text>
+      <text x="235" y="101">a, b</text>
+      <text x="388" y="101"><tspan fill="#ad4c3b" font-weight="750">c</tspan>, a</text>
+      <text x="235" y="143" fill="#ad4c3b">no c here</text>
+    </g>
+    <text x="235" y="193" font-size="20" font-weight="600">Try E₃ in the middle</text>
+    <path d="M 82 245 H 388" stroke="#68635b" stroke-width="3" fill="none"/>
+    <rect x="17" y="213" width="130" height="64" rx="12" fill="#faf8f2" stroke="#8054b6" stroke-width="2.5"/>
+    <rect x="170" y="213" width="130" height="64" rx="12" fill="#faf8f2" stroke="#2765b0" stroke-width="2.5"/>
+    <rect x="323" y="213" width="130" height="64" rx="12" fill="#faf8f2" stroke="#27806c" stroke-width="2.5"/>
+    <g font-size="22" font-weight="700">
+      <text x="82" y="240" fill="#8054b6">E₁</text>
+      <text x="235" y="240" fill="#2765b0">E₃</text>
+      <text x="388" y="240" fill="#27806c">E₂</text>
+    </g>
+    <g font-size="20" font-weight="550">
+      <text x="82" y="266">a, <tspan fill="#ad4c3b" font-weight="750">b</tspan></text>
+      <text x="235" y="266">c, a</text>
+      <text x="388" y="266"><tspan fill="#ad4c3b" font-weight="750">b</tspan>, c</text>
+      <text x="235" y="308" fill="#ad4c3b">no b here</text>
+    </g>
+  </g>
+</svg>

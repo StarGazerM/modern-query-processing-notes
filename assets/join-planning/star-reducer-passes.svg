@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 550" role="img" aria-labelledby="title desc">
+  <title id="title">Two semijoin passes on the star join tree rooted at E2</title>
+  <desc id="desc">In the first pass, E1 filters E2, then E3 filters E2. In the second pass, E2 filters E1, then E2 filters E3. Arrows point to the occurrence being filtered.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#68635b"/>
+    </marker>
+  </defs>
+  <rect width="470" height="550" fill="#faf8f2"/>
+  <g font-family="ui-sans-serif,system-ui,sans-serif" text-anchor="middle" fill="#292722">
+    <text x="235" y="29" font-size="21" font-weight="650">First pass · toward the root</text>
+    <path d="M 129 182 L 204 113" fill="none" stroke="#68635b" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <path d="M 341 182 L 266 113" fill="none" stroke="#68635b" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <g font-size="20" font-weight="650">
+      <text x="143" y="147">1</text><text x="327" y="147">2</text>
+    </g>
+    <rect x="161" y="48" width="148" height="64" rx="12" fill="#faf8f2" stroke="#27806c" stroke-width="2.5"/>
+    <rect x="27" y="183" width="148" height="64" rx="12" fill="#faf8f2" stroke="#8054b6" stroke-width="2.5"/>
+    <rect x="295" y="183" width="148" height="64" rx="12" fill="#faf8f2" stroke="#2765b0" stroke-width="2.5"/>
+    <g font-size="22" font-weight="700">
+      <text x="235" y="75" fill="#27806c">E₂ · root</text>
+      <text x="101" y="210" fill="#8054b6">E₁</text>
+      <text x="369" y="210" fill="#2765b0">E₃</text>
+    </g>
+    <g font-size="20" font-weight="550">
+      <text x="235" y="101">h, b</text><text x="101" y="236">h, a</text><text x="369" y="236">h, c</text>
+    </g>
+    <path d="M 30 275 H 440" stroke="#d8d3c9" stroke-width="1"/>
+    <text x="235" y="309" font-size="21" font-weight="650">Second pass · toward the leaves</text>
+    <path d="M 204 393 L 129 462" fill="none" stroke="#68635b" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <path d="M 266 393 L 341 462" fill="none" stroke="#68635b" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <g font-size="20" font-weight="650">
+      <text x="143" y="427">3</text><text x="327" y="427">4</text>
+    </g>
+    <rect x="161" y="328" width="148" height="64" rx="12" fill="#faf8f2" stroke="#27806c" stroke-width="2.5"/>
+    <rect x="27" y="463" width="148" height="64" rx="12" fill="#faf8f2" stroke="#8054b6" stroke-width="2.5"/>
+    <rect x="295" y="463" width="148" height="64" rx="12" fill="#faf8f2" stroke="#2765b0" stroke-width="2.5"/>
+    <g font-size="22" font-weight="700">
+      <text x="235" y="355" fill="#27806c">E₂ · root</text>
+      <text x="101" y="490" fill="#8054b6">E₁</text>
+      <text x="369" y="490" fill="#2765b0">E₃</text>
+    </g>
+    <g font-size="20" font-weight="550">
+      <text x="235" y="381">h, b</text><text x="101" y="516">h, a</text><text x="369" y="516">h, c</text>
+    </g>
+  </g>
+</svg>
