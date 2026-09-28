@@ -1,11 +1,25 @@
 ---
 title: Course Schedule
-subtitle: Rust first, then one query from meaning to recursive execution
+subtitle: Weekly lecture slides, meeting plans, and primary readings
 author: Modern Query Processing
 date: Fall 2026
 status: Work in progress
 layout: prose
 ---
+
+# Weekly slides
+
+Download the lecture slides as PDFs below. The meeting plan that follows links
+the companion notes, readings, and project checkpoints. Slides are added as the
+course develops; later meetings remain tentative.
+
+| Week | Lecture slides (PDF) |
+|---|---|
+| 1 · Aug. 31–Sep. 4 | [02 · The Rust We Need](slides/02-the-rust-we-need.pdf) |
+| 2 · Sep. 7–11 | [03 · Semantics of Conjunctive Queries](slides/03-semantics-of-cq.pdf) |
+| 3 · Sep. 14–18 | [05 · Relational Algebra](slides/05-relational-algebra.pdf) |
+| 4 · Sep. 21–25 | [06 · Relational Algebra: Selection and Projection](slides/06-relation-algebra-more.pdf); [07 · Physical Access: Indexes and Relation Layout](slides/07-physical-access.pdf) |
+| 5 · Sep. 28–Oct. 2 | [08 · Query Execution: Iterators, State, and Batches](slides/08-query-execution.pdf) |
 
 # Meeting-by-meeting plan and primary readings
 
@@ -29,10 +43,10 @@ are attached to the affected meeting.
 | Week | Center | Monday · 3:00–4:15 | Wednesday · 3:00–4:15 | Primary reading / due |
 |---|---|---|---|---|
 | 1 · Aug. 31–Sep. 4 | Rust for the course | **Rust lecture and guided lab:** use [A Little Rust, Side by Side](aside-a-little-rust-side-by-side.html) while working through [Rust Guide R.0.0](rust-00-the-tree-we-could-read-twice.html): values, ownership, borrowing, enums, structs, and iterators | [Rust Conversation R.1](rust-01-the-code-that-became-a-value.html): make written code a typed syntax value; separate macro expansion, compilation, and runtime | Rust Book [Ch. 4](https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html), [Ch. 6](https://doc.rust-lang.org/book/ch06-00-enums.html), and [§20.5](https://doc.rust-lang.org/book/ch20-05-macros.html) are references, not prerequisites |
-| 2 · Sep. 7–11 | CQ meaning | **No class · Labor Day** | [Lecture 1 slides](slides/01-modern-query-processing-lecture-1.pptx), [Conversation 1.1](01-a-little-database-a-few-questions.html), and [Conversation 1.2](02-the-relation-that-wasnt-stored.html): databases, rules, valuations, query images, and why we compile a query | Abiteboul, Hull, and Vianu, [Foundations of Databases](https://webdam.di.ens.fr/Alice/), §§3.1–3.3, 4.1–4.2 |
+| 2 · Sep. 7–11 | CQ meaning | **No class · Labor Day** | [Introductory slides (PPTX)](slides/01-modern-query-processing-lecture-1.pptx), [Conversation 1.1](01-a-little-database-a-few-questions.html), and [Conversation 1.2](02-the-relation-that-wasnt-stored.html): databases, rules, valuations, query images, and why we compile a query | Abiteboul, Hull, and Vianu, [Foundations of Databases](https://webdam.di.ens.fr/Alice/), §§3.1–3.3, 4.1–4.2 |
 | 3 · Sep. 14–18 | From CQs to logical join plans | [Conversation 1.3](03-the-plan-that-meant-the-same-thing.html), [Conversation 2.1](04-the-order-logic-did-not-choose.html), [Conversation 2.2](04-the-picture-that-did-not-choose.html), and [Conversation 2.3](04-the-variables-inside-the-picture.html): translate valuation semantics into SPJR, interpret a flat join as binary trees, compare intermediate rows and columns, and earn the query hypergraph | [Conversation 2.4](05-the-variables-the-plan-still-needed.html), [Conversation 2.5](06-the-order-the-compiler-chose.html), and **Rust conversation** [R.2](rust-02-the-arithmetic-that-ran-before-the-program.html): derive required schemas, build one deterministic join–project plan, then map written syntax into a derived AST | Abiteboul, Hull, and Vianu, [Foundations of Databases](https://webdam.di.ens.fr/Alice/), §§4.4, 6.1, 6.4; Garcia-Molina, Ullman, and Widom, [Database System Implementation](https://i.stanford.edu/~ullman/dbsi.html), selected §§6.2–6.4 |
-| 4 · Sep. 21–25 | Pull and push | Derive pull and push execution for one fixed logical plan; identify the state each model exposes | **Rust conversation and practicum 1:** [R.3](rust-03-the-program-left-behind.html), then run the fixed plan under both control models | Neumann, [Efficiently Compiling Efficient Query Plans for Modern Hardware](https://www.vldb.org/pvldb/vol4/p539-neumann.pdf), §§1, 3.1–3.2; **practicum 1** |
-| 5 · Sep. 28–Oct. 2 | Cardinality and join order | **Student-led paper forum:** compare left-deep orders and the intermediate work they create; derive the dynamic-programming search space | **Rust/project studio:** instrument two equivalent plans, check their answers, and explain the work-counter difference | Selinger et al., [Access Path Selection in a Relational Database Management System](https://research.ibm.com/publications/access-path-selection-in-a-relational-database-management-system), §5; **R1 due** |
+| 4 · Sep. 21–25 | Selection, projection, and physical access | Derive safe projection and early selection; compare equivalent relational-algebra plans and the intermediate rows and columns they retain | Compare scans, sorted arrays, hash indexes, and B+ trees; trace row IDs through row, column, and PAX layouts. **Rust conversation and practicum 1:** [R.3](rust-03-the-program-left-behind.html) | Foundations of Databases, §§4.4, 6.1; Database System Implementation, selected §§6.2–6.4; **practicum 1** |
+| 5 · Sep. 28–Oct. 2 | Query execution and join order | Trace iterator state, indexed nested-loop joins, hash joins, and batches; connect pull and push control to the same logical plan | **Student-led paper forum and Rust/project studio:** compare left-deep orders and their intermediate work; introduce dynamic-programming search, then instrument two equivalent plans and check their answers | Neumann, [Efficiently Compiling Efficient Query Plans for Modern Hardware](https://www.vldb.org/pvldb/vol4/p539-neumann.pdf), §§1, 3.1–3.2; Selinger et al., [Access Path Selection in a Relational Database Management System](https://research.ibm.com/publications/access-path-selection-in-a-relational-database-management-system), §5; **R1 due** |
 | 6 · Oct. 5–9 | AGM bounds | Derive a fractional edge cover and its output-size bound; distinguish output size from the work of a chosen binary plan | **Rust/project studio and practicum 2:** generate controlled relation sizes, measure intermediate work, and compare the trace with the bound | Atserias, Grohe, and Marx, [Size Bounds and Query Plans for Relational Joins](https://arxiv.org/abs/1711.03860), §§2–3.1; **practicum 2**. Fall Break is Friday and cancels neither meeting |
 | 7 · Oct. 12–16 | Yannakakis | **Student-led paper forum:** build a join tree and justify the bottom-up and top-down semijoin passes | **Rust/project studio:** inspect the join-tree analysis, trace both reduction passes, and check reduced-instance enumeration | Yannakakis, [Algorithms for Acyclic Database Schemes](https://dblp.org/rec/conf/vldb/Yannakakis81), §§2, 4 |
 | 8 · Oct. 19–23 | Worst-case-optimal joins | **Student-led paper forum:** contrast binary and variable-at-a-time execution; derive Generic Join under one variable order | **Rust/project studio:** trace trie cursors and Leapfrog intersection, then compare the counters with a binary plan | Veldhuizen, [Leapfrog Triejoin](https://www.openproceedings.org/2014/conf/icdt/Veldhuizen14.pdf), §§1, 3.1–3.5 |

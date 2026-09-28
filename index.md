@@ -12,6 +12,16 @@ right_speaker: Alice
 > How does a short declarative reasoning query become an efficient executable
 > program?
 
+# Weekly materials
+
+Find the lecture slides, companion notes, readings, and project checkpoints on
+the course schedule. PDF slides are available for Weeks 1–5, from Rust and CQ
+semantics through relational algebra, physical access, and query execution.
+
+:::cards
+[Lecture slides and weekly schedule](schedule.html#weekly-slides) | Download the PDFs for each week and follow the meeting plan.
+:::
+
 # Course at a glance
 
 | | |
@@ -36,10 +46,10 @@ relation does the query denote?
 
 ## 02 · Account for the work
 
-Binary joins, pull and push, AGM bounds, Yannakakis, filtering, and
-worst-case-optimal joins turn one meaning into sharply different executions.
-Students trace the intermediates and measure the operations—not merely the wall
-clock.
+Join plans, indexes, relation layouts, and iterator state determine how a query
+runs. Pull and push, AGM bounds, Yannakakis, filtering, and worst-case-optimal
+joins reveal different ways to organize that work. Students trace the
+intermediates and measure the operations as well as elapsed time.
 
 ## 03 · Make joins recursive
 
