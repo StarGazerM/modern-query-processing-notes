@@ -16,21 +16,26 @@ objects already known to the reader. Do not explain the chapter in advance.
 :::ada
 Suppose the relations are:
 
-| $R(x,y)$ | | $S(y,z)$ | |
-|---:|---:|---:|---:|
-| 1 | 7 | 7 | 4 |
-| 2 | 7 | 8 | 5 |
+| $R$: x | y |
+|---:|---:|
+| 1 | 7 |
+| 2 | 7 |
 
-What tuple is produced by the query?
+| $S$: y | z |
+|---:|---:|
+| 7 | 4 |
+| 8 | 5 |
+
+Which tuples are produced by the query?
 
 ```text
 Q(x,z) :- R(x,y), S(y,z).
 ```
 :::alice
-Only `(1,4)`.
+`(1,4)` and `(2,4)`.
 
-The valuation $x=1$, $y=7$, $z=4$ satisfies both body atoms. The second row of
-each relation does not share a value for `y`.
+Both R tuples have `y=7`, so each matches `S(7,4)`. The two satisfying
+valuations differ in x. `S(8,5)` has no matching R tuple.
 :::
 
 :::reading
@@ -60,7 +65,7 @@ change the relation denoted by the query.
 :::ada
 Change `S(7,4)` to `S(9,4)`. Which part of the preceding reasoning changes?
 :::alice
-The satisfying valuation disappears, so the result becomes empty. The
+Both satisfying valuations disappear, so the result becomes empty. The
 distinction between query meaning and execution choice does not change.
 :::
 

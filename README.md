@@ -312,6 +312,15 @@ Python-to-Rust example.
 
 ## Authoring discipline
 
+- Make the reason for each processing mechanism visible in the dialogue:
+  start with a reader-known computation, trace its limitation or repeated
+  work, and let that observation motivate the next choice. An announced
+  topic or a question containing the whole solution is not a motivation.
+- Treat an algorithm as one response to a stated problem and access model.
+  Explain what it saves and what it still costs; do not suggest that one
+  example makes the algorithm universally necessary or fastest.
+- Distinguish a motivating example, a proved invariant, and a theorem adopted
+  from a reading. Examples do not establish a general guarantee on their own.
 - One `:::ada` / `:::alice` exchange should make one intellectual move.
 - Keep each turn short enough that the next speaker carries part of the
   explanation.

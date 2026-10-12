@@ -63,6 +63,13 @@ types, bindings, and programs matter more than isolated terminology.
 [Conversation 2.3 · The Variables Inside the Picture](04-the-variables-inside-the-picture.html) | Open atom vertices into hyperedges, test why variables must stay grouped, and compare a star with a loop.
 [Conversation 2.4 · The Variables the Plan Still Needed](05-the-variables-the-plan-still-needed.html) | Match whole shared variable sets, derive safe projection, and distinguish fewer rows from fewer columns.
 [Conversation 2.5 · The Order the Compiler Chose](06-the-order-the-compiler-chose.html) | Test local support, construct join trees, challenge ordering heuristics, and justify a plan with schemas and row counts.
+[Conversation 3.1 · The Matches the Algebra Did Not Find](07-the-matches-the-algebra-did-not-find.html) | Separate which tuples a selection requires from how a scan or an index finds them, then let each atom choose its access.
+[Conversation 3.2 · The Tuple That Waited](08-the-tuple-that-waited.html) | Trace resumable indexed joins, distinguish lookup from iteration, and preserve pending matches across calls and batches.
+[Conversation 3.3 · The Loop That Kept Going](09-the-loop-that-kept-going.html) | Derive synchronous push execution and then generate its loops from a physical plan, keeping compilation separate from runtime.
+[Conversation 3.4 · The Rows We Did Not Need](10-the-rows-we-did-not-need.html) | Implement exact semijoins and distinguish row selection, conservative runtime filters, and storage pruning.
+[Conversation 4.1 · The Tuples That Found a Whole Answer](11-the-tuples-that-found-a-whole-answer.html) | Trace both Yannakakis passes, prove their support invariants, and account for full-output enumeration.
+[Conversation 4.2 · The Answers We Might Have to Write](12-the-answers-we-might-have-to-write.html) | Construct large outputs, derive the triangle bound, and distinguish AGM bounds from actual answers and execution work.
+[Conversation 4.3 · The Variable All the Atoms Could Accept](13-the-variable-all-the-atoms-could-accept.html) | Derive Generic Join, trace Leapfrog Triejoin, and connect prefix access and intersection costs to worst-case guarantees.
 [Rust Guide R.0.0 · The Rust We Need](rust-00-the-tree-we-could-read-twice.html) | Follow a focused Rust route, then predict, compile, and repair five small ordinary programs.
 [Rust Conversation R.1 · The Code That Became a Value](rust-01-the-code-that-became-a-value.html) | Separate expansion from execution and make generated Rust syntax into a typed value.
 [Rust Conversation R.2 · The Arithmetic That Ran Before the Program](rust-02-the-arithmetic-that-ran-before-the-program.html) | Map a small expression language into our derived AST and evaluate it during expansion.

@@ -1,0 +1,380 @@
+---
+title: The Loop That Kept Going
+subtitle: Conversation 3.3 — Push Execution and Query Compilation
+author: Modern Query Processing
+date: Fall 2026
+status: Draft
+layout: dialogue
+left_speaker: Ada
+right_speaker: Alice
+previous: [Conversation 3.2 · The Tuple That Waited](08-the-tuple-that-waited.html)
+next: [Conversation 3.4 · The Rows We Did Not Need](10-the-rows-we-did-not-need.html)
+---
+
+# The loop that kept going
+
+:::ada
+In 3.2, pausing after a result let the consumer decide whether to continue.
+Now the consumer wants the complete `appearance` relation. After each
+returned tuple, it inserts the projected answer and immediately asks for
+another. What does its outer loop look like?
+:::alice
+```text
+loop:
+    match J2.next():
+        None: break
+        Some(w):
+            answers.insert((w.Actor, w.Schedule, w.Address))
+```
+
+The action after a return is always the same. The consumer is not making
+a new decision between these results.
+:::
+
+:::ada
+We could keep batching those returns. Here is another possibility: give
+the producer that action once. What could it do when a result is ready?
+:::alice
+Perform the action and continue its loop. It would no longer have to
+return one tuple and wait for an immediate request to resume.
+
+We would need another way to stop early if the consumer later wanted that.
+:::
+
+:::ada
+Use the same cinema arrays and indexes. Keep the same indexed plan and
+the same `appearance(c,s,a)` query. What should happen when the first
+movie–showing match is ready?
+:::alice
+Use its Theater to look up Location. For each address, send the projected
+actor, showing time, and address to the result collector.
+
+Then continue to the next showing for the current movie.
+:::
+
+:::ada
+Write that control flow. `lookup_P` and `lookup_L` still enumerate the
+exact matching tuples defined in 3.2. The collector `answers` is a set.
+:::alice
+```text
+for u in scan(M):
+    for v in lookup_P(u.Title):
+        for w in lookup_L(v.Theater):
+            answers.insert((u.Actor, v.Schedule, w.Address))
+```
+
+Those are the same nested lookups. But a completed match now continues
+directly into the action that uses it.
+:::
+
+:::ada
+Which answers does the first Movies tuple cause?
+:::alice
+First `(actor1,18:00,addr1)`, then `(actor1,21:00,addr1)`.
+Only then does the outer loop move to actor2.
+
+The trace agrees with the pull plan's first two results.
+:::
+
+:::ada
+Did the Title-match offset disappear?
+:::alice
+It is still needed by the inner loop. The loop and its local variables
+now hold the progress that the resumable join previously stored between
+calls.
+
+We changed where control waits. We did not make iteration stateless.
+:::
+
+:::definition Pull and push
+In **pull** execution, a consumer requests another result from a producer.
+In **push** execution, a producer passes a result to the action that
+consumes it. Our push examples run synchronously: the consuming action
+finishes before the producer continues.
+
+Either direction can use different join algorithms and different processing
+units. Push by itself specifies neither generated code nor parallel execution.
+The loops may still use cursors inside a scan or lookup. The changed choice
+here is how a produced tuple continues through the consuming operators.
+:::
+
+:::ada
+Could I implement that action as an ordinary function call for every tuple?
+:::alice
+Yes. That would be push execution, with a runtime call to the consumer.
+It would not yet be a query compiler.
+:::
+
+:::ada
+Suppose our runtime consumer is a generic plan node. For each tuple it
+inspects whether it represents a selection, projection, or join, then
+performs that operation. Does its node kind change between actor1 and actor2?
+:::alice
+No. Its plan and attribute choices stay fixed while the tuples change.
+That repeated interpretation is a possible cost of this implementation.
+:::
+
+:::ada
+Can a program built for this particular plan make those fixed choices
+before reading the tuples?
+:::alice
+It could put the chosen tests and field accesses directly in the loop
+body. Then the loop would operate on the tuple values without asking
+what kind of plan node to interpret each time.
+
+That motivates specialization. It does not tell us whether its cost will
+pay off for a small query.
+:::
+
+:::ada
+Should we hand-write a new loop body whenever a user changes the query?
+:::alice
+No. The plan already describes the required operations. We need to turn
+those descriptions into code systematically.
+
+That is the compiler's job. How does it compose the pieces?
+:::
+
+:::ada
+First compile a smaller plan over Movies:
+
+$$
+\pi_{\mathrm{Title}}
+\bigl(\sigma_{\mathrm{Director}=\mathrm{Bergman}}(M)\bigr).
+$$
+
+Let $k(u)$ mean “generate the code that uses the current tuple expression
+$u$.” What code should the scan generator put around $k(u)$?
+:::alice
+It emits a loop over Movies, then places the code generated by $k(u)$
+inside that loop:
+
+```text
+for u in M:
+    <code generated by k(u)>
+```
+
+Here `u` is a name in the program being generated. We are not reading
+one particular Movies tuple during compilation.
+:::
+
+:::ada
+What should selection put between that loop and its consumer?
+:::alice
+An `if` whose body contains the consumer's code:
+
+```text
+for u in M:
+    if u.Director == "Bergman":
+        <code for the selected tuple's consumer>
+```
+:::
+
+:::ada
+The consumer inserts Title into a result set. Finish the program and run
+it on the three Movies tuples.
+:::alice
+```text
+answers = empty_set()
+for u in M:
+    if u.Director == "Bergman":
+        answers.insert(u.Title)
+```
+
+Actor1 inserts filmA. Actor2 inserts filmA again, leaving the set unchanged.
+Actor3 fails the condition. The answer is `{filmA}`.
+:::
+
+:::ada
+Suppose I delete the set and simply emit Title at each successful test.
+:::alice
+Then I emit filmA twice. Fusing the operations did not give permission to
+drop duplicate elimination from relational projection.
+:::
+
+:::definition A consumer during code generation
+Our notation $\operatorname{generate}(P,k)$ means: emit code for physical
+plan $P$, placing the code constructed by $k$ at each produced tuple.
+The compiler manipulates plan nodes and expressions naming future runtime
+values. The emitted program later reads the database.
+
+For a scan, generation emits a loop. For a selection, it asks its input to
+generate code whose consumer is an `if` followed by the parent's consumer.
+For our indexed join, it adds a loop over keyed matches inside the outer
+tuple's consumer. This is a course presentation of compositional generation.
+:::
+
+:::reading
+**Primary source.** Neumann,
+[Efficiently Compiling Efficient Query Plans for Modern Hardware](https://www.vldb.org/pvldb/vol4/p539-neumann.pdf#page=3),
+§3.2 and Figure 5, explains the `produce`/`consume` code-generation
+interface. The small selection and indexed-join generators here are course
+examples. The paper's illustrated binary join builds and probes a hash table.
+:::
+
+:::ada
+Neumann calls the compiler-side methods `produce` and `consume`. Does
+`consume` run once for actor1 and again for actor2 when the query executes?
+:::alice
+I was about to say yes. But it generated the loop body. That body runs
+for actor1 and actor2 later.
+
+The compiler's traversal of the plan and the generated program's traversal
+of tuples are different computations.
+:::
+
+:::ada
+Which parts of the selection example are available during generation?
+:::alice
+The Movies schema, the selected Director field, the constant Bergman, and
+the requested Title field. The actual movie values arrive at runtime.
+
+That matches R.3: leave runtime holes in the program we construct.
+:::
+
+:::ada
+Return to the three-way indexed plan. Describe how its loops are built,
+starting at the final collector.
+:::alice
+The collector generates insertion of `(Actor,Schedule,Address)`.
+
+$J_2$ asks $J_1$ to produce a tuple, then generates a Theater lookup loop
+around that insertion. $J_1$ asks the Movies scan to produce a tuple,
+then generates a Title lookup loop around $J_2$'s code.
+
+The result is the three nested loops we traced. We reached them through
+the physical plan.
+:::
+
+:::ada
+Could the compiler silently replace the inner Title lookup with one
+membership test?
+:::alice
+No. Actor1 has two showings. Existence would tell us that at least one
+exists, but it would not enumerate both times.
+
+Changing control flow must preserve the access contract too.
+:::
+
+:::ada
+Remove the pre-existing Title index. If every movie scans Pariscope,
+what work repeats for the two filmA actors?
+:::alice
+Both search the same showing array for the same Title. We still need
+both actors' matches, but we could share the work of organizing Pariscope.
+:::
+
+:::ada
+Suppose we pay for one traversal that groups showings by Title in a
+temporary hash table. Then each movie probes its group. This is the
+build-then-probe hash join previewed in 3.2. Write its two phases.
+:::alice
+A build loop over Pariscope:
+
+```text
+H = empty_map_of_lists()
+for v in P:
+    H[v.Title].append(v)
+
+for u in M:
+    for v in H.get_or_empty(u.Title):
+        for w in lookup_L(v.Theater):
+            answers.insert((u.Actor, v.Schedule, w.Address))
+```
+
+The table keeps both filmA showings. Keeping one would lose an answer.
+:::
+
+:::ada
+Can we start probing after the first filmA showing enters $H$, and treat
+that lookup as complete?
+:::alice
+No. The 21:00 showing has not arrived yet. This build-then-probe algorithm
+must finish the build before the probe phase uses the table as complete.
+
+Push execution did not remove that dependency.
+:::
+
+:::ada
+What is stored at the boundary between those phases?
+:::alice
+The hash table of build tuples, or references to them. Not the complete
+movie–showing join result.
+
+The probe phase can still pass each joined tuple directly into the
+Location lookup.
+:::
+
+:::definition Pipelines and their boundaries
+In these examples, a **pipeline** lets one produced tuple continue through
+several operations. A boundary appears when an operation must retain data
+for later work. Our hash build has a full-input dependency before probing.
+
+Neumann uses a finer boundary for the locality argument: taking tuple values
+out of CPU registers is already pipeline breaking; materializing a whole
+input is a full pipeline break. These are related but different criteria.
+:::
+
+:::reading
+**Source distinction.** Neumann, §3.1, p. 540, defines these two boundaries.
+CMU 15-721's
+[Code Generation and Compilation](https://15721.courses.cs.cmu.edu/spring2024/notes/07-compilation.pdf),
+§§2–4, provides a complementary account of specialization and generated
+pipelines. Neither control direction alone nor code generation alone is a
+proof of faster execution.
+:::
+
+:::ada
+The consumer wants just the first answer. In the pull version it stops
+calling `next`. What must the push version arrange?
+:::alice
+The consumer must signal that it is finished, and the loops must propagate
+that signal outward. Breaking only the Location loop would let the next
+showing continue producing answers.
+
+Early termination is part of the control protocol, not an automatic
+consequence of this loop syntax.
+:::
+
+:::ada
+Have we proved that the generated version is faster?
+:::alice
+We have proved no timing claim. It may avoid calls and keep values close
+to their uses. It also costs time to generate and compile code.
+
+A compiler may inline a pull implementation too. We must inspect or
+measure the implementations we actually compare.
+:::
+
+:::ada
+Try a different input: one Movies tuple, two matching showings, and no
+matching Location. Compare the complete executions.
+:::alice
+Both versions try the two showing matches and find two empty Location
+lookups. Both return the empty answer set.
+
+The pull call works internally until it returns `None`. The push loops
+finish without inserting anything. Empty output does not mean no work.
+:::
+
+:::ada
+And if I change only the batch size or the storage layout?
+:::alice
+That is another choice. It does not follow from choosing pull or push.
+
+We can now ask separately which tuples are required, how to find them,
+and who drives the next step.
+:::
+
+:::recap Execution and generation
+The indexed pull and push executions enumerate the same witnesses under the
+same access contracts. Pull retains continuation state between requests;
+synchronous push continues into the consumer while its loops remain active.
+
+A push-style compiler builds those consumer bodies during code generation.
+The resulting program later processes tuples. Neumann's `produce`/`consume`
+interface describes this generation process. Build dependencies, retained
+data, duplicate elimination, and early-stop protocols still require explicit
+implementations. Correctness comes from preserving the chosen plan's result;
+performance requires a separate argument or measurement.
+:::

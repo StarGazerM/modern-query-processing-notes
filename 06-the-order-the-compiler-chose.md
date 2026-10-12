@@ -8,6 +8,7 @@ layout: dialogue
 left_speaker: Ada
 right_speaker: Alice
 previous: [Conversation 2.4 · The Variables the Plan Still Needed](05-the-variables-the-plan-still-needed.html)
+next: [Conversation 3.1 · The Matches the Algebra Did Not Find](07-the-matches-the-algebra-did-not-find.html)
 ---
 
 # The order the compiler chose
