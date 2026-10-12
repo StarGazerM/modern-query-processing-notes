@@ -999,6 +999,16 @@ blockquote {
     white-space: nowrap;
   }
 
+  #weekly-slides + p + table {
+    display: table;
+    table-layout: fixed;
+    white-space: normal;
+  }
+
+  #weekly-slides + p + table th:first-child {
+    width: 32%;
+  }
+
   .course-card-grid {
     grid-template-columns: 1fr;
     margin-right: 20px;
