@@ -15,8 +15,8 @@ right_speaker: Alice
 # Weekly materials
 
 Find the lecture slides, companion notes, readings, and project checkpoints on
-the course schedule. PDF slides are available for Weeks 1–5, from Rust and CQ
-semantics through relational algebra, physical access, and query execution.
+the course schedule. PDF slides are available for Weeks 1–5, covering Rust,
+macros, CQ semantics, relational algebra, physical access, and query execution.
 
 :::cards
 [Lecture slides and weekly schedule](schedule.html#weekly-slides) | Download the PDFs for each week and follow the meeting plan.

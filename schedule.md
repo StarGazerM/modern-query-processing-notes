@@ -17,7 +17,7 @@ course develops; later meetings remain tentative.
 |---|---|
 | 1 · Aug. 31–Sep. 4 | [02 · The Rust We Need](slides/02-the-rust-we-need.pdf) |
 | 2 · Sep. 7–11 | [03 · Semantics of Conjunctive Queries](slides/03-semantics-of-cq.pdf) |
-| 3 · Sep. 14–18 | [05 · Relational Algebra](slides/05-relational-algebra.pdf) |
+| 3 · Sep. 14–18 | [04 · Rust Macros](slides/04-macro.pdf); [05 · Relational Algebra](slides/05-relational-algebra.pdf) |
 | 4 · Sep. 21–25 | [06 · Relational Algebra: Selection and Projection](slides/06-relation-algebra-more.pdf); [07 · Physical Access: Indexes and Relation Layout](slides/07-physical-access.pdf) |
 | 5 · Sep. 28–Oct. 2 | [08 · Query Execution: Iterators, State, and Batches](slides/08-query-execution.pdf) |
 
